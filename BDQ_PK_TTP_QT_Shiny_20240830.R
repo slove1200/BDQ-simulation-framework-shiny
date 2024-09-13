@@ -132,6 +132,7 @@ ui <-
                 numericInput("simtime", label = "Simulation Time", value = 24, min = 1, max = 24000),
                 selectInput("sunit", label = "Simulation Time-Unit", c("week" = "2", "day" = "1")),
                 selectInput("IIV", label = "Interindiviual variability", c("OFF", "ON"), selected = "0FF"),
+                actionButton("goButton", "Start simulation"), 
                 hr(),
                 radioButtons("ipred",
                              label = "Type of plot output",
@@ -603,7 +604,7 @@ PKSimulation <- function(IIVval, IEval, mod, df, sim_time, sunit) {
 server <- function(input, output, session) {
   
   ## define sim_dataframePK() ####
-  sim_dataframePK <- reactive({
+  sim_dataframePK <- eventReactive(input$goButton, {
     ## Simulation settings
     # 1. "nsim"
     nsamples <- as.numeric(input$nsim)      # Number of simulated individuals
@@ -699,7 +700,7 @@ server <- function(input, output, session) {
     return(out)
   })
   
-  dfReadyForQT <- reactive({
+  dfReadyForQT <- eventReactive(input$goButton, {
     dfQT <- sim_dataframePK() %>% filter(AMT == 0)
     dfQT <- subset(dfQT, select = c(ID, REGIMEN, time, IPREDM2, RACE, AGE))
     # dfQT <- dfQT %>% mutate(CONCM2_weekly = dd2$weekly_M2/168*1000)
@@ -729,7 +730,7 @@ server <- function(input, output, session) {
   })
   
   #### Simulation: QT
-  sim_dataframeQT <- reactive({
+  sim_dataframeQT <- eventReactive(input$goButton, {
     ## Simulation settings
     # 1. "nsim"
     nsamples <- as.numeric(input$nsim)      # Number of simulated individuals
@@ -766,7 +767,7 @@ server <- function(input, output, session) {
   
   
   #### DATAFRAME FOR TROUGH CONC AT 24 HRS
-  sim_dataframe24 <- reactive({
+  sim_dataframe24 <- eventReactive(input$goButton, {
     df <- sim_dataframePK() %>% filter(AMT == 0)
     df <- df %>% filter(time %% 24 == 0)
     df$DAY <- df$time / 24
@@ -774,7 +775,7 @@ server <- function(input, output, session) {
   })
   
   ####### Reactive MEAN DAILY CONCENTRATION
-  Cavg_daily <- reactive({
+  Cavg_daily <- eventReactive(input$goButton, {
     d1 <- sim_dataframePK() %>% filter(AMT == 0)
     
     d1 <- d1 %>% filter(time %% 24 == 0)
@@ -824,7 +825,7 @@ server <- function(input, output, session) {
   
   
   #### WEEKLY Cavg
-  Cavg_weekly <- reactive({
+  Cavg_weekly <- eventReactive(input$goButton, {
     d2 <- sim_dataframePK() %>% filter(AMT == 0)
     
     ####### Use the substituted new data frame d1
@@ -875,7 +876,7 @@ server <- function(input, output, session) {
     return(dd2)
   })
   
-  dfReadyForTTP <- reactive({
+  dfReadyForTTP <- eventReactive(input$goButton, {
     TTPdf   <- tidyr::crossing(
       ID    = c(1:input$nsim), 
       WEEKP = c(1:24), 
@@ -922,7 +923,7 @@ server <- function(input, output, session) {
   })
   
   #### Simulation: TTP
-  sim_dataframeTTP <- reactive({
+  sim_dataframeTTP <- eventReactive(input$goButton, {
     ## Simulation settings
     # 1. "nsim"
     nsamples <- as.numeric(input$nsim)      # Number of simulated individuals
@@ -969,19 +970,20 @@ server <- function(input, output, session) {
   })
   
   ######## OUTPUTS reactive plot
-  ipred <- reactive({
+  ipred <- eventReactive(input$goButton, {
     input$ipred
   })
-  plot <- reactive({
+  plot <- eventReactive(input$goButton, {
     input$plot
   })
-  sim_time <- reactive({
+  sim_time <- eventReactive(input$goButton, {
     input$sim_time
   })
   
   output$plot <- renderPlot({
-    RACE <- input$RACE
-    IE <- input$IE
+    input$goButton
+    RACE <- isolate(input$RACE)
+    IE <- isolate(input$IE)
     
     if (input$ipred == 1) {
       # if(input$IIV == "ON") {
