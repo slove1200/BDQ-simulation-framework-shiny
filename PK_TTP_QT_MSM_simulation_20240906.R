@@ -325,7 +325,7 @@ new_rows2 <- HLMBL %>% group_by(ID) %>%
 # Bind the new rows to the original dataframe
 HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
 
-HLMBL2 <- HLMBL2 %>% group_by(ID) %>% 
+TTPcov <- HLMBL2 %>% group_by(ID) %>% 
   mutate(HL2 = ifelse(WEEKP == 0, 0.69443, lag(HL)), 
          MBLend = MBL[WEEKP == 24]) %>% 
   mutate(HL2 = ifelse(WEEKP == 1, 0.69443, HL2), # median of HL 
@@ -339,7 +339,7 @@ ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(input$nsim))
 ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(0,1,2,3,4,5), evid = c(2,4,1,1,1,1), ID = seq(input$nsim),
           addl = 120, ii = 168, rate = 0, realize = T)
 data.dose <- seq(ev0, ev1)
-data.dose <- setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
+data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
   mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
 
 
@@ -347,13 +347,12 @@ data.dose <- setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
 # MTTP (same with TTP), XDR (in TTP is MDR and pre-XDR/XDR, in MSM is non-XDR and XDR), 
 # HL2, MBLend, SEX (same with QT), baseWT (from PK)
 PKcov <- out %>% group_by(ID) %>% slice(1L) %>% select(ID, WT, AGE, RACE)
-TTPcov <- HLMBL2
 
-idata <- data.table(ID=1:input$nsim) %>% left_join(PKcov)
-data.all <- merge(data.dose, idata, by = "ID") %>% left_join(HLMBL2) %>%
+idata <- data.table::data.table(ID=1:input$nsim) %>% left_join(PKcov)
+data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov) %>%
   group_by(ID) %>% zoo::na.locf()
 
-dftentimes <- map_df(1:100, ~ {
+dftentimes <- map_df(1:10, ~ {
   data.all %>%
     mutate(ID = ID + input$nsim * (.x - 1))  # Adjust ID for each copy
 })
@@ -367,15 +366,16 @@ outMSM <- modMSM %>%
   data_set(dftentimes) %>%
   mrgsim(end = 20160, delta = 168) %>%
   as.data.frame %>%
-  as.data.table %>% filter(EVID == 0) %>% 
+  filter(EVID == 0) %>% 
   mutate(time = time/24/7) %>%
   rename("STATE" = "XDV") %>%
   select(-EVID, -P_4)
 
 #### Plot
-summary_MSM8 <- outMSM %>% group_by(time, STATE) %>% summarise(prop = n()/10000, .groups = "drop") %>%
+summary_MSM <- outMSM %>% group_by(time, STATE) %>% summarise(prop = n()/1000, .groups = "drop") %>%
   # Ensure all combinations of time and STATE are included, even if they have no observations
   complete(time, STATE, fill = list(prop = 0))
+
 
 # Custom labeller function to change facet titles
 state_labels <- as_labeller(function(STATE) {
