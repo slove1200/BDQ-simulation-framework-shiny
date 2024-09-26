@@ -10,12 +10,120 @@ library(shiny)
 library(grid)
 library(gridExtra)
 library(DT)
+library(bslib)
 
+# ui function ####
+# Function to create the UI for a regimen column
+regimenColumn <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
+  
+  # Helper to create the dose controls
+  doseControls <- function(regimen_num) {
+    div(
+      conditionalPanel(
+        condition = paste0("input.LD", regimen_num, " == true"),
+        h4("Loading dose"),
+        numericInput("ldose", label = "Loading dose of BDQ (mg)", value = 400, min = 100, max = 20000),
+        numericInput("ldur", label = "Loading dose duration", value = 2, min = 1, max = 20000),
+        selectInput("lunit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
+        selectInput("lfreq", 
+                    label = "Loading dose frequency", 
+                    c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), 
+                    selected = "Once daily"
+        )
+      ),
+      br(),
+      h4("Maintenance dose"),
+      numericInput("mdose", label = "Maintenance dose of BDQ (mg)", value = 200, min = 100, max = 20000),
+      numericInput("mdur", label = "Maintenance dose duration", value = 22, min = 1, max = 20000),
+      selectInput("munit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
+      selectInput("mfreq",
+                  label = "Maintenance dose frequency", 
+                  c("Twice daily", "Once daily", "Three times weekly", "Once weekly"),
+                  selected = "Three times weekly"
+      )
+    )
+  }
+  
+  # Column layout
+  column(
+    width = 3, 
+    style = "width: 20.833%;",
+    
+    # Optional conditionalPanel for regimens other than 1
+    if (addition_RG) conditionalPanel(
+      condition = paste0("input.RG", regimen_num, " == true"),
+      div(
+        style = paste0("background-color: ", background_color, "; padding: 15px; border-radius: 10px;"),
+        h3(paste("Regimen", regimen_num)),
+        br(),
+        checkboxInput(paste0("LD", regimen_num), "Add loading dose", value = default_LD),
+        doseControls(regimen_num)
+      ), 
+      # When calling a conditionalPanel a div tag is created. 
+      # This div tag by default is visible - once the condition is checked it's hidden.
+      # To hide it right from the start we can add a style attribute setting "display: none;" for conditionalPanel.
+      style = "display: none;"
+    ) else div(
+      style = paste0("background-color: ", background_color, "; padding: 15px; border-radius: 10px;"),
+      h3(paste("Regimen", regimen_num)),
+      br(),
+      checkboxInput(paste0("LD", regimen_num), "Add loading dose", value = default_LD),
+      doseControls(regimen_num)
+    )
+  )
+}
+
+
+# Function to create UI for a DDI panel
+CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
+  
+  # Helper to create the coMed controls
+  coMedControls <- function(regimen_num) {
+    selectInput(paste("IE", regimen_num), label = "", 
+                choices = c("None", "Clofazimine", "Efavirenz", "Lopinavir/r", "Moxifloxacin", "Nevirapine", "Rifampicin", "Rifapentine"), 
+                multiple = TRUE)
+  }
+  
+  # Optional conditionalPanel for regimens other than 1
+  if (addition_RG) 
+        conditionalPanel(
+        condition = paste0("input.RG", regimen_num, " == true"),
+        card(
+          max_height = "150px",
+          card_header(paste("Regimen", regimen_num), style = paste0("font-size: 18px; background-color: ", background_color,"; ")),
+          card_body(
+            div(
+              coMedControls(regimen_num)
+            )
+        )
+      ),
+      # When calling a conditionalPanel a div tag is created. 
+      # This div tag by default is visible - once the condition is checked it's hidden.
+      # To hide it right from the start we can add a style attribute setting "display: none;" for conditionalPanel.
+      style = "display: none;", 
+      # Allow overflow for SelectInput
+      tags$head(tags$style('.card{overflow: visible !important;}'),
+                tags$style('.card-body{overflow: visible !important;}'))
+    )
+
+  else card(
+      max_height = "150px",
+      card_header(paste("Regimen", regimen_num), style = paste0("font-size: 18px; background-color: ", background_color,"; ")),
+      card_body(
+        coMedControls(regimen_num)
+      ), 
+      # Allow overflow for SelectInput
+      tags$head(tags$style('.card{overflow: visible !important;}'),
+                tags$style('.card-body{overflow: visible !important;}'))
+      )
+}
 
 # ui ####
 ui <-
   fluidPage(
     navbarPage(
+      header = tagList(""),  # This will be displayed above the tabs
+      footer = tagList(""),        # This will be displayed below the tabs
       "BEDAQUILINE DOSE REGIMEN",
       tabsetPanel(
         id = "mainTab", selected = "Dosing",
@@ -85,8 +193,8 @@ ui <-
               p("*Baseline Body Weight (kg)"),
               p("*Baseline Albumin Concentration (g/dL)"),
               br(),
-              h4("4. Select the Drug-drug Interaction tab"),
-              h4("Choose a Drug-drug Interaction effect"),
+              h4("4. Select the Concomitant medication tab"),
+              h4("Choose a Concomitant medication effect"),
               p("*None"),
               p("*Efavirenz"),
               p("*Nevirapine"),
@@ -115,78 +223,287 @@ ui <-
         
         tabPanel(
           "Dosing",
+          br(),
           fluidRow(
+            
             sidebarPanel(
               width = 2, 
-              h4("Add dosing regimen"), 
+              h4("Add regimen"), 
               br(),
-              checkboxInput("RG2", "Regimen 2", value = FALSE),
-              checkboxInput("RG3", "Regimen 3", value = FALSE),
-              checkboxInput("RG4", "Regimen 4", value = FALSE)
-            ),
-            column(
-              width = 3,
-              br(),
-              div(style = "background-color: #F0F8FF; padding: 15px;",
-                  h3("Regimen 1"), 
-                  br(), 
-                  checkboxInput("LD1", "Add loading dose", value = TRUE),
-                  conditionalPanel(
-                    condition = "input.LD1 == true",
-                    h4("Loading dose"),
-                    numericInput("ldose", label = "Loading dose of BDQ (mg)", value = 400, min = 100, max = 20000),
-                    numericInput("ldur", label = "Loading dose duration", value = 2, min = 1, max = 20000),
-                    selectInput("lunit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
-                    selectInput("lfreq",
-                                label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"),
-                                selected = "Once daily"
-                    )
-                  ),
-                  br(),
-                  h4("Maintenance dose"),
-                  numericInput("mdose", label = "Maintenance dose of BDQ (mg)", value = 200, min = 100, max = 20000),
-                  numericInput("mdur", label = "Maintenance dose duration", value = 22, min = 1, max = 20000),
-                  selectInput("munit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
-                  selectInput("mfreq",
-                              label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"),
-                              selected = "Three times weekly"
-                  )
-                )
-               ), 
-            column(
-              width = 3,
-              br(),
+              
+              # Checkbox for Regimen 2
+              checkboxInput("RG2", "Regimen 2", value = FALSE),  # Checkbox to show/hide Regimen 2
+              
+              # Conditionally show Regimen 3 only if Regimen 2 is checked
               conditionalPanel(
                 condition = "input.RG2 == true", 
-                div(style = "background-color: #F5FFFA; padding: 15px;",
-                    h3("Regimen 2"), 
-                    br(), 
-                    checkboxInput("LD2", "Add loading dose", value = FALSE),
-                    conditionalPanel(
-                      condition = "input.LD2 == true",
-                      h4("Loading dose"),
-                      numericInput("ldose", label = "Loading dose of BDQ (mg)", value = 400, min = 100, max = 20000),
-                      numericInput("ldur", label = "Loading dose duration", value = 2, min = 1, max = 20000),
-                      selectInput("lunit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
-                      selectInput("lfreq",
-                                  label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"),
-                                  selected = "Once daily"
-                      )
+                checkboxInput("RG3", "Regimen 3", value = FALSE),  # Checkbox to show/hide Regimen 3
+                # Conditionally show Regimen 4 only if Regimen 3 is checked
+                conditionalPanel(
+                  condition = "input.RG3 == true", 
+                  checkboxInput("RG4", "Regimen 4", value = FALSE)  # Checkbox to show/hide Regimen 4
+                ),
+                style = "display: none;"
+              ),
+              style = "border-radius: 15px;"
+            ), # end of sidebarPanel Add regimen
+            
+            # Always display Regimen 1 (no condition for Regimen 1)
+            regimenColumn(1, "#CDD8DA", default_LD = TRUE, addition_RG = FALSE), 
+            regimenColumn(2, "#E1C3C8", default_LD = FALSE, addition_RG = TRUE),
+            regimenColumn(3, "#C1D4D7", default_LD = FALSE, addition_RG = TRUE),
+            regimenColumn(4, "#E7D7CB", default_LD = FALSE, addition_RG = TRUE)
+          ) # end of first fluidRow
+        ), # end of tab Dosing column
+        
+        # Population settings ####
+        tabPanel(
+          "Population",
+          br(),
+          page_fillable(
+            layout_columns(
+              card(
+                card_header("Covariates", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+                card_body(
+                  fluidRow(
+                    # Column for continuous covariates
+                    column(6,
+                           card(
+                             card_header("Continuous Covariates", style = "font-size: 18px; background-color: #CDD8DA4D;"),
+                             card_body(
+                               style = "font-weight: bold;",
+                               numericInput("AGE1", label = "Age (years)", value = 47, min = 15, max = 100),
+                               numericInput("WT1", label = "Baseline Body Weight (kg)", value = 55, min = 30, max = 1400),
+                               numericInput("ALB1", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
+                               numericInput("CACOR1", label = "Baseline corrected calcium level (IU/L)", value = 2.44, min = 0.1, max = 20, step = 0.1),
+                               numericInput("K1", label = "Baseline potassium level (IU/L)", value = 4.2, min = 0.1, max = 20, step = 0.1),
+                               # median 163 hrs, remember to change input (as model use hours); also MTTP2 or ??
+                               numericInput("MTTP2", label = "Baseline time-to-positivity in MGIT culture (days)", value = 6.8, min = 0.1, max = 42, step = 0.1) 
+                             )
+                           )
                     ),
-                    br(),
-                    h4("Maintenance dose"),
-                    numericInput("mdose", label = "Maintenance dose of BDQ (mg)", value = 200, min = 100, max = 20000),
-                    numericInput("mdur", label = "Maintenance dose duration", value = 22, min = 1, max = 20000),
-                    selectInput("munit", label = "Unit", c("week" = "2", "day" = "1"), selected = "week"),
-                    selectInput("mfreq",
-                                label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"),
-                                selected = "Three times weekly"
+                    # Column for categorical covariates
+                    column(6,
+                           card(
+                             card_header("Categorical Covariates", style = "font-size: 18px; background-color: #CDD8DA4D;"),
+                             card_body(
+                               selectInput("SEX1", label = tags$span(style="font-weight: bold;","Sex"), choices = c("Male", "Female")),
+                               selectInput("RACE1", label = tags$span(style="font-weight: bold;","Race"), choices = c("Non-Black", "Black")),
+                               selectInput("XDR1", label = tags$span(style="font-weight: bold;","Drug resistance"), choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
+                             )
+                           )
                     )
                   )
-              )
+                )
+              ),
+              
+              # Second card with custom background color and styled card header/body
+              card(
+                card_header("Concomitant Medication", style = "font-size: 22px; background-color: #CDD8DA;"  # Using card_header for the title
+                ),
+                card_body(
+                  CoMedColumn(1, "#CDD8DA8D", default_LD = TRUE, addition_RG = FALSE), 
+                  CoMedColumn(2, "#E1C3C88D", default_LD = FALSE, addition_RG = TRUE),
+                  CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE), 
+                  CoMedColumn(4, "#E7D7CB8D", default_LD = FALSE, addition_RG = TRUE)  
+                )
+              ),
+              
+              # Third card with custom background color and styled card header/body
+              card(
+                card_header("Advanced Settings", style = "font-size: 22px; background-color: #D8BFD8;"  # Using card_header for the title
+                ),
+                card_body(
+                  fluidRow(
+                    # Column for Background therapy
+                    column(6,
+                           card(
+                             card_header("Background therapy", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                             card_body(
+                               style = "font-weight: bold;",
+                               numericInput("HL1", label = "Half-life of bacterial clearance (%) lower", value = 20, min = -300, max = 300, width = "70%"),
+                               "***HL and surge peak are highly correlated", 
+                             )
+                           )
+                    ),
+                    # Column for Model settings
+                    column(6,
+                           card(
+                             card_header("Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                             card_body(
+                               selectInput("STUDY", label = tags$span(style="font-weight: bold;","Type of model for PK-TTP"), choices = c("Treatment-naïve", "Treatment-experienced")),
+                               numericInput("SA1", label = tags$span(style="font-weight: bold;","Peak of conversion (%) faster"), value = 20, min = -300, max = 300)
+                             )
+                           )
+                    )
+                  ),
+                  "Additional content for Advanced settings goes here."
+                )
+              ),
+              col_widths = c(8, 4, 8),
+              row_heights = c(5, 3)
             )
+            
+          ),
+        #   
+        #   fluidRow(
+        #     column(
+        #       width = 3, 
+        #       style = "width: 20.833%;",
+        #       div(
+        #         style = paste0("background-color: #CAD0D8; padding: 15px;"),
+        #         h3("Basic Settings"),
+        #         br(),
+        #         h4("Choose Model Covariate"),
+        #         numericInput("AGE3", label = "Age (years)", value = 47, min = 15, max = 100),
+        #         selectInput("RACE3", label = "Race effect", c("Non-Black", "Black")),
+        #         numericInput("WT3", label = "Baseline Body Weight (kg)", value = 55, min = 30, max = 1400),
+        #         numericInput("ALB3", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
+        #         em("*Race, ALbumin Concentration (g/dL) and Body weight (kg) are significant covariates in the model"),
+        #         br()
+        #       )
+        #     ), # end of first column
+        #     column(
+        #       width = 3, 
+        #       style = "width: 20.833%;",
+        #       div(
+        #         style = paste0("background-color: #CDD8DA; padding: 15px;"),
+        #         h3("Drug-drug Interaction"),
+        #         br(),
+        #         h4("Dose Regimen 1"),
+        #         radioButtons(
+        #           "IE1", "Drug-drug Interaction",
+        #           c(
+        #             "None" = "NON1",
+        #             "Efavirenz" = "EFZ1",
+        #             "Nevirapine" = "NVP1",
+        #             "Lopinavir/r" = "LPV1",
+        #             "Rifampicin " = "RIF1",
+        #             "Rifapentine" = "RPT1"
+        #           )
+        #         ),
+        #         br(),
+        #         h4("Dose Regimen 2"),
+        #         radioButtons(
+        #           "IE2", "Drug-drug Interaction",
+        #           c(
+        #             "None" = "NON2",
+        #             "Efavirenz" = "EFZ2",
+        #             "Nevirapine" = "NVP2",
+        #             "Lopinavir/r" = "LPV2",
+        #             "Rifampicin " = "RIF2",
+        #             "Rifapentine" = "RPT2"
+        #           )
+        #         ),
+        #         br()
+        #       )
+        #     ) # end of first column
+        #   #     conditionalPanel(
+        #   #       condition = "input.tab3=='Drug-drug Interaction'",
+        #   #       h3("Choose a Drug Interaction Effect"),
+        #   #       h4("Dose Regimen 1"),
+        #   #       radioButtons(
+        #   #         "IE1", "Drug-drug Interaction",
+        #   #         c(
+        #   #           "None" = "NON1",
+        #   #           "Efavirenz" = "EFZ1",
+        #   #           "Nevirapine" = "NVP1",
+        #   #           "Lopinavir/r" = "LPV1",
+        #   #           "Rifampicin " = "RIF1",
+        #   #           "Rifapentine" = "RPT1"
+        #   #         )
+        #   #       ),
+        #   #       br(),
+        #   #       h4("Dose Regimen 2 "),
+        #   #       radioButtons(
+        #   #         "IE2", "Drug-drug Interaction",
+        #   #         c(
+        #   #           "None" = "NON2",
+        #   #           "Efavirenz" = "EFZ2",
+        #   #           "Nevirapine" = "NVP2",
+        #   #           "Lopinavir/r" = "LPV2",
+        #   #           "Rifampicin " = "RIF2",
+        #   #           "Rifapentine" = "RPT2"
+        #   #         )
+        #   #       ),
+        #   #       br(),
+        #   #       h4("Dose Regimen 3"),
+        #   #       radioButtons(
+        #   #         "IE3", "Drug-drug Interaction",
+        #   #         c(
+        #   #           "None" = "NON3",
+        #   #           "Efavirenz" = "EFZ3",
+        #   #           "Nevirapine" = "NVP3",
+        #   #           "Lopinavir/r" = "LPV3",
+        #   #           "Rifampicin" = "RIF3",
+        #   #           "Rifapentine" = "RPT3"
+        #   #         )
+        #   #       )
+        #   #     ), # end of third conditional panel
+        #   #     br(),
+        #   #     conditionalPanel(
+        #   #       condition = "input.tab3=='Simulation Settings'",
+        #   #       numericInput("nsim3", label = "Number of simulated individuals", value = 1, min = 1, max = 10000),
+        #   #       numericInput("simtime3", label = "Simulation Time", value = 24, min = 1, max = 24000),
+        #   #       selectInput("sunit3", label = "Simulation Time-Unit", c("week" = "2", "day" = "1")),
+        #   #       selectInput("variab3", label = "Interindiviual variability", c("OFF", "ON"), selected = "0FF"),
+        #   #       hr(),
+        #   #       radioButtons("ipred3",
+        #   #                    label = "Type of plot output",
+        #   #                    c(
+        #   #                      "Full Concentration Curve" = "1",
+        #   #                      "Trough Concentration Curve" = "2",
+        #   #                      "Mean Daily Concentration Curve" = "3",
+        #   #                      "Mean Weekly Concentration Curve" = "4",
+        #   #                      "Body Weight & Albumin Concentration" = "5"
+        #   #                    )
+        #   #       ),
+        #   #       br(),
+        #   #       em("*Protein binding for BDQ and M2 is >99.9%"),
+        #   #       br(),
+        #   #       em("**BDQ concetration is linked drug efficacy"),
+        #   #       br(),
+        #   #       em("***M2 concentrationbis linked drug safety"),
+        #   #       br()
+        #   #     )
+        #   #   ), # end of first conditional panel
+        #   #   column(
+        #   #     width = 8,
+        #   #     hr(),
+        #   #     h2("Graphical Illustration"),
+        #   #     hr(),
+        #   #     plotOutput("plot3", height = "700px")
+        #   #   )
+        #   # )
+        # ) # end of fluidRow
+      ), # end of population tabPanel  
+        
+      # Population settings ####
+      tabPanel(
+        "Simulation",
+        br(),
+        page_fillable(
+          layout_columns(
+            card(
+              card_header("Sampling Schedule", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+              card_body(style = "font-weight: bold;",
+                        "Choose sampling schedule"
+                        )
+                  ),
+            # Second card with custom background color and styled card header/body
+            card(
+              card_header("Simulation Setting", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+              card_body(
+                        numericInput("NSIM", label = tags$span(style="font-weight: bold;","Number of simulated individuals"), value = 1, min = 1, max = 10000),
+                        numericInput("SIMTIME", label = tags$span(style="font-weight: bold;","Simulation Time"), value = 24, min = 1, max = 24000),
+                        selectInput("SUNIT", label = tags$span(style="font-weight: bold;","Simulation Time-Unit"), c("week" = "2", "day" = "1")),
+                        selectInput("VARIAB", label = tags$span(style="font-weight: bold;","Interindiviual variability"), c("OFF", "ON"), selected = "OFF")
+              )
+            ),
+            col_widths = c(5,5)
           )
-        ), # end of third column, first fluidRow
+        )
+      ), # end of Simulation setting panel
         
         ## compare regimen ####
         tabPanel(
@@ -267,7 +584,7 @@ ui <-
                 numericInput("ALB3", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
                 em("*Race, ALbumin Concentration (g/dL) and Body weight (kg) are significant covariates in the model"),
                 br()
-              ), # end of third conditional panREGIMel
+              ), # end of third conditional panel
               
               
               
