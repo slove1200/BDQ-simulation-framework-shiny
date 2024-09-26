@@ -74,53 +74,107 @@ regimenColumn <- function(regimen_num, background_color, default_LD = FALSE, add
 }
 
 
-# Function to create UI for a DDI panel
+# Function to create the UI for a regimen column with coMed controls
 CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
   
   # Helper to create the coMed controls
   coMedControls <- function(regimen_num) {
-    selectInput(paste("IE", regimen_num), label = "", 
-                choices = c("None", "Clofazimine", "Efavirenz", "Lopinavir/r", "Moxifloxacin", "Nevirapine", "Rifampicin", "Rifapentine"), 
-                multiple = TRUE)
+    div(
+      
+    checkboxGroupInput(inputId = paste0("IE_", regimen_num), 
+                       label = NULL,
+                       choices = c("None", "Clofazimine", "Efavirenz", "Lopinavir/r", 
+                                   "Moxifloxacin", "Nevirapine", "Rifampicin", "Rifapentine"),
+    ),
+    class = "comed-checkbox")
   }
   
   # Optional conditionalPanel for regimens other than 1
   if (addition_RG) 
-        conditionalPanel(
-        condition = paste0("input.RG", regimen_num, " == true"),
-        card(
-          max_height = "150px",
-          card_header(paste("Regimen", regimen_num), style = paste0("font-size: 18px; background-color: ", background_color,"; ")),
-          card_body(
-            div(
-              coMedControls(regimen_num)
-            )
+    conditionalPanel(
+      condition = paste0("input.RG", regimen_num, " == true"),
+      card(
+        max_height = "200px",
+        style = "overflow: unset;",  # Prevent overflow
+        card_header(
+          paste("Regimen", regimen_num), 
+          style = paste0("font-size: 18px; background-color: ", background_color, "; ")
+        ),
+        div(
+          coMedControls(regimen_num),
+          style = "column-count: 2;" # CSS for 2-column layout
         )
       ),
-      # When calling a conditionalPanel a div tag is created. 
-      # This div tag by default is visible - once the condition is checked it's hidden.
-      # To hide it right from the start we can add a style attribute setting "display: none;" for conditionalPanel.
-      style = "display: none;", 
-      # Allow overflow for SelectInput
-      tags$head(tags$style('.card{overflow: visible !important;}'),
-                tags$style('.card-body{overflow: visible !important;}'))
-    )
+      style = "display: none;",
+      tags$head(
+        # JavaScript to handle "None" blocking other options
+        tags$script(HTML(paste0(
+          "
+          $(document).on('change', 'input[name=\"IE_", regimen_num, "\"]', function() {
+            var selectedValues = $('input[name=\"IE_", regimen_num, "\"]:checked').map(function() {
+              return this.value;
+            }).get();
 
-  else card(
-      max_height = "150px",
-      card_header(paste("Regimen", regimen_num), style = paste0("font-size: 18px; background-color: ", background_color,"; ")),
-      card_body(
-        coMedControls(regimen_num)
-      ), 
-      # Allow overflow for SelectInput
-      tags$head(tags$style('.card{overflow: visible !important;}'),
-                tags$style('.card-body{overflow: visible !important;}'))
+            if (selectedValues.includes('None')) {
+              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('disabled', true);
+              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('checked', false);
+            } else {
+              $('input[name=\"IE_", regimen_num, "\"]').prop('disabled', false);
+            }
+          });
+          "
+        )))
       )
+    )
+  else 
+    card(
+      max_height = "200px",
+      style = "overflow: unset;",  # Prevent overflow
+      card_header(
+        paste("Regimen", regimen_num), 
+        style = paste0("font-size: 18px; background-color: ", background_color, "; ")
+      ),
+      style = "overflow: unset;",
+      div(
+        coMedControls(regimen_num),
+        style = "column-count: 2"  # CSS for 2-column layout
+      ),
+      tags$head(
+        # JavaScript to handle "None" blocking other options
+        tags$script(HTML(paste0(
+          "
+          $(document).on('change', 'input[name=\"IE_", regimen_num, "\"]', function() {
+            var selectedValues = $('input[name=\"IE_", regimen_num, "\"]:checked').map(function() {
+              return this.value;
+            }).get();
+
+            if (selectedValues.includes('None')) {
+              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('disabled', true);
+              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('checked', false);
+            } else {
+              $('input[name=\"IE_", regimen_num, "\"]').prop('disabled', false);
+            }
+          });
+          "
+        )))
+      )
+    )
 }
+
+
+
 
 # ui ####
 ui <-
   fluidPage(
+    tags$style(HTML("
+    .shiny-options-group {
+      margin-top: 0 !important;
+    }
+    div.comed-checkbox div.checkbox:first-of-type label {
+      font-weight: bold;
+    }
+                    ")),
     navbarPage(
       header = tagList(""),  # This will be displayed above the tabs
       footer = tagList(""),        # This will be displayed below the tabs
@@ -247,7 +301,7 @@ ui <-
               ),
               style = "border-radius: 15px;"
             ), # end of sidebarPanel Add regimen
-            
+      
             # Always display Regimen 1 (no condition for Regimen 1)
             regimenColumn(1, "#CDD8DA", default_LD = TRUE, addition_RG = FALSE), 
             regimenColumn(2, "#E1C3C8", default_LD = FALSE, addition_RG = TRUE),
