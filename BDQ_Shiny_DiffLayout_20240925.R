@@ -318,7 +318,7 @@ ui <-
                     # Column for Background therapy
                     column(6,
                            card(
-                             card_header("Background therapy", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                             card_header("Background Therapy", style = "font-size: 18px; background-color: #D8BFD84D;"),
                              card_body(
                                style = "font-weight: bold;",
                                numericInput("HL1", label = "Half-life of bacterial clearance (%) lower", value = 20, min = -300, max = 300, width = "70%"),
@@ -343,142 +343,10 @@ ui <-
               col_widths = c(8, 4, 8),
               row_heights = c(5, 3)
             )
-            
-          ),
-        #   
-        #   fluidRow(
-        #     column(
-        #       width = 3, 
-        #       style = "width: 20.833%;",
-        #       div(
-        #         style = paste0("background-color: #CAD0D8; padding: 15px;"),
-        #         h3("Basic Settings"),
-        #         br(),
-        #         h4("Choose Model Covariate"),
-        #         numericInput("AGE3", label = "Age (years)", value = 47, min = 15, max = 100),
-        #         selectInput("RACE3", label = "Race effect", c("Non-Black", "Black")),
-        #         numericInput("WT3", label = "Baseline Body Weight (kg)", value = 55, min = 30, max = 1400),
-        #         numericInput("ALB3", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
-        #         em("*Race, ALbumin Concentration (g/dL) and Body weight (kg) are significant covariates in the model"),
-        #         br()
-        #       )
-        #     ), # end of first column
-        #     column(
-        #       width = 3, 
-        #       style = "width: 20.833%;",
-        #       div(
-        #         style = paste0("background-color: #CDD8DA; padding: 15px;"),
-        #         h3("Drug-drug Interaction"),
-        #         br(),
-        #         h4("Dose Regimen 1"),
-        #         radioButtons(
-        #           "IE1", "Drug-drug Interaction",
-        #           c(
-        #             "None" = "NON1",
-        #             "Efavirenz" = "EFZ1",
-        #             "Nevirapine" = "NVP1",
-        #             "Lopinavir/r" = "LPV1",
-        #             "Rifampicin " = "RIF1",
-        #             "Rifapentine" = "RPT1"
-        #           )
-        #         ),
-        #         br(),
-        #         h4("Dose Regimen 2"),
-        #         radioButtons(
-        #           "IE2", "Drug-drug Interaction",
-        #           c(
-        #             "None" = "NON2",
-        #             "Efavirenz" = "EFZ2",
-        #             "Nevirapine" = "NVP2",
-        #             "Lopinavir/r" = "LPV2",
-        #             "Rifampicin " = "RIF2",
-        #             "Rifapentine" = "RPT2"
-        #           )
-        #         ),
-        #         br()
-        #       )
-        #     ) # end of first column
-        #   #     conditionalPanel(
-        #   #       condition = "input.tab3=='Drug-drug Interaction'",
-        #   #       h3("Choose a Drug Interaction Effect"),
-        #   #       h4("Dose Regimen 1"),
-        #   #       radioButtons(
-        #   #         "IE1", "Drug-drug Interaction",
-        #   #         c(
-        #   #           "None" = "NON1",
-        #   #           "Efavirenz" = "EFZ1",
-        #   #           "Nevirapine" = "NVP1",
-        #   #           "Lopinavir/r" = "LPV1",
-        #   #           "Rifampicin " = "RIF1",
-        #   #           "Rifapentine" = "RPT1"
-        #   #         )
-        #   #       ),
-        #   #       br(),
-        #   #       h4("Dose Regimen 2 "),
-        #   #       radioButtons(
-        #   #         "IE2", "Drug-drug Interaction",
-        #   #         c(
-        #   #           "None" = "NON2",
-        #   #           "Efavirenz" = "EFZ2",
-        #   #           "Nevirapine" = "NVP2",
-        #   #           "Lopinavir/r" = "LPV2",
-        #   #           "Rifampicin " = "RIF2",
-        #   #           "Rifapentine" = "RPT2"
-        #   #         )
-        #   #       ),
-        #   #       br(),
-        #   #       h4("Dose Regimen 3"),
-        #   #       radioButtons(
-        #   #         "IE3", "Drug-drug Interaction",
-        #   #         c(
-        #   #           "None" = "NON3",
-        #   #           "Efavirenz" = "EFZ3",
-        #   #           "Nevirapine" = "NVP3",
-        #   #           "Lopinavir/r" = "LPV3",
-        #   #           "Rifampicin" = "RIF3",
-        #   #           "Rifapentine" = "RPT3"
-        #   #         )
-        #   #       )
-        #   #     ), # end of third conditional panel
-        #   #     br(),
-        #   #     conditionalPanel(
-        #   #       condition = "input.tab3=='Simulation Settings'",
-        #   #       numericInput("nsim3", label = "Number of simulated individuals", value = 1, min = 1, max = 10000),
-        #   #       numericInput("simtime3", label = "Simulation Time", value = 24, min = 1, max = 24000),
-        #   #       selectInput("sunit3", label = "Simulation Time-Unit", c("week" = "2", "day" = "1")),
-        #   #       selectInput("variab3", label = "Interindiviual variability", c("OFF", "ON"), selected = "0FF"),
-        #   #       hr(),
-        #   #       radioButtons("ipred3",
-        #   #                    label = "Type of plot output",
-        #   #                    c(
-        #   #                      "Full Concentration Curve" = "1",
-        #   #                      "Trough Concentration Curve" = "2",
-        #   #                      "Mean Daily Concentration Curve" = "3",
-        #   #                      "Mean Weekly Concentration Curve" = "4",
-        #   #                      "Body Weight & Albumin Concentration" = "5"
-        #   #                    )
-        #   #       ),
-        #   #       br(),
-        #   #       em("*Protein binding for BDQ and M2 is >99.9%"),
-        #   #       br(),
-        #   #       em("**BDQ concetration is linked drug efficacy"),
-        #   #       br(),
-        #   #       em("***M2 concentrationbis linked drug safety"),
-        #   #       br()
-        #   #     )
-        #   #   ), # end of first conditional panel
-        #   #   column(
-        #   #     width = 8,
-        #   #     hr(),
-        #   #     h2("Graphical Illustration"),
-        #   #     hr(),
-        #   #     plotOutput("plot3", height = "700px")
-        #   #   )
-        #   # )
-        # ) # end of fluidRow
+          ) # end of page_fillable
       ), # end of population tabPanel  
         
-      # Population settings ####
+      # Simulation settings ####
       tabPanel(
         "Simulation",
         br(),
@@ -504,6 +372,52 @@ ui <-
           )
         )
       ), # end of Simulation setting panel
+      
+      # Results settings ####
+      tabPanel(
+        "Results",
+        tabsetPanel(
+          id = "resTab", type = "pills",
+          tabPanel("Overview"),
+          tabPanel("Pharmacokinetics"),
+          tabPanel("Efficacy"),
+          tabPanel("Safety (QT)"),
+          tabPanel("Long-term Outcome")
+        ),
+        br(),
+        conditionalPanel(
+          condition = "input.resTab=='Overview'",
+          page_fillable(
+            layout_columns(
+              card(
+                card_header("Pharmacokinetics", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+                card_body("Typical BDQ and M2 profiles"
+                )
+              ),
+              # Second card with custom background color and styled card header/body
+              card(
+                card_header("Efficacy", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+                card_body("Culture positive/negative and MGIT results"
+                )
+              ),
+              # Third card with custom background color and styled card header/body
+              card(
+                card_header("Safety (QT)", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+                card_body("QT over time"
+                )
+              ),
+              # Fourth card with custom background color and styled card header/body
+              card(
+                card_header("Long-term outcome", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+                card_body("Proportions of patients over time"
+                )
+              ),
+              col_widths = c(12,6,6,12),
+              row_heights = c(4,4,4)
+              )
+            )
+          ) # end of conditionalPanel Overview
+      ), # end of Results setting panel
         
         ## compare regimen ####
         tabPanel(
