@@ -192,7 +192,7 @@ mainTabPopulation <- tabPanel(
         card_header("Concomitant Medication", style = "font-size: 22px; background-color: #CDD8DA;"  # Using card_header for the title
         ),
         card_body(
-          CoMedColumn(1, "#CDD8DA8D", default_LD = TRUE, addition_RG = FALSE), 
+          CoMedColumn(1, "#CBCAE38D", default_LD = TRUE, addition_RG = FALSE), 
           CoMedColumn(2, "#E1C3C88D", default_LD = FALSE, addition_RG = TRUE),
           CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE), 
           CoMedColumn(4, "#E7D7CB8D", default_LD = FALSE, addition_RG = TRUE)  

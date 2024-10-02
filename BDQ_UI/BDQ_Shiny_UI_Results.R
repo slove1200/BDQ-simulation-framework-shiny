@@ -43,7 +43,7 @@ mainTabResults <- tabPanel(
           )
         ),
         col_widths = c(12,6,6,12),
-        row_heights = c(4,4,4)
+        row_heights = c(6,4,4)
       )
     )
   ) # end of conditionalPanel Overview

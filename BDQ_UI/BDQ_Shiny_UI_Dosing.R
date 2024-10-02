@@ -90,7 +90,7 @@ mainTabDosing <- tabPanel(
     ), # end of sidebarPanel Add regimen
     
     # Always display Regimen 1 (no condition for Regimen 1)
-    regimenColumn(1, "#CDD8DA", default_LD = TRUE, addition_RG = FALSE), 
+    regimenColumn(1, "#CBCAE3", default_LD = TRUE, addition_RG = FALSE), 
     regimenColumn(2, "#E1C3C8", default_LD = FALSE, addition_RG = TRUE),
     regimenColumn(3, "#C1D4D7", default_LD = FALSE, addition_RG = TRUE),
     regimenColumn(4, "#E7D7CB", default_LD = FALSE, addition_RG = TRUE)
