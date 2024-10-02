@@ -126,11 +126,11 @@ mainTabPopulation <- tabPanel(
                        card_header("Continuous Covariates", style = "font-size: 18px; background-color: #CDD8DA4D;"),
                        card_body(
                          style = "font-weight: bold;",
-                         numericInput("AGE1", label = "Age (years)", value = 47, min = 15, max = 100),
-                         numericInput("WT1", label = "Baseline Body Weight (kg)", value = 55, min = 30, max = 1400),
-                         numericInput("ALB1", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
-                         numericInput("CACOR1", label = "Baseline Corrected Calcium Level (IU/L)", value = 2.44, min = 0.1, max = 20, step = 0.1),
-                         numericInput("K1", label = "Baseline Potassium Level (IU/L)", value = 4.2, min = 0.1, max = 20, step = 0.1),
+                         numericInput("AGE", label = "Age (years)", value = 32, min = 15, max = 100),
+                         numericInput("WT", label = "Baseline Body Weight (kg)", value = 56.6, min = 30, max = 1400, step = 0.1),
+                         numericInput("ALB", label = "Baseline Albumin Concentration (g/dL)", value = 3.65, min = 1, max = 300, step = 0.01),
+                         numericInput("CACOR", label = "Baseline Corrected Calcium Level (IU/L)", value = 2.44, min = 0.1, max = 20, step = 0.01),
+                         numericInput("K", label = "Baseline Potassium Level (IU/L)", value = 4.2, min = 0.1, max = 20, step = 0.1),
                          # median 163 hrs, remember to change input (as model use hours); also MTTP2 or ??
                          numericInput("MTTP2", label = "Baseline Time-to-positivity in MGIT Culture (days)", value = 6.8, min = 0.1, max = 42, step = 0.1) 
                        )
@@ -141,9 +141,9 @@ mainTabPopulation <- tabPanel(
                      card(
                        card_header("Categorical Covariates", style = "font-size: 18px; background-color: #CDD8DA4D;"),
                        card_body(
-                         selectInput("SEX1", label = tags$span(style="font-weight: bold;","Sex"), choices = c("Male", "Female")),
-                         selectInput("RACE1", label = tags$span(style="font-weight: bold;","Race"), choices = c("Non-Black", "Black")),
-                         selectInput("XDR1", label = tags$span(style="font-weight: bold;","Drug Resistance"), choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
+                         selectInput("SEX", label = tags$span(style="font-weight: bold;","Sex"), choices = c("Male", "Female")),
+                         selectInput("RACE", label = tags$span(style="font-weight: bold;","Race"), choices = c("Non-Black", "Black")),
+                         selectInput("XDR", label = tags$span(style="font-weight: bold;","Drug Resistance"), choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
                        )
                      )
               )
@@ -164,13 +164,6 @@ mainTabPopulation <- tabPanel(
                        card_body(
                          style = "font-weight: bold;",
                          "Probably choose min, max, median, SD of the values and shape of distribution?"
-                         # numericInput("AGE1", label = "Age (years)", value = 47, min = 15, max = 100),
-                         # numericInput("WT1", label = "Baseline Body Weight (kg)", value = 55, min = 30, max = 1400),
-                         # numericInput("ALB1", label = "Baseline Albumin Concentration (g/dL)", value = 3.5, min = 1, max = 300),
-                         # numericInput("CACOR1", label = "Baseline Corrected Calcium Level (IU/L)", value = 2.44, min = 0.1, max = 20, step = 0.1),
-                         # numericInput("K1", label = "Baseline Potassium Level (IU/L)", value = 4.2, min = 0.1, max = 20, step = 0.1),
-                         # # median 163 hrs, remember to change input (as model use hours); also MTTP2 or ??
-                         # numericInput("MTTP2", label = "Baseline Time-to-positivity in MGIT Culture (days)", value = 6.8, min = 0.1, max = 42, step = 0.1) 
                        )
                      )
               ),
@@ -181,9 +174,6 @@ mainTabPopulation <- tabPanel(
                        card_body(
                          style = "font-weight: bold;",
                          "Probably choose percentage of each category?"
-                         # selectInput("SEX1", label = tags$span(style="font-weight: bold;","Sex"), choices = c("Male", "Female")),
-                         # selectInput("RACE1", label = tags$span(style="font-weight: bold;","Race"), choices = c("Non-Black", "Black")),
-                         # selectInput("XDR1", label = tags$span(style="font-weight: bold;","Drug Resistance"), choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
                        )
                      )
               )

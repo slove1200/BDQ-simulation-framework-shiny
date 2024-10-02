@@ -19,7 +19,8 @@ mainTabSim <- tabPanel(
           numericInput("NSIM", label = tags$span(style="font-weight: bold;","Number of simulated individuals"), value = 1, min = 1, max = 10000),
           numericInput("SIMTIME", label = tags$span(style="font-weight: bold;","Simulation Time"), value = 24, min = 1, max = 24000),
           selectInput("SUNIT", label = tags$span(style="font-weight: bold;","Simulation Time-Unit"), c("week" = "2", "day" = "1")),
-          selectInput("VARIAB", label = tags$span(style="font-weight: bold;","Interindiviual variability"), c("OFF", "ON"), selected = "OFF")
+          selectInput("VARIAB", label = tags$span(style="font-weight: bold;","Interindiviual variability"), c("OFF", "ON"), selected = "OFF"), 
+          actionButton("goButton", "Start simulation")
         )
       ),
       col_widths = c(5,5)
