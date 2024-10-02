@@ -8,11 +8,12 @@ library(zoo)
 library(ggplot2)
 library(shiny)
 library(grid)
-library(gridExtra)
+library(ggpubr)
 library(DT)
 library(bslib)
 
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
+Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/"
 
 # Source MainTab: About, Dosing, Population, Simulation, Results ... details
 source(paste0(UI.directory, "BDQ_Shiny_UI_About.R"))
@@ -62,177 +63,32 @@ ui <-
     ), # end of navbarPage
   ) # end of fluidPage
 
-
-#### Define function used in server ####
-convertTimeUnit <- function(val) {
-  if (val == "1") {                          # if input unit is "day"
-    return(24)
-  } else {                                   # else: "week"
-    return(168)
-  }
-}
-
-defineEventVariable <- function(dur, unit, val) {
-  if (val == "Twice daily") {
-    ii <<- 12
-    dosingtime <<- 0
-    addl <<- (dur * unit / 24) * 2 - 1
-  } else if (val == "Once daily") {
-    ii <<- 24
-    dosingtime <<- 0
-    addl <<- (dur * unit / 24) * 1 - 1
-  } else if (val == "Three times weekly") {
-    ii <<- 168
-    dosingtime <<- c(0, 48, 96)
-    addl <<- dur * unit / 168 - 1
-  } else {
-    ii <<- 168
-    dosingtime <<- 0
-    addl <<- dur * unit / 168 - 1
-  }
-}
-
-createEventDataset <- function(nsamples, dose, timeModifier) {
-  return(as.data.frame(ev(
-    ID = 1:nsamples,
-    ii = ii,
-    cmt = 1,
-    amt = dose,
-    addl = addl,
-    time = dosingtime + timeModifier)))
-}
-
-PKSimulation <- function(IIVval, IEval, mod, df, sim_time, sunit) {
-  
-  ## IIV "ON"/"OFF"
-  if(IIVval == "OFF") {
-    mod <- zero_re(mod)        # zero omega and sigma
-  }
-  else {
-    mod <- zero_re(mod, sigma) # zero sigma, keep omega
-  }
-  
-  ## DDI "None", "Efavirenz", "Lopinavir/r", "Nevirapine", "Rifampicin",  "Rifapentine"
-  if(IEval == "Efavirenz") {
-    mod <- update(mod, param = list(THETA25 = 2.1, THETA26 = 2.1))
-  }
-  else if(IEval %in% c("Lopinavir/r", "Rifapentine")) {
-    mod <- update(mod, param = list(THETA25 = 4.0, THETA26 = 4.0))
-  }
-  else if(IEval == "Nevirapine") {
-    mod <- update(mod, param = list(THETA25 = 0.95, THETA26 = 1.58))
-  }
-  else if(IEval == "Rifampicin") {
-    mod <- update(mod, param = list(THETA25 = 4.8, THETA26 = 4.8))
-  }
-
-  
-  ## Return simulated PK dataset
-  return(
-    mod %>%
-      data_set(df) %>%
-      mrgsim(end = sim_time * sunit, delta = 1) %>%
-      as.data.frame()
-  )
-}
-
-
 #### Define server logic ####
+source(paste0(Server.directory, "BDQOMAT.R"))
+
 server <- function(input, output, session) {
+  
+  # PK simulation ####
+  source(paste0(Server.directory, "BDQ_Server_PK.R"))
 
-  ## define sim_dataframePK() ####
-  sim_dataframePK <- eventReactive(input$goButton, {
-    ## Simulation settings
-    # 1. "nsim"
-    nsamples <- input$nsim      # Number of simulated individuals
-
-    # 2. "simtime" and "simunit"
-    sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
-    sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
-
-    ## Dosing details
-    # 1. "loading dose"
-    if (input$load_dose == TRUE) {
-      ldose <- input$ldose                  # Loading dose amount (mg)
-      ldur <- input$ldur                    # Loading dose duration (transformed in hours during simulation)
-      lunit <- convertTimeUnit(input$lunit) # Loading dose unit: "1" day, "2" week
-
-      # Interval intake for loading dose
-      defineEventVariable(ldur, lunit, input$lfreq)
-
-      # Event dataset for loading dose
-      dfLoad <- createEventDataset(nsamples, ldose, 0)
-    }
-
-    # 2. Maintenance Dose
-    mdose <- input$mdose                  # Maintenance dose amount (mg)
-    mdur <- input$mdur                    # Maintenance dose duration (transformed in hours during simulation)
-    munit <- convertTimeUnit(input$munit) # Maintenance dose unit: "1" day, "2" week
-
-    # Interval intake for maintenance dose
-    defineEventVariable(mdur, munit, input$mfreq)
-
-    # 3. Event dataset for (loading dose +) maintenance dose
-    if (input$load_dose == TRUE) {
-      dfMaintenance <- createEventDataset(nsamples, mdose, ldur * lunit)
-      dfPK <- rbind(dfLoad, dfMaintenance)
-      dfPK <- dfPK[order(dfPK$ID, dfPK$time), ]
-    } else {
-      dfMaintenance <- createEventDataset(nsamples, mdose, 0)
-      dfPK <- dfMaintenance
-    }
-
-    ####################
-    ## Common model covariates
-    # 1 "RACE"
-    if (input$RACE == "Non-Black") {
-      RACE <- 1
-    } else {
-      RACE <- 2   # in the PK model RACE = 2 means BLACK race
-    }
-
-    dfPK$RACE <- RACE
-
-    # 2 "WT"
-    WT <- input$WT
-
-    # 3 "ALB"
-    ALB <- input$ALB
-    
-    # 4 AGE
-    AGE <- input$AGE
-
-    # # Generate dataset with covariates
-    # ###### Sampling of RACE
-    # unique.dfPK <- unique(dfPK$ID)
-    # sample.dfPK <- sample(unique.dfPK, 0.34 * length(unique.dfPK))
-    # dfPK <- dfPK %>%
-    #   dplyr::mutate(RACE = ifelse(ID %in% sample.dfPK, 2, 1))
-    #
-    # # AGE SAMPLING
-    # set.seed(100)
-    # dfPK <- dfPK %>%
-    #   group_by(ID) %>%
-    #   dplyr::mutate(AGE = round(runif(1, 18, 68)))
-
-    ## Set parameters in dataset
-    dfPK$AGE <- AGE
-    dfPK$RACE <- RACE
-    dfPK$THETA6 <- WT
-    dfPK$THETA1 <- ALB
-
-    ###############################################
-    ### PK simulation
-    # Load mrgsolve model
-    mod <- mcode("BDQOMAT", code)
-
-    # Run simulation
-    set.seed(3468)
-    out <- PKSimulation(input$IIV, input$IE, mod, dfPK, sim_time, sunit)
-    out$REGIMEN <- "1"
-
-    return(out)
+  # Use the function defined in the sourced file
+  sim_PKtable <- eventReactive(input$goButton, {
+    sim_dataframePK(input)  # Call the function and pass input
   })
+  
+  # Render table
+  output$sim_PKtable <- renderTable({
+    # Call the reactive expression to get the data frame
+    sim_PKtable()
+  })
+  
+  # Render combined plot
+  source(paste0(Server.directory, "BDQ_Server_PKplots.R"))
+
+  output$plot <- renderPlot({
+    create_plots(sim_PKtable)  # Call the function from the sourced file
+  })
+
 
   dfReadyForQT <- eventReactive(input$goButton, {
     dfQT <- sim_dataframePK() %>% filter(AMT == 0)
@@ -590,7 +446,7 @@ server <- function(input, output, session) {
     input$sim_time
   })
 
-  output$plot <- renderPlot({
+  output$plot2 <- renderPlot({
     input$goButton
     RACE <- isolate(input$RACE)
     IE <- isolate(input$IE)

@@ -5,11 +5,16 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
   # Helper to create the coMed controls
   coMedControls <- function(regimen_num) {
     div(
-      
       checkboxGroupInput(inputId = paste0("IE_", regimen_num), 
                          label = NULL,
-                         choices = c("None", "Clofazimine", "Efavirenz", "Lopinavir/r", 
-                                     "Moxifloxacin", "Nevirapine", "Rifampicin", "Rifapentine")
+                         choices = c("None" = "None", 
+                                     "Clofazimine" = "Clofazimine", 
+                                     "Efavirenz" = "Efavirenz", 
+                                     "Lopinavir/r" = "Lopinavir/r", 
+                                     "Moxifloxacin" = "Moxifloxacin", 
+                                     "Nevirapine" = "Nevirapine", 
+                                     "Rifampicin" = "Rifampicin", 
+                                     "Rifapentine" = "Rifapentine")
       ),
       class = "comed-checkbox")
   }

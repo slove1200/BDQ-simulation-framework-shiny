@@ -18,7 +18,10 @@ mainTabResults <- tabPanel(
       layout_columns(
         card(
           card_header("Pharmacokinetics", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("Typical BDQ and M2 profiles"
+          card_body("Typical BDQ and M2 profiles", 
+                    br(), 
+                    #tableOutput("sim_PKtable"),
+                    plotOutput("plot")
           )
         ),
         # Second card with custom background color and styled card header/body

@@ -14,6 +14,7 @@ $PARAM @covariates
   WT      = 56.6,
   FLAG    = 1,
   OCC     = 1,
+  regimen = 1
    
 $PARAM @annotated  
 // Albumin 
@@ -343,5 +344,5 @@ $TABLE // $ERROR
 //     Y = IPRED  + W*EPS(2);
 //  }    
   
-$CAPTURE ALB WT RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 
+$CAPTURE ALB WT RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen
 "
