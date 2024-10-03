@@ -25,6 +25,7 @@ $PARAM @covariates // What you input into the model from the dataset
   SEX      = 0,
   RACE     = 0,
   AGE      = 33,
+  regimen  = 1
 
 
 $PARAM @annotated
@@ -142,5 +143,5 @@ $TABLE
 
 
   
-$CAPTURE TIMW CTIME CONCM2 CLOFA MOXI CACOR K SEX RACE AGE EE BASEL TIMEFF CIRC IPRED
+$CAPTURE TIMW CTIME CONCM2 CLOFA MOXI CACOR K SEX RACE AGE EE BASEL TIMEFF CIRC IPRED regimen 
   "

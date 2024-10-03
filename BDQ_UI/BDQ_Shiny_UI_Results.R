@@ -18,9 +18,7 @@ mainTabResults <- tabPanel(
       layout_columns(
         card(
           card_header("Pharmacokinetics", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("Typical BDQ and M2 profiles", 
-                    br(), 
-                    #tableOutput("sim_PKtable"),
+          card_body(#tableOutput("sim_PKtable"),
                     plotOutput("plot")
           )
         ),
@@ -33,7 +31,8 @@ mainTabResults <- tabPanel(
         # Third card with custom background color and styled card header/body
         card(
           card_header("Safety (QT)", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("QT over time"
+          card_body(#tableOutput("sim_QTtable"),
+                    plotOutput("plotQT")
           )
         ),
         # Fourth card with custom background color and styled card header/body
@@ -42,8 +41,8 @@ mainTabResults <- tabPanel(
           card_body("Proportions of patients over time"
           )
         ),
-        col_widths = c(12,6,6,12),
-        row_heights = c(6,4,4)
+        col_widths = c(12,7,5,12),
+        row_heights = c(5,5,4)
       )
     )
   ) # end of conditionalPanel Overview

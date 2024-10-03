@@ -65,100 +65,56 @@ ui <-
 
 #### Define server logic ####
 source(paste0(Server.directory, "BDQOMAT.R"))
+source(paste0(Server.directory, "BDQQT.R"))
 
 server <- function(input, output, session) {
-  
   # PK simulation ####
   source(paste0(Server.directory, "BDQ_Server_PK.R"))
 
   # Use the function defined in the sourced file
   sim_PKtable <- eventReactive(input$goButton, {
-    sim_dataframePK(input)  # Call the function and pass input
+    sim_PK(input)  # Call the function and pass input
   })
   
-  # Render table
-  output$sim_PKtable <- renderTable({
-    # Call the reactive expression to get the data frame
-    sim_PKtable()
-  })
+  # # Render table
+  # output$sim_PKtable <- renderTable({
+  #   # Call the reactive expression to get the data frame
+  #   sim_PKtable()
+  # })
   
-  # Render combined plot
+  # Render combined PK plot
   source(paste0(Server.directory, "BDQ_Server_PKplots.R"))
 
   output$plot <- renderPlot({
-    create_plots(sim_PKtable)  # Call the function from the sourced file
+    TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
   })
 
 
-  dfReadyForQT <- eventReactive(input$goButton, {
-    dfQT <- sim_dataframePK() %>% filter(AMT == 0)
-    dfQT <- subset(dfQT, select = c(ID, REGIMEN, time, IPREDM2, RACE, AGE))
-    # dfQT <- dfQT %>% mutate(CONCM2_weekly = dd2$weekly_M2/168*1000)
-    dfQT <- dfQT %>% mutate(CONCM2 = exp(IPREDM2) * 1000) ## mg/L to ng/mL (concentration unit used in QT model)
-    dfQT$TIMW <- 0#dfQT$time / 24 / 7 ## TIMW = TAST/24/7 for time effect in QT model
-    ## Covariates
-    # 1. "SEX"
-    if (input$SEX == "Male") {
-      dfQT$SEX <- 0
-    } else {
-      dfQT$SEX <- 1
-    }
-
-    # 2. Electrolytes level (Corrected Ca and Potassium level)
-    dfQT$CACOR <- input$CACOR # 2.440
-    dfQT$K <- input$K # 4.200
-
-    # 3. DDI (Clofazimine or Moxifloxacin)
-    if (input$IE == "CFZ") {
-      dfQT$CLOFA <- 1
-    }
-    if (input$IE == "MFX") {
-      dfQT$MOXI <- 1
-    }
-
-    return(dfQT)
+  # QT simulation ####
+  source(paste0(Server.directory, "BDQ_Server_QT.R"))
+  
+  # Use the function defined in the sourced file
+  sim_QTtable <- eventReactive(input$goButton, {
+    sim_QT(input, sim_PKtable)  # Call the function and pass input
   })
-
-  #### Simulation: QT
-  sim_dataframeQT <- eventReactive(input$goButton, {
-    ## Simulation settings
-    # 1. "nsim"
-    nsamples <- as.numeric(input$nsim)      # Number of simulated individuals
-
-    # 2. "simtime" and "simunit"
-    sim_time <- as.numeric(input$simtime)   # Time of simulation imputed (transformed in hours during simulation)
-    sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
-
-    ###############################################
-    ### PK simulation
-    modQT <- mcode("BDQQT", codeQT)
-
-    ## Interindividual variability ON/OFF
-    if (input$IIV == "OFF") {
-      set.seed(3468)
-      outQT <- modQT %>%
-        zero_re() %>%
-        data_set(dfReadyForQT()) %>%
-        mrgsim(end = sim_time * sunit, delta = 1) %>%
-        as.data.frame()
-      outQT$REGIMEN <- "1"
-      return(outQT)
-    } else {
-      set.seed(3468)
-      outQT <- modQT %>%
-        zero_re(sigma) %>%
-        data_set(dfReadyForQT()) %>%
-        mrgsim(end = sim_time * sunit, delta = 1) %>%
-        as.data.frame()
-      outQT$REGIMEN <- "1"
-      return(outQT)
-    }
+  
+  # # Render table
+  # output$sim_QTtable <- renderTable({
+  #   # Call the reactive expression to get the data frame
+  #   head(sim_QTtable())
+  # })
+  
+  # Render QT plot
+  source(paste0(Server.directory, "BDQ_Server_QTplots.R"))
+  
+  output$plotQT <- renderPlot({
+    QT_plots(input, sim_QTtable)  # Call the function from the sourced file
   })
-
+  
 
   #### DATAFRAME FOR TROUGH CONC AT 24 HRS
   sim_dataframe24 <- eventReactive(input$goButton, {
-    df <- sim_dataframePK() %>% filter(AMT == 0)
+    df <- sim_PKtable() %>% filter(AMT == 0)
     df <- df %>% filter(time %% 24 == 0)
     df$DAY <- df$time / 24
     return(df)
@@ -166,7 +122,7 @@ server <- function(input, output, session) {
 
   ####### Reactive MEAN DAILY CONCENTRATION
   Cavg_daily <- eventReactive(input$goButton, {
-    d1 <- sim_dataframePK() %>% filter(AMT == 0)
+    d1 <- sim_PKtable() %>% filter(AMT == 0)
 
     d1 <- d1 %>% filter(time %% 24 == 0)
 
@@ -216,7 +172,7 @@ server <- function(input, output, session) {
 
   #### WEEKLY Cavg
   Cavg_weekly <- eventReactive(input$goButton, {
-    d2 <- sim_dataframePK() %>% filter(AMT == 0)
+    d2 <- sim_PKtable() %>% filter(AMT == 0)
 
     ####### Use the substituted new data frame d1
     d2 <- d2 %>% filter(time %% 168 == 0)
@@ -389,7 +345,7 @@ server <- function(input, output, session) {
     #### covariate distribution sampling/combination
     # MTTP (same with TTP), XDR (in TTP is MDR and pre-XDR/XDR, in MSM is non-XDR and XDR),
     # HL2 (derived from TTP), MBLend (derived from TTP), SEX (same with QT), baseWT (from PK)
-    PKcov <- sim_dataframePK() %>% group_by(ID) %>% slice(1L) %>% select(ID, WT, AGE, RACE)
+    PKcov <- sim_PKtable() %>% group_by(ID) %>% slice(1L) %>% select(ID, WT, AGE, RACE)
     QTcov <- sim_dataframeQT() %>% group_by(ID) %>% slice(1L) %>% select(ID, SEX)
 
     idata <- data.table::data.table(ID=1:input$nsim) %>% left_join(PKcov)
@@ -448,52 +404,8 @@ server <- function(input, output, session) {
 
   output$plot2 <- renderPlot({
     input$goButton
-    RACE <- isolate(input$RACE)
-    IE <- isolate(input$IE)
 
-    if (input$ipred == 1) {
-      # if(input$IIV == "ON") {
-      dfForPlotBDQ <- sim_dataframePK() %>%
-        ungroup() %>%
-        group_by(time) %>%
-        summarize(
-          lower = quantile(exp(IPRED), probs = 0.05),
-          median = quantile(exp(IPRED), probs = 0.5),
-          upper = quantile(exp(IPRED), probs = 0.95)
-        )
-
-      a1 <- ggplot(dfForPlotBDQ, aes(x = time / 168, y = median)) +
-        geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
-        geom_line(size = 1.2) +
-        theme_bw() +
-        theme(text = element_text(size = 15)) +
-        theme(axis.text = element_text(size = 15)) +
-        scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 24)) +
-        # scale_y_continuous(breaks = seq(0, 4, 0.5),limits = c(0,2.5)) +
-        labs(x = "Time (weeks)", y = c("BDQ concentration (mg/L)")) +
-        ggtitle("BDQ Concentration (mg/L) vs Time")
-
-      dfForPlotM2 <- sim_dataframePK() %>%
-        ungroup() %>%
-        group_by(time) %>%
-        summarize(
-          lower = quantile(exp(IPREDM2), probs = 0.05),
-          median = quantile(exp(IPREDM2), probs = 0.5),
-          upper = quantile(exp(IPREDM2), probs = 0.95)
-        )
-
-      a2 <- ggplot(dfForPlotM2, aes(x = time / 168, y = median)) +
-        geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
-        geom_line(size = 1.2) +
-        theme_bw() +
-        theme(text = element_text(size = 15)) +
-        theme(axis.text = element_text(size = 15)) +
-        scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 24)) +
-        labs(x = "Time (weeks)", y = c("M2 concentration (mg/L)")) +
-        ggtitle("M2 Concentration (mg/L) vs Time")
-
-      plot <- grid.arrange(a1, a2, nrow = 2)
-    } else if (input$ipred == 2) {
+    if (input$ipred == 2) {
       dfForPlotCtBDQ <- sim_dataframe24() %>%
         ungroup() %>%
         group_by(time) %>%
@@ -614,7 +526,7 @@ server <- function(input, output, session) {
 
       plot <- grid.arrange(d1, d2, nrow = 2)
     } else if (input$ipred == 5) {
-      dfForPlotWT <- sim_dataframePK() %>%
+      dfForPlotWT <- sim_PKtable() %>%
         ungroup() %>%
         group_by(time) %>%
         summarize(
@@ -634,7 +546,7 @@ server <- function(input, output, session) {
         labs(x = "Time (weeks)", y = ("Body weight (kg)")) +
         ggtitle("Body Weight (kg) vs Time (weeks)")
 
-      dfForPlotALB <- sim_dataframePK() %>%
+      dfForPlotALB <- sim_PKtable() %>%
         ungroup() %>%
         group_by(time) %>%
         summarize(
@@ -654,27 +566,7 @@ server <- function(input, output, session) {
         ggtitle("Albumin Concentration (g/dL) vs Time(weeks)")
 
       plot <- grid.arrange(e1, e2, nrow = 2)
-    } else if (input$ipred==6) {
-      dfForPlotQT <- sim_dataframeQT() %>%
-        ungroup() %>%
-        group_by(time) %>%
-        summarize(
-          lower = quantile(IPRED, probs = 0.05),
-          median = quantile(IPRED, probs = 0.5),
-          upper = quantile(IPRED, probs = 0.95)
-        )
-
-      plot <- ggplot(dfForPlotQT, aes(x = time / 168, y = median)) +
-        geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
-        geom_line(size = 1.2) +
-        theme_bw() +
-        theme(text = element_text(size = 15)) +
-        theme(axis.text = element_text(size = 15)) +
-        scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 24)) +
-        scale_y_continuous(breaks = seq(380, 450, 5)) +
-        labs(x = "Time (weeks)", y = ("QTc (ms)")) +
-        ggtitle("QTc (ms) vs Time (weeks)")
-    } else if (input$ipred==7) {
+    }  else if (input$ipred==7) {
       # --- Get the proportion of samples without positive signal ---
       outTTE <- sim_dataframeTTP() %>% filter(RTTE == 1) ## positive signal at specific time
       TTEcount <- outTTE %>% group_by(WEEKP) %>% count(TTPD)
@@ -758,7 +650,7 @@ server <- function(input, output, session) {
   })
 
   output$sim_dataDT <- DT::renderDataTable({
-    sim_dataframePK()
+    sim_PKtable()
   })
 
 
@@ -768,7 +660,7 @@ server <- function(input, output, session) {
       "simdataframe.csv"
     },
     content = function(file) {
-      write.csv(sim_dataframePK(), file, row.names = FALSE)
+      write.csv(sim_PKtable(), file, row.names = FALSE)
     }
   )
 

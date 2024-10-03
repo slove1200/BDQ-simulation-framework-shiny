@@ -104,8 +104,8 @@ PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
   )
 }
 
-## define sim_dataframePK() ####
-sim_dataframePK <- function(input) {
+## define sim_PK() ####
+sim_PK <- function(input) {
   ## Simulation settings
   # 1. "nsim"
   nsamples <- input$nsim      # Number of simulated individuals
