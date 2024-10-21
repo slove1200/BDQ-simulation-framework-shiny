@@ -137,7 +137,7 @@ mainTabPopulation <- tabPanel(
                          numericInput("CACOR", label = "Baseline Corrected Calcium Level (IU/L)", value = 2.44, min = 0.1, max = 20, step = 0.01),
                          numericInput("K", label = "Baseline Potassium Level (IU/L)", value = 4.2, min = 0.1, max = 20, step = 0.1),
                          # median 163 hrs, remember to change input (as model use hours); also MTTP2 or ??
-                         numericInput("MTTP2", label = "Baseline Time-to-positivity in MGIT Culture (days)", value = 6.8, min = 0.1, max = 42, step = 0.1) 
+                         numericInput("MTTP", label = "Baseline Time-to-positivity in MGIT Culture (days)", value = 6.8, min = 0.1, max = 42, step = 0.1) 
                        )
                      )
               ),

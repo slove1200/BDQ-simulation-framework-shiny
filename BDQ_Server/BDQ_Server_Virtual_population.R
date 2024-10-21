@@ -86,7 +86,7 @@ Pop_generation <- function(input) {
     # correspondent to unique ID defined in Server_PK
     group_by(regimen) %>%
     mutate(ID = row_number()) %>%
-    mutate(ID = ifelse(regimen == 1, ID, ID+10000*(regimen-1))) %>% 
+    mutate(ID = ifelse(regimen == 1, ID, ID+nsubjects*(regimen-1))) %>% 
     select(ID, everything(), -NSIM) %>%
     mutate_if(is.factor, ~ as.numeric(as.character(.)))
   

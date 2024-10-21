@@ -165,7 +165,7 @@ sim_PK <- function(input) {
         nsamples
       )
       dfPK$regimen <- i
-      dfPK$ID <- dfPK$ID+10000*(i-1)  # Unique ID for each regimen
+      dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
       
       # 2. PK DDI details
       if (!is.null(regimens[[i]]$IE)) {

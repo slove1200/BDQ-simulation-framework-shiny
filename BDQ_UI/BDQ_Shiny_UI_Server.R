@@ -68,6 +68,7 @@ ui <-
 #### Define server logic ####
 source(paste0(Server.directory, "BDQOMAT.R"))
 source(paste0(Server.directory, "BDQQT.R"))
+source(paste0(Server.directory, "BDQTTP.R"))
 source(paste0(Server.directory, "BDQ_Server_Virtual_population.R"))
 
 server <- function(input, output, session) {
@@ -114,7 +115,34 @@ server <- function(input, output, session) {
     QT_plots(input, sim_QTtable)  # Call the function from the sourced file
   })
   
+  # TTP simulation ####
+  source(paste0(Server.directory, "BDQ_Server_TTP.R"))
+  
+  # Use the function defined in the sourced file
+  sim_TTPtable <- eventReactive(input$goButton, {
+    sim_TTP(input, sim_PKtable)  # Call the function and pass input
+  })
+  
+  # # Render table
+  # output$sim_TTPtable <- renderTable({
+  #   # Call the reactive expression to get the data frame
+  #   head(sim_TTPtable() %>% group_by(ID) %>% slice(1L), 30)
+  # })
 
+  # Render TTP plot
+  source(paste0(Server.directory, "BDQ_Server_TTPplots.R"))
+
+  output$plotTTP <- renderPlot({
+    TTP_plots(input, sim_TTPtable)  # Call the function from the sourced file
+  })
+  
+  
+  
+  
+  
+  
+  
+  
   #### DATAFRAME FOR TROUGH CONC AT 24 HRS
   sim_dataframe24 <- eventReactive(input$goButton, {
     df <- sim_PKtable() %>% filter(AMT == 0)
