@@ -165,7 +165,7 @@ sim_PK <- function(input) {
         nsamples
       )
       dfPK$regimen <- i
-      dfPK$ID <- dfPK$ID+100*(i-1)  # Unique ID for each regimen
+      dfPK$ID <- dfPK$ID+10000*(i-1)  # Unique ID for each regimen
       
       # 2. PK DDI details
       if (!is.null(regimens[[i]]$IE)) {
@@ -186,42 +186,36 @@ sim_PK <- function(input) {
   
   ####################
   ## Common model covariates
-  # 1 "RACE"
-  if (input$RACE == "Non-Black") {
-    RACE <- 1
-  } else {
-    RACE <- 2   # in the PK model RACE = 2 means BLACK race
+  
+  # if UI input is to simulate in an individual-level
+  if (input$population_radio == "Individual") {
+    
+    # 1 "RACE"
+    if (input$RACE == "Non-Black") {
+      RACE <- 1
+    } else {
+      RACE <- 2   # in the PK model RACE = 2 means BLACK race
+    }
+    
+    # 2 "WT"
+    WT <- input$WT
+    
+    # 3 "ALB"
+    ALB <- input$ALB
+    
+    # 4 AGE
+    AGE <- input$AGE
+    
+    ## Set parameters in dataset
+    dfPK_combined$AGE <- AGE
+    dfPK_combined$RACE <- RACE
+    dfPK_combined$THETA6 <- WT
+    dfPK_combined$THETA1 <- ALB
+  } else { # UI input is to simulate in a population-level
+    dfPK_combined <- full_join(dfPK_combined, Pop_generation(input), by = c("ID", "regimen"))
   }
   
-  # 2 "WT"
-  WT <- input$WT
-  
-  # 3 "ALB"
-  ALB <- input$ALB
-  
-  # 4 AGE
-  AGE <- input$AGE
-  
-  # # Generate dataset with covariates
-  # ###### Sampling of RACE
-  # unique.dfPK <- unique(dfPK$ID)
-  # sample.dfPK <- sample(unique.dfPK, 0.34 * length(unique.dfPK))
-  # dfPK <- dfPK %>%
-  #   dplyr::mutate(RACE = ifelse(ID %in% sample.dfPK, 2, 1))
-  #
-  # # AGE SAMPLING
-  # set.seed(100)
-  # dfPK <- dfPK %>%
-  #   group_by(ID) %>%
-  #   dplyr::mutate(AGE = round(runif(1, 18, 68)))
-  
-  ## Set parameters in dataset
-  dfPK_combined$AGE <- AGE
-  dfPK_combined$RACE <- RACE
-  dfPK_combined$THETA6 <- WT
-  dfPK_combined$THETA1 <- ALB
-  
-  ##############################################
+  # ##############################################
   ### PK simulation
   # Load mrgsolve model
   mod <- mcode("BDQOMAT", code)

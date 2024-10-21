@@ -1,8 +1,5 @@
 sim_QT <- function(input, sim_PKtable) {
   ## Simulation settings
-  # 1. "nsim"
-  nsamples <- input$nsim      # Number of simulated individuals
-  
   # 2. "simtime" and "simunit"
   sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
   sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
@@ -13,21 +10,28 @@ sim_QT <- function(input, sim_PKtable) {
   dfQT <- dfQT %>% mutate(CONCM2 = exp(IPREDM2) * 1000) ## mg/L to ng/mL (concentration unit used in QT model)
   dfQT$TIMW <- 0 #dfQT$time / 24 / 7 ## TIMW = TAST/24/7 for time effect in QT model
   
-  ## Covariates
-  # 1. "SEX"
-  if (input$SEX == "Male") {
-    dfQT$SEX <- 0
-  } else {
-    dfQT$SEX <- 1
+  # if UI input is to simulate in an individual-level
+  if (input$population_radio == "Individual") {
+    
+    ## Covariates
+    # 1. "SEX"
+    if (input$SEX == "Male") {
+      dfQT$SEX <- 0
+    } else {
+      dfQT$SEX <- 1
+    }
+    
+    # 2. Electrolytes level (Corrected Ca and Potassium level)
+    dfQT$CACOR <- input$CACOR # 2.440
+    dfQT$K <- input$K # 4.200
   }
-  
-  # 2. Electrolytes level (Corrected Ca and Potassium level)
-  dfQT$CACOR <- input$CACOR # 2.440
-  dfQT$K <- input$K # 4.200
   
   # 3. Co-medication QT
   dfQT$CLOFA <- 0
   dfQT$MOXI <- 0
+  
+  # Create a list to hold the selected regimens
+  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
   
   for (i in 1:num_regimens) {
     

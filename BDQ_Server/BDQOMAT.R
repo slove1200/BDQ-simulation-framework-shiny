@@ -15,7 +15,13 @@ $PARAM @covariates
   FLAG    = 1,
   OCC     = 1,
   regimen = 1
-   
+  SEX     = 0, 
+  TBTYPE  = 2, 
+  BG      = 0, 
+  MTTP    = 163, 
+  CACOR   = 2.4, 
+  K       = 4.0
+
 $PARAM @annotated  
 // Albumin 
   THETA1  :  3.64865      : X0 g/dl
@@ -344,5 +350,5 @@ $TABLE // $ERROR
 //     Y = IPRED  + W*EPS(2);
 //  }    
   
-$CAPTURE ALB WT RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen
+$CAPTURE ALB WT RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen SEX CACOR K TBTYPE BG MTTP
 "

@@ -11,6 +11,8 @@ library(grid)
 library(ggpubr)
 library(DT)
 library(bslib)
+library(dipsaus)
+
 
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
 Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/"
@@ -66,6 +68,7 @@ ui <-
 #### Define server logic ####
 source(paste0(Server.directory, "BDQOMAT.R"))
 source(paste0(Server.directory, "BDQQT.R"))
+source(paste0(Server.directory, "BDQ_Server_Virtual_population.R"))
 
 server <- function(input, output, session) {
   # PK simulation ####
