@@ -192,9 +192,9 @@ sim_PK <- function(input) {
     
     # 1 "RACE"
     if (input$RACE == "Non-Black") {
-      RACE <- 1
+      RACE <- 0
     } else {
-      RACE <- 2   # in the PK model RACE = 2 means BLACK race
+      RACE <- 1   # RACE 0: "Non-Black", 1: "Black"
     }
     
     # 2 "WT"

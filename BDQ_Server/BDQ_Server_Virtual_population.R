@@ -1,6 +1,6 @@
 simCovMICE <- function(m = 5, 
                        orgCovs, 
-                       catCovs = c("SEX","RACE"), 
+                       catCovs = c("SEX","RACE","TBTYPE"), 
                        seedCovs = NULL,
                        targetRangeSeedCovs = NULL,
                        seedCovsValues = NULL,
@@ -70,15 +70,15 @@ Pop_generation <- function(input) {
   orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population.csv", 
                         header = T)
   # Differentiate categorical and continuous variables
-  categorical_vars <- c("SEX", "RACE", "TBTYPE", "BG") # Replace with actual categorical columns
-  continuous_vars <- c("AGE", "MTTP", "CACOR", "K") # Replace with actual continuous columns
+  categorical_vars <- c("SEX", "RACE", "TBTYPE")  # Replace with your actual categorical variables
+  continuous_vars <- c("AGE", "MTTP", "CACOR", "K")  # Replace with your actual continuous variables
   
   # Conditional distribution modeling for covariates distribution
   # Numbers of subjects depending on input (numbers of simulated individuals)
   set.seed(3468)
   myCovSimMICE <- simCovMICE(m = 1, 
                              orgCovs = orgCovsEx,
-                             catCovs = c("SEX", "RACE", "TBTYPE", "BG"),
+                             catCovs = c("SEX", "RACE", "TBTYPE"),
                              nsubj = nsubjects*num_regimens)
 
   myCovSimMICE <- myCovSimMICE %>% ungroup() %>% 

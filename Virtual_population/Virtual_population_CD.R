@@ -97,9 +97,8 @@ simCovMICE <- function(m = 5,
 }
 
 #### Import QT data ####
-
-
-dfQT0315 <- read.csv("C:/Users/yujli183/Downloads/PK_QT_20190315.csv")
+setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population")
+dfQT0315 <- read.csv("PK_QT_20190315.csv")
 
 dfQT0315_2 <- dfQT0315 %>% group_by(ID, VISIT) %>% 
   select(ID, USUBJID, IDPKELIN, ARM, VISIT, TAST, TAST2, AGE, SEX, RACE, WT, ALB, TBTYPE, 
@@ -115,27 +114,30 @@ dfQT_fin <- dfQT_matchID %>% group_by(ID) %>% slice(1L) %>% ungroup() %>%
   rename("ID" = "IDPKPD") %>%
   arrange(ID)
 
-setwd("C:/Users/yujli183/Downloads")
 df <- read.csv("Multistate_NM_dataset_BS_new_MSMmodel_20231212.csv", header = T) %>% group_by(ID) %>% slice(1L)
 dfMSM <- df %>%
-  select(ID, AGE, SEX, RACE, WT, ALB, TBTYPE, MTTP, BG) %>% slice(1L)
+  select(ID, AGE, SEX, RACE, TBTYPE, MTTP) %>% slice(1L)
 
 df2 <- left_join(dfMSM, dfQT_fin, 
                     by = "ID")
 
 df_fin <- df2 %>% ungroup() %>%
   mutate(across(everything(), ~ ifelse(. == -99, NA, .))) %>%
-  select(-WT, -ALB, -ID) # simulated from PK model
+  select(-ID) # simulated from PK model
 
-orgCovsEx <- df_fin
+df_fin2 <- df_fin %>% 
+  mutate(RACE  = ifelse(is.na(RACE), NA, ifelse(RACE == 2, 1, 0)), # 0: non-black, 1: black
+         TBTYPE = ifelse(TBTYPE == 1, 2, TBTYPE)) # DS to MDR-TB, TBTYPE - 2: DS or MDR, 3: pre-XDR, 4: XDR
+
+orgCovsEx <- df_fin2
 
 # Example to differentiate categorical and continuous variables
-categorical_vars <- c("SEX", "RACE", "TBTYPE", "BG") # Replace with actual categorical columns
+categorical_vars <- c("SEX", "RACE", "TBTYPE") # Replace with actual categorical columns
 continuous_vars <- c("AGE", "MTTP", "CACOR", "K") # Replace with actual continuous columns
 
 set.seed(3468)
 myCovSimMICE <- simCovMICE(m = 10,orgCovs = orgCovsEx,
-                           catCovs = c("SEX", "RACE", "TBTYPE", "BG"),
+                           catCovs = c("SEX", "RACE", "TBTYPE"),
                            nsubj = 439)
 
 
@@ -169,7 +171,7 @@ summary_dforg <- orgCovsEx %>%
 
 
 # Define categorical and continuous variables
-categorical_vars <- c("SEX", "RACE", "TBTYPE", "BG")  # Replace with your actual categorical variables
+categorical_vars <- c("SEX", "RACE", "TBTYPE")  # Replace with your actual categorical variables
 continuous_vars <- c("AGE", "MTTP", "CACOR", "K")  # Replace with your actual continuous variables
 
 # Create a function to plot histograms for continuous variables, ignoring NA
@@ -219,15 +221,6 @@ ggpubr::ggarrange(categorical_plotsorg[[1]],
                   common.legend = T, legend = "bottom")
 
 # Simulated dataset ####
-# Plot continuous variables (histogram)
-continuous_plots <- map(continuous_vars, ~ plot_histogram(myCovSimMICE, .x))
-
-# Plot categorical variables (boxplot)
-categorical_plots <- map(categorical_vars, ~ plot_boxplot(myCovSimMICE, .x))
-
-ggpubr::ggarrange(continuous_plots[[1]], continuous_plots[[2]], continuous_plots[[3]], continuous_plots[[4]])
-ggpubr::ggarrange(categorical_plots[[1]], categorical_plots[[2]], categorical_plots[[3]], categorical_plots[[4]])
-
 # Check correlation
 orgCovsEx$SEX <- as.factor(orgCovsEx$SEX)
 orgCovsEx$RACE <- as.factor(orgCovsEx$RACE)

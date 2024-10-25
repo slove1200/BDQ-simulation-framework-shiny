@@ -1,4 +1,4 @@
-codeMSM <- "
+BDQMSM <- "
 $PROB 
   - author: Yu-Jou Lin
   - date: Sep 6, 2024
@@ -47,6 +47,7 @@ AGE          : 33                  : Age (year)
 WT           : 55                  : Baseline weight (kg)
 SEX          : 0                   : Sex (0: male, 1: female)
 MBLend       : 0.000055726         : MBL at week 24 [the end of treatment] (derived PD predictor)
+regimen      : 1                : regimen
 
 $PARAM @annotated // initial variables (changing over time in the model)
 MTT34        : 0                : From Recurrent TB to Dropout = MTT24
@@ -180,5 +181,5 @@ if (XDV == 5) BIO5 = 1 ;
 
 // $CAPTURE EVID XDV K12 K23 K32 K14 K24 K15 K25 P_1 P_2 P_3 P_4 P_5 
 // $CAPTURE HL2 MTTP XDR C208 AGE WT SEX MBLend FLAG_MBL
-$CAPTURE EVID XDV HL2 MTTP XDR WT SEX MBLend P_1 P_2 P_3 P_5 USUR CUP1 CUP2 CUP3 CUP4 CUP5
+$CAPTURE EVID XDV HL2 MTTP XDR WT SEX MBLend P_1 P_2 P_3 P_5 USUR CUP1 CUP2 CUP3 CUP4 CUP5 regimen
 "

@@ -33,7 +33,7 @@ sim_TTP <- function(input, sim_PKtable) {
   num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
   
   TTPdf   <- tidyr::crossing(
-    ID    = c(1:(nsubjects*num_regimens)),
+    ID    = seq(nsubjects*num_regimens),
     WEEKP = c(1:24),
     REP   = c(1:3),
     EVID  = 0,
@@ -62,17 +62,26 @@ sim_TTP <- function(input, sim_PKtable) {
   if (input$population_radio == "Individual") {
     
     # 1. Drug Resistance
-    if (input$XDR == "XDR-TB") {
-      TTPdf_fin$XDR <- 1
-    } else {
+    if (input$XDR == "MDR-TB") {
+      TTPdf_fin$preAndXDR <- 0
       TTPdf_fin$XDR <- 0
+    } else if (input$XDR == "pre-XDR-TB") {
+      TTPdf_fin$preAndXDR <- 1
+      TTPdf_fin$XDR <- 0
+    } else {
+      TTPdf_fin$preAndXDR <- 1
+      TTPdf_fin$XDR <- 1
     }
+    
     
     # 2. Mean time-to-posistivity (MTTP)
     # input$MTTP unit in days, PK-efficacy model unit in hours
     TTPdf_fin$MTTP <- input$MTTP*24
   } else {
     TTPdf_fin <- full_join(TTPdf_fin, Pop_generation(input), by = c("ID", "regimen"))
+    TTPdf_fin <- TTPdf_fin %>%
+      mutate(preAndXDR = ifelse(TBTYPE == 3 | TBTYPE == 4, 1, 0),  # pre-XDR + XDR
+             XDR       = ifelse(TBTYPE == 4, 1, 0)) 
   }
 
   dfCAVG <- Cavg_weekly %>% rename("WEEKP" ="WEEK") %>%

@@ -39,11 +39,12 @@ mainTabResults <- tabPanel(
         # Fourth card with custom background color and styled card header/body
         card(
           card_header("Long-term outcome", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("Proportions of patients over time"
+          card_body(#tableOutput("sim_MSMtable"),
+                    plotOutput("plotMSM")
           )
         ),
         col_widths = c(12,6,6,12),
-        row_heights = c(5,5,4)
+        row_heights = c(5,5,8)
       )
     )
   ) # end of conditionalPanel Overview

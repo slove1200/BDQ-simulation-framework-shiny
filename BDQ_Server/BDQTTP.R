@@ -32,10 +32,10 @@ $PLUGIN nm-vars
 $PARAM @covariates
 TAST = 0, 
 TASTW = 0,
-XDR = 0, 
+preAndXDR = 0, 
+XDR  = 0,
 MTTP = 163.7,
 CAVG = 0, 
-TREATMENT = 1, 
 WEEKP = 0, 
 TYPE = 2, 
 LASTR = 0,
@@ -61,7 +61,7 @@ $PARAM @annotated
   THETA9    : -1        : BDQ effect FIX
   THETA10   : 1.4215    : EC50
   // THETA10   : 2.64064   : EC50 AUCW
-  THETA11   : 0.280558  : XDR effect
+  THETA11   : 0.280558  : preAndXDR effect
   THETA12   : -3.68983  : MTTP effect
   THETA13   : 0.952229  : Scaling of hazard
 
@@ -86,7 +86,7 @@ $MAIN //The same as $PK in NONMEM
 //=========== DISEASE PROGRESSION MODEL IN PATIENTS ===========
 //--- Definition of covariates
   double BDQEFF1 = THETA9 * CAVG/(CAVG + THETA10) ;
-  double XDREFF  = THETA11 ;
+  double preAndXDREFF  = THETA11 ;
   double MTTPEFF = THETA12 ;
 
 
@@ -96,7 +96,7 @@ $MAIN //The same as $PK in NONMEM
   double ETATR   = (pow(PHI, BXPAR) - 1)/BXPAR ;  // Box-Cox transformation of the IIV in half-life (HL)
   double N0MBL   = THETA3 * 10000 * pow((MTTP/163.7), MTTPEFF) ; // Number of mycobacterial at start of treatment 
   // double N0MBL   = value ; // For validate TTP model
-  double HL      = THETA4 * (1 + BDQEFF1 * TREATMENT) * (1 + XDREFF * XDR) * exp(ETATR) ; // HL mycobacterial clearance
+  double HL      = THETA4 * (1 + BDQEFF1) * (1 + preAndXDREFF * preAndXDR) * exp(ETATR) ; // HL mycobacterial clearance
   double KD      = log(2)/HL ;
 
 
@@ -211,5 +211,5 @@ if (ORTTE == 0 && LASTR == 1) {
 
 
 // $CAPTURE TAST TASTW WEEKP REP TTPD FLAG DV ETATR NEWIND N0MBL N0 OMBL MBL OTAST DTAST SURV HAZ CHZ ORTTE RTTE USUR1 USUR2 P1 NEG LASTR
-$CAPTURE TASTW WEEKP MTTP XDR REP TTPD FLAG DV HL N0MBL MBL SURV HAZ CHZ ORTTE RTTE P1 NEG LASTR regimen
+$CAPTURE TASTW WEEKP MTTP preAndXDR XDR REP TTPD FLAG DV HL N0MBL MBL SURV HAZ CHZ ORTTE RTTE P1 NEG LASTR regimen
 "

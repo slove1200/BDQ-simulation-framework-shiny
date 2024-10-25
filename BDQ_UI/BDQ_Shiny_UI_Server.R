@@ -36,11 +36,8 @@ ui <-
     }
                     ")),
     
-    navbarPage(
-      header = tagList(""),  # This will be displayed above the tabs
-      footer = tagList(""),        # This will be displayed below the tabs
-      "BEDAQUILINE DOSE REGIMEN",
-      
+    titlePanel("BEDAQUILINE DOSE REGIMEN"),
+
       tabsetPanel(
         id = "mainTab",
         selected = "Dosing", # Default shown when opening the app
@@ -62,13 +59,13 @@ ui <-
 
 
       ) # end of tabsetPanel
-    ), # end of navbarPage
   ) # end of fluidPage
 
 #### Define server logic ####
 source(paste0(Server.directory, "BDQOMAT.R"))
 source(paste0(Server.directory, "BDQQT.R"))
 source(paste0(Server.directory, "BDQTTP.R"))
+source(paste0(Server.directory, "BDQMSM.R"))
 source(paste0(Server.directory, "BDQ_Server_Virtual_population.R"))
 
 server <- function(input, output, session) {
@@ -137,10 +134,28 @@ server <- function(input, output, session) {
   })
   
   
+  # MSM simulation ####
+  source(paste0(Server.directory, "BDQ_Server_MSM.R"))
   
+  # Use the function defined in the sourced file
+  sim_MSMtable <- eventReactive(input$goButton, {
+    sim_MSM(input, sim_TTPtable, sim_PKtable)  # Call the function and pass input
+  })
   
-  
-  
+  # # Render table
+  # output$sim_MSMtable <- renderTable({
+  #   # Call the reactive expression to get the data frame
+  #   head(sim_MSMtable() %>% filter(evid == 0) %>% mutate(MBLendLog10 = log10(MBLend)), 100)
+  # })
+  #
+
+  # Render MSM plot
+  source(paste0(Server.directory, "BDQ_Server_MSMplots.R"))
+
+  output$plotMSM <- renderPlot({
+    MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
+  })
+
   
   
   #### DATAFRAME FOR TROUGH CONC AT 24 HRS
@@ -252,164 +267,6 @@ server <- function(input, output, session) {
 
     return(dd2)
   })
-
-  #### TTP ####
-  ######## Create TTP dataframe for simulation
-  dfReadyForTTP <- eventReactive(input$goButton, {
-    TTPdf   <- tidyr::crossing(
-      ID    = c(1:input$nsim),
-      WEEKP = c(1:24),
-      REP   = c(1:3),
-      EVID  = 0,
-      AMT   = 0,
-      FLAG  = 1,
-      TTPD  = c(0, 1:42),
-      LASTR = 0) %>%
-      mutate(TIME = seq_along(TTPD) - 1) # dummy time column
-
-    TTPdf2 <- TTPdf %>% filter(TTPD == 0) %>% mutate(FLAG = 2, TIME = NA)
-
-    TTPdf_fin <- rbind(TTPdf, TTPdf2) %>%
-      mutate(EVID  = ifelse(TTPD == 0 & FLAG == 1,  4, EVID),
-             AMT   = ifelse(TTPD == 0 & FLAG == 1,  1, AMT),
-             LASTR = ifelse(TTPD == 42, 1, LASTR),
-             TASTW = WEEKP) %>%
-      mutate(CMT = ifelse(AMT == 1, 1, NA)) %>%
-      arrange(ID, WEEKP, REP, TTPD) %>%
-      zoo::na.locf()
-
-    # covariate distribution sampling
-    ###### Sampling of pre-XDR+XDR
-    unique.TTPdf_fin <- unique(TTPdf_fin$ID)
-    sample.TTPdf_fin <- sample(unique.TTPdf_fin, 0.3 * length(unique.TTPdf_fin))
-    TTPdf_fin <- TTPdf_fin %>%
-      dplyr::mutate(XDR = ifelse(ID %in% sample.TTPdf_fin, 1, 0))
-
-    # MTTP2 SAMPLING
-    set.seed(100)
-    TTPdf_fin <- TTPdf_fin %>%
-      group_by(ID) %>%
-      dplyr::mutate(MTTP2 = runif(1, 55.2, 1008))
-
-    dfCAVG <- Cavg_weekly() %>% rename("WEEKP" ="WEEK") %>%
-      filter(WEEKP != 0) %>%
-      mutate(CAVG  =  weekly_BDQ/168) %>% # unit µg/mL
-      ungroup() %>% select(ID, WEEKP, CAVG)
-
-    dfTTP <- TTPdf_fin %>% full_join(dfCAVG)
-
-    return(dfTTP)
-  })
-
-  #### Simulation: TTP
-  sim_dataframeTTP <- eventReactive(input$goButton, {
-    ## Simulation settings
-    # 1. "nsim"
-    nsamples <- as.numeric(input$nsim)      # Number of simulated individuals
-
-    # 2. "simtime" and "simunit"
-    sim_time <- as.numeric(input$simtime)   # Time of simulation imputed (transformed in hours during simulation)
-    sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
-
-
-    modTTP <- mcode("BDQTTP", codeTTP)
-
-    ## Interindividual variability ON/OFF
-    if (input$IIV == "OFF") {
-      set.seed(3468)
-      outTTP <- modTTP %>%
-        zero_re() %>%
-        data_set(dfReadyForTTP()) %>%
-        mrgsim(end = sim_time * sunit, delta = 1) %>%
-        as.data.frame()
-      outTTP$REGIMEN <- "1"
-      return(outTTP)
-    } else { #### no sigma in TTP
-      set.seed(3468)
-      outTTP <- modTTP %>%
-        data_set(dfReadyForTTP()) %>%
-        mrgsim(end = sim_time * sunit, delta = 1) %>%
-        as.data.frame()
-      outTTP$REGIMEN <- "1"
-      return(outTTP)
-    }
-  })
-
-  #### MSM ####
-  ######## Create MSM dataframe for simulation
-  dfReadyForMSM <- eventReactive(input$goButton, {
-
-    # Get MBLend and HL2 from TTP output
-    HLMBL <- sim_dataframeTTP() %>% filter(REP == 1 & WEEKP %in% c(1,2,24) & FLAG == 2)
-
-    # Create a copy of the rows where WEEKP = 1
-    new_rows <- HLMBL %>% group_by(ID) %>%
-      filter(WEEKP == 1) %>% slice(1L) %>%
-      mutate(WEEKP = 0)  # Change WEEKP to 0
-
-    new_rows2 <- HLMBL %>% group_by(ID) %>%
-      filter(WEEKP == 1) %>% slice(1L) %>%
-      mutate(WEEKP = 3)  # Change WEEKP to 3
-
-
-    # Bind the new rows to the original dataframe
-    HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
-
-    TTPcov <- HLMBL2 %>% group_by(ID) %>%
-      mutate(HL2 = ifelse(WEEKP == 0, 0.69443, lag(HL)),
-             MBLend = MBL[WEEKP == 24]) %>%
-      mutate(HL2 = ifelse(WEEKP == 1, 0.69443, HL2), # median of HL
-             time = WEEKP*168)  %>% # hours
-      select(ID, MTTP, XDR, time, HL2, MBLend)
-
-
-    ####
-    # Set up event
-    ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(input$nsim))
-    ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(0,1,2,3,4,5), evid = c(2,4,1,1,1,1), ID = seq(input$nsim),
-              addl = 120, ii = 168, rate = 0, realize = T)
-    data.dose <- seq(ev0, ev1)
-    data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
-      mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
-
-
-    #### covariate distribution sampling/combination
-    # MTTP (same with TTP), XDR (in TTP is MDR and pre-XDR/XDR, in MSM is non-XDR and XDR),
-    # HL2 (derived from TTP), MBLend (derived from TTP), SEX (same with QT), baseWT (from PK)
-    PKcov <- sim_PKtable() %>% group_by(ID) %>% slice(1L) %>% select(ID, WT, AGE, RACE)
-    QTcov <- sim_dataframeQT() %>% group_by(ID) %>% slice(1L) %>% select(ID, SEX)
-
-    idata <- data.table::data.table(ID=1:input$nsim) %>% left_join(PKcov)
-    data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov) %>%
-      group_by(ID) %>% zoo::na.locf()
-
-    dftentimes <- map_df(1:10, ~ {
-      data.all %>%
-        mutate(ID = ID + input$nsim * (.x - 1))  # Adjust ID for each copy
-    })
-
-    return(dftentimes)
-  })
-
-  #### Simulation: MSM
-  sim_dataframeMSM <- eventReactive(input$goButton, {
-    modMSM <- mcode("CodeMSM", codeMSM)
-    modMSM <- update(modMSM, outvars = outvars(modMSM)$capture)
-
-    set.seed(3468)
-    outMSM <- modMSM %>%
-      data_set(dfReadyForMSM()) %>%
-      mrgsim(end = 20160, delta = 168) %>%
-      as.data.frame %>%
-      filter(EVID == 0) %>%
-      mutate(time = time/24/7) %>%
-      rename("STATE" = "XDV") %>%
-      select(-EVID, -P_4)
-    outMSM$REGIMEN <- "1"
-    return(outMSM)
-  })
-
-
 
   ########################################################
   ##### RENDER IMAGE ####
@@ -597,76 +454,7 @@ server <- function(input, output, session) {
         ggtitle("Albumin Concentration (g/dL) vs Time(weeks)")
 
       plot <- grid.arrange(e1, e2, nrow = 2)
-    }  else if (input$ipred==7) {
-      # --- Get the proportion of samples without positive signal ---
-      outTTE <- sim_dataframeTTP() %>% filter(RTTE == 1) ## positive signal at specific time
-      TTEcount <- outTTE %>% group_by(WEEKP) %>% count(TTPD)
-      ttpd <- crossing(TTPD = c(1:42), WEEKP = c(1:24))
-      TTEcount <- merge(ttpd, TTEcount, all.x = TRUE) %>% mutate(n = ifelse(is.na(n), 0, n))
-      TTEcount <- TTEcount[order(TTEcount$WEEKP, TTEcount$TTPD), ]
-
-      TTEcount <- TTEcount %>% group_by(WEEKP) %>% mutate(cumn = cumsum(n), proportion = NA)
-      TTEcount <- TTEcount %>% group_by(WEEKP) %>% mutate(proportion = ifelse(TTPD != 42, (1 - (cumn/sum(n))), lag(proportion)))
-      TTEcount <- TTEcount %>% filter(TTPD != 42)
-
-      # --- plot for WEEKP specified in the article ---
-      TTEcountw <- TTEcount %>%
-        filter(WEEKP %in% c(1:8, 10, 12, 14, 16, 18, 20))
-
-      # Custom labeller function to change facet titles
-      week_labels <- as_labeller(function(week) {
-        paste("Week", week)
-      })
-
-      plot <- ggplot(TTEcountw, aes(TTPD, proportion*100)) +
-        facet_wrap(~WEEKP, labeller = week_labels, ncol = 3, scales = "free_x") +
-        geom_line(size = 1) +
-        theme_bw() +
-        theme(text = element_text(size = 15)) +
-        theme(axis.text = element_text(size = 15)) +
-        xlab("Time in MGIT after inoculation (days)") +
-        ylab("Proportion of samples without positive signal (%)") +
-        ggtitle("Simulated TTP in MGIT per week after start of treatment") +
-        theme(
-          plot.title = element_text(size = 18, hjust = 0.5),       # Main title
-          axis.title = element_text(size = 15),                    # Axis titles
-          axis.text = element_text(size = 15),                     # Axis text
-          legend.position = "none",
-          strip.text = element_text(size = 15)
-        ) +
-        scale_y_continuous(breaks = seq(0, 100, by = 20))
-    } else {
-      # --- proportions of patients being in each state ---
-      total <- dplyr::n_distinct(sim_dataframeMSM()$ID)
-      summary_MSM <- sim_dataframeMSM() %>% group_by(time, STATE) %>% reframe(prop = n()/total) %>%
-        complete(time, STATE, fill = list(prop = 0))
-
-      # Custom labeller function to change facet titles
-      state_labels <- as_labeller(function(STATE) {
-        case_when(STATE == 1 ~ "Active TB",
-                  STATE == 2 ~ "Converted",
-                  STATE == 3 ~ "Recurrent TB",
-                  STATE == 5 ~ "Death")
-      })
-
-      plot <- ggplot(summary_MSM %>% filter(time %in% c(0,4,8,16,24,48,72,96,120)), aes(x = time, y = prop*100)) +
-        geom_line(size = 0.8) +
-        geom_point(size = 2, shape = 1) +
-        facet_wrap(~STATE, labeller = state_labels, scales = "free_y") +
-        theme_bw() +
-        xlab("Time after start of treatment (weeks)") +
-        ylab("Proportion of patients (%)") +
-        ggtitle("Proportions of patients being in each state") +
-        theme(
-          plot.title = element_text(size = 18, hjust = 0.5),       # Main title
-          axis.title = element_text(size = 15),                    # Axis titles
-          axis.text = element_text(size = 15),                     # Axis text
-          legend.title = element_text(size = 14),                  # Legend title
-          legend.text = element_text(size = 12),                   # Legend text
-          strip.text = element_text(size = 15)
-        ) +
-        scale_x_continuous(breaks = seq(0, 120, by = 12))
-    }
+    } 
     return(plot)
   })
 

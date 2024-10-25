@@ -9,12 +9,12 @@ $PLUGIN nm-vars
 $PARAM @covariates
   DOSE    = 400,     
   ALB     = 3.65,
-  RACE    = 1,
   AGE     = 32,
   WT      = 56.6,
   FLAG    = 1,
   OCC     = 1,
-  regimen = 1
+  regimen = 1,
+  RACE    = 0,
   SEX     = 0, 
   TBTYPE  = 2, 
   BG      = 0, 
@@ -30,7 +30,7 @@ $PARAM @annotated
   THETA4  :  -2.43936     : shape factor BSVX0 boxcox 
   THETA5  :  -5.37749     : shape factor BSVXSS boxcox
       
-      // Body weight 
+// Body weight 
   THETA6  :  56.6371      : WT0 kg 
   THETA7  :  62.6425      : WT120 kg 
   THETA8  :  -0.416034    : Boxcox BSV WT120
@@ -189,7 +189,7 @@ $MAIN
 // and $ERROR since they are time changing Empiric
 // Effect of Black race on CL 
   double BLACK            =  0              ;                    
-  if(RACE==2) {
+  if(RACE == 1) {
     BLACK = 1.0;
   }                   
   double BLACKCL          = 1 + BLACK*THETA23;
@@ -350,5 +350,5 @@ $TABLE // $ERROR
 //     Y = IPRED  + W*EPS(2);
 //  }    
   
-$CAPTURE ALB WT RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen SEX CACOR K TBTYPE BG MTTP
+$CAPTURE RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen SEX CACOR K TBTYPE BG MTTP
 "
