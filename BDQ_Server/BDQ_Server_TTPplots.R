@@ -27,7 +27,7 @@ TTP_plots <- function(input, sim_TTPtable) {
     ggtitle("Probability of positive samples") +
     theme_bw() +
     scale_y_continuous(breaks = seq(0, 100, by = 20)) +
-    scale_x_continuous(breaks = seq(0, 20, by = 4), limits = c(0, 20.5)) +
+    scale_x_continuous(breaks = seq(0, 24, by = 4), limits = c(0, 20.5)) +
     scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
     theme(
       plot.title = element_text(size = 18),       # Main title

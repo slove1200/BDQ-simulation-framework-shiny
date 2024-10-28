@@ -72,7 +72,7 @@ PKSimulation <- function(IIVval, IEval, mod, df, sim_time, sunit) {
 
 #### input ####
 input <- c()
-input$nsim    <- 100  # Number of simulated individuals
+input$nsim    <- 10  # Number of simulated individuals
 input$simtime <- 24   # Time of simulation imputed (transformed in hours during simulation)
 input$sunit   <- 168  ## Simulation unit: "1" day, "2" week
 
@@ -195,7 +195,7 @@ dd3 <- out %>% filter(AMT == 0) %>%
 TTPdf   <- tidyr::crossing(
   ID    = c(1:input$nsim), 
   WEEKP = c(1:24), 
-  REP   = c(1:3), 
+  REP   = c(1:1), 
   EVID  = 0, 
   AMT   = 0,
   FLAG  = 1, 
@@ -310,7 +310,7 @@ ggplot(PROBcount, aes(WEEKP, prop*100)) +
 
 ######## MSM ####
 #### create simulation dataset
-HLMBL <- outTTP %>% filter(REP == 1 & WEEKP %in% c(1,2,24) & FLAG == 2)
+HLMBL <- outTTP %>% filter(REP == 1 & WEEKP %in% c(1,2,sim_time) & FLAG == 2)
 
 # Create a copy of the rows where WEEKP = 1
 new_rows <- HLMBL %>% group_by(ID) %>%
@@ -327,7 +327,7 @@ HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
 
 TTPcov <- HLMBL2 %>% group_by(ID) %>% 
   mutate(HL2 = ifelse(WEEKP == 0, 0.69443, lag(HL)), 
-         MBLend = MBL[WEEKP == 24]) %>% 
+         MBLend = MBL[WEEKP == sim_time]) %>% 
   mutate(HL2 = ifelse(WEEKP == 1, 0.69443, HL2), # median of HL 
          time = WEEKP*168)  %>% # hours
   select(ID, MTTP, XDR, time, HL2, MBLend)
@@ -337,10 +337,11 @@ TTPcov <- HLMBL2 %>% group_by(ID) %>%
 # Set up event
 ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(input$nsim))
 ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(0,1,2,3,4,5), evid = c(2,4,1,1,1,1), ID = seq(input$nsim),
-          addl = 120, ii = 168, rate = 0, realize = T)
+          addl = 120, ii = 168, realize = T)
 data.dose <- seq(ev0, ev1)
 data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
-  mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
+  mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid))) %>%
+  select(-ii, -addl)
 
 
 # Covariates
@@ -358,23 +359,27 @@ dftentimes <- map_df(1:10, ~ {
 })
 
 # MSM simulation
-modMSM <- mcode("CodeMSM", codeMSM)
+modMSM <- mcode("BDQMSM", BDQMSM)
 modMSM <- update(modMSM, outvars = outvars(modMSM)$capture)
 
 set.seed(3468)
 outMSM <- modMSM %>%
   data_set(dftentimes) %>%
-  mrgsim(end = 20160, delta = 168) %>%
+  mrgsim(end = 672, delta = 168) %>%
   as.data.frame %>%
   filter(EVID == 0) %>% 
   mutate(time = time/24/7) %>%
   rename("STATE" = "XDV") %>%
   select(-EVID, -P_4)
 
+outMSM2 <- outMSM2 %>% mutate(ID = ID+10)
+
 #### Plot
-summary_MSM <- outMSM %>% group_by(time, STATE) %>% summarise(prop = n()/1000, .groups = "drop") %>%
+outMSM <- rbind(outMSM, outMSM2)
+
+summary_MSM <- outMSM %>% group_by(regimen, time, STATE) %>% summarise(prop = n()/input$nsim, .groups = "drop") %>%
   # Ensure all combinations of time and STATE are included, even if they have no observations
-  complete(time, STATE, fill = list(prop = 0))
+  complete(regimen, time, STATE, fill = list(prop = 0))
 
 
 # Custom labeller function to change facet titles

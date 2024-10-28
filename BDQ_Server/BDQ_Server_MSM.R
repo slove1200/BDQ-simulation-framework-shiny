@@ -29,7 +29,8 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
         (regimen == 2 & WEEKP %in% c(1, 2, if (input$LD2) input$ldur_2 + input$mdur_2 else input$mdur_2)) |
         (regimen == 3 & WEEKP %in% c(1, 2, if (input$LD3) input$ldur_3 + input$mdur_3 else input$mdur_3)) |
         (regimen == 4 & WEEKP %in% c(1, 2, if (input$LD4) input$ldur_4 + input$mdur_4 else input$mdur_4))
-    )
+    ) %>%
+    mutate(MBLend = first(MBL[WEEKP == dur]))
   
   # Create a copy of the rows where WEEKP = 1
   new_rows <- HLMBL %>% group_by(ID) %>%
@@ -45,14 +46,13 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
   HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
   
   TTPcov <- HLMBL2 %>% group_by(ID) %>%
-    mutate(HL2 = ifelse(WEEKP == 0, 0.69443, lag(HL)),
-           MBLend = MBL[WEEKP == dur]) %>%
+    mutate(HL2 = ifelse(WEEKP == 0, 0.69443, lag(HL))) %>%
     mutate(HL2 = ifelse(WEEKP == 1, 0.69443, HL2), # median of HL
            time = WEEKP*168)  %>% # hours
     filter(WEEKP %in% c(0, 1, 2, 3)) %>%
-    select(ID, XDR, time, HL2, MBLend, dur)
-    # mutate(MBLendLog10 = log10(MBLend), 
-    #        MBL         = log10(MBL))
+    select(ID, MTTP, XDR, time, HL2, MBLend, dur, MBL) %>%
+    mutate(MBLendLog10 = log10(MBLend), 
+            MBLLog10    = log10(MBL))
 
 
   ####
@@ -65,11 +65,12 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
     mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
 
 
-  #### covariate distribution sampling/combination
-  # MTTP (same with TTP), XDR (in TTP is MDR and pre-XDR/XDR, in MSM is non-XDR and XDR),
-  # HL2 (derived from TTP), MBLend (derived from TTP), SEX (same with QT), baseWT (from PK)
+  #### Covariates used in MSM
+  # MTTP (retrieved from TTP dataset), XDR (from TTP model),
+  # HL2 (derived from TTP model), MBLend [the end of treatment, depends on the duration of the regimen] (derived from TTP model)
+  # SEX (same with QT, retrieved from PK dataset), baseWT (retrieved from PK dataset)
   dfCov <- sim_PKtable() %>% filter(time == 0)
-  dfCov <- dfCov %>% select(ID, regimen, WT = IPREDWT, SEX, MTTP)
+  dfCov <- dfCov %>% select(ID, regimen, WT = IPREDWT, SEX)
 
   idata <- data.table::data.table(ID=seq(nsubjects*num_regimens)) %>% left_join(dfCov, by = "ID")
   data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov, by = c("ID", "time")) %>%

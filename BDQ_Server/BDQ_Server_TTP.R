@@ -1,4 +1,7 @@
 sim_TTP <- function(input, sim_PKtable) {
+  # User input
+  num_REPs <- input$REP
+  
   # Retrieve information from simulated PK profiles
   Cavg_weekly <- sim_PKtable() %>% filter(AMT == 0)
     
@@ -35,7 +38,7 @@ sim_TTP <- function(input, sim_PKtable) {
   TTPdf   <- tidyr::crossing(
     ID    = seq(nsubjects*num_regimens),
     WEEKP = c(1:24),
-    REP   = c(1:3),
+    REP   = c(1:num_REPs),
     EVID  = 0,
     AMT   = 0,
     FLAG  = 1,
