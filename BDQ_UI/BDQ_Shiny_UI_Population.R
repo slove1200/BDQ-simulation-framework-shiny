@@ -180,8 +180,10 @@ mainTabPopulation <- tabPanel(
               # Column for categorical covariates
               column(6,
                      card(
+                       style = "overflow: visible;",  # Add this to allow overflow on the card
                        card_header("Categorical Covariates", style = "font-size: 18px; background-color: #CDD8DA4D;"),
                        card_body(
+                         style = "overflow: visible;",  # Add this to allow overflow on the card
                          selectInput("SEX", label = tags$span(style="font-weight: bold;","Sex"), choices = c("Male", "Female")),
                          selectInput("RACE", label = tags$span(style="font-weight: bold;","Race"), choices = c("Non-Black", "Black")),
                          selectInput("XDR", label = tags$span(style="font-weight: bold;","Drug Resistance"), choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
@@ -214,27 +216,53 @@ mainTabPopulation <- tabPanel(
             # Column for Background therapy
             column(6,
                    card(
-                     card_header("Background Therapy", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                     card_header("TTP Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
                      card_body(
-                       style = "font-weight: bold;",
-                       numericInput("HL1", label = "Half-life of Bacterial Clearance (%) Lower", value = 20, min = -300, max = 300, width = "70%"),
-                       "***HL and surge peak are highly correlated"
+                       selectInput("STUDY", label = tags$span(style="font-weight: bold;","Type of Model for PK-TTP"), choices = c("Treatment-naïve", "Treatment-experienced"), width = "70%"),
+                       numericInput("REP", label = tags$span(style="font-weight: bold;","Numbers of Culture Replicates"), value = 1, min = 1, max = 3, width = "70%"),
+                       numericInput("HL", label = tags$span(style="font-weight: bold;", "Bacterial Clearance (%) Faster"), value = 20, min = -300, max = 300, width = "70%"),
+                       "***HL and surge peak, surge amplitude are highly correlated"
                      )
                    )
             ),
             # Column for Model settings
             column(6,
                    card(
-                     card_header("Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                     card_header("Multistate Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
                      card_body(
-                       selectInput("STUDY", label = tags$span(style="font-weight: bold;","Type of Model for PK-TTP"), choices = c("Treatment-naïve", "Treatment-experienced")),
-                       numericInput("REP", label = tags$span(style="font-weight: bold;","Numbers of Culture Replicates"), value = 1, min = 1, max = 3),
-                       numericInput("SA1", label = tags$span(style="font-weight: bold;","Peak of Conversion (%) Faster"), value = 20, min = -300, max = 300)
+                       numericInput("SA", label = tags$span(style="font-weight: bold;","Peak Amplitude of Conversion (%) Increased"), value = 20, min = -300, max = 300, width = "70%"), 
+                       numericInput("PT", label = tags$span(style="font-weight: bold;","Peak Time of Conversion (%) Faster"), value = 20, min = -300, max = 300, width = "70%")
                      )
                    )
             )
           ),
-          "Additional content for Advanced settings goes here."
+          # Add second row for two more columns
+          fluidRow(
+            # Third column
+            column(6,
+                   card(
+                     style = "overflow: visible;",  # Add this to allow overflow on the card
+                     card_header("QT Model Settings", 
+                                 style = "font-size: 18px; background-color: #D8BFD84D;"),
+                     card_body(
+                       style = "overflow: visible;",  # Set overflow for card body
+                       div(
+                         style = "overflow: visible;",  # Ensure select input dropdown is fully visible
+                         selectInput("QTCor", label = tags$span(style="font-weight: bold;", "Type of QT Correction Factor"), choices = c("QTcF", "QTc-TBT"), width = "70%")
+                       )
+                     )
+                   )
+            ),
+            # Fourth column
+            column(6,
+                   card(
+                     card_header("Others", style = "font-size: 18px; background-color: #D8BFD84D;"),
+                     card_body(
+                       "Additional content for Advanced settings goes here."
+                     )
+                   )
+            )
+          ),
         )
       ),
       col_widths = c(8, 4, 8)#,

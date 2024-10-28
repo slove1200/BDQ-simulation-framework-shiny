@@ -55,10 +55,10 @@ $PARAM @annotated
   THETA23 :  0.838743     : Effect of black race on CL/CM2 
   THETA24 :  0.00880756   : AGE effect on CL/CLM2
  
- // IE on BDQ CL
+// Interaction effect (IE) on BDQ CL
   THETA25   :    1       : IEBDQ
  
-//IE on M2 CL 
+// Interaction effect (IE) on M2 CL 
   THETA26   :    1        : IEM2
   
 // Albumin and body weight 
@@ -160,10 +160,10 @@ $MAIN
   double TVVM2  = THETA18                    ;
   
   // IE on BDQ CL
-  double IEBDQ    =   THETA25                 ;
+  double IEBDQ     = THETA25                 ;
  
 //IE on M2 CL 
-  double IEM2      = THETA26                  ;
+  double IEM2      = THETA26                ;
 
 
 

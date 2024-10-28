@@ -69,19 +69,22 @@ PKDDIProcessing <- function(IEval, df) {
     df$THETA25 <- 2.1
     df$THETA26 <- 2.1
   }
-  else if (IEval %in% c("Lopinavir/r", "Rifapentine")) {
-    df$THETA25 <- 4.0
-    df$THETA26 <- 4.0
+  else if (IEval == "Lopinavir/r") {
+    df$THETA25 <- 0.35
+    df$THETA26 <- 0.58
   }
   else if (IEval == "Nevirapine") {
-    df$THETA25 <- 0.95
-    df$THETA26 <- 1.58
+    df$THETA25 <- 0.92
+    df$THETA26 <- 1.05
   }
   else if (IEval == "Rifampicin") {
     df$THETA25 <- 4.8
     df$THETA26 <- 4.8
   }
-  
+  else if (IEval == "Rifapentine") {
+    df$THETA25 <- 4.0
+    df$THETA26 <- 4.0
+  }
   return(df)
 }
 
@@ -175,7 +178,7 @@ sim_PK <- function(input) {
       all_regimens_df[[i]] <- dfPK
       
     } else {
-        # If the regimen is not selected, ensure that it does not exist in the final dataset
+      # If the regimen is not selected, ensure that it does not exist in the final dataset
       all_regimens_df[[i]] <- NULL
     }
   }
@@ -203,14 +206,23 @@ sim_PK <- function(input) {
     # 3 "ALB"
     ALB <- input$ALB
     
-    # 4 AGE
+    # 4 "AGE"
     AGE <- input$AGE
     
+    # 5 "SEX"
+    if (input$SEX == "Male") {
+      SEX <- 0
+    } else {
+      SEX <- 1   # SEX 0: "Male", 1: "Female"
+    }
+    
     ## Set parameters in dataset
-    dfPK_combined$AGE <- AGE
-    dfPK_combined$RACE <- RACE
+    dfPK_combined$AGE    <- AGE
+    dfPK_combined$RACE   <- RACE
     dfPK_combined$THETA6 <- WT
     dfPK_combined$THETA1 <- ALB
+    dfPK_combined$SEX    <- SEX
+    
   } else { # UI input is to simulate in a population-level
     dfPK_combined <- full_join(dfPK_combined, Pop_generation(input), by = c("ID", "regimen"))
   }
@@ -220,7 +232,7 @@ sim_PK <- function(input) {
   # Load mrgsolve model
   mod <- mcode("BDQOMAT", code)
   mod <- update(mod, outvars = outvars(mod)$capture)
-
+  
   # Run simulation
   set.seed(3468)
   out <- PKSimulation(input$IIV, mod, dfPK_combined, sim_time, sunit)
