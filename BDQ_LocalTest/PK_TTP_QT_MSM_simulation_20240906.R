@@ -90,6 +90,28 @@ input$mfreq     <- "Three times weekly" # Maintenance dose unit: "1" day, "2" we
 input$IIV       <- "ON" # ON or OFF
 input$IE        <- "NON" 
 
+# Create dosing details characters
+# Construct the first sentence conditionally
+first_part <- if (input$load_dose) {
+  str_glue("{ldose} mg {tolower(lfreq)} for {ldur} {ifelse(lunit == 1, 'days', 'weeks')}, \nfollowed by",
+           ldose = input$ldose,
+           ldur  = input$ldur,
+           lunit = input$lunit,
+           lfreq = input$lfreq)
+} else {
+  ""
+}
+
+# Combine the conditional part with the main sentence
+str_glue(
+  "{first_part} {mdose} mg {tolower(mfreq)} for {mdur} {ifelse(munit == 1, 'days', 'weeks')}",
+  first_part = first_part,
+  mdose = input$mdose,
+  mdur  = input$mdur,
+  munit = input$munit,
+  mfreq = input$mfreq
+)
+
 nsamples <- as.numeric(input$nsim)      
 sim_time <- as.numeric(input$simtime)   
 sunit <- convertTimeUnit(input$sunit) 

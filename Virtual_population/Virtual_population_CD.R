@@ -118,7 +118,7 @@ df <- read.csv("Multistate_NM_dataset_BS_new_MSMmodel_20231212.csv", header = T)
 dfMSM <- df %>%
   select(ID, AGE, SEX, RACE, TBTYPE, MTTP) %>% slice(1L)
 
-df2 <- left_join(dfMSM, dfQT_fin, 
+df2 <- left_join(dfQT_fin, dfMSM, 
                     by = "ID")
 
 df_fin <- df2 %>% ungroup() %>%
@@ -138,7 +138,7 @@ continuous_vars <- c("AGE", "MTTP", "CACOR", "K") # Replace with actual continuo
 set.seed(3468)
 myCovSimMICE <- simCovMICE(m = 10,orgCovs = orgCovsEx,
                            catCovs = c("SEX", "RACE", "TBTYPE"),
-                           nsubj = 439)
+                           nsubj = 440)
 
 
 # Function to summarize continuous variables (median and range)

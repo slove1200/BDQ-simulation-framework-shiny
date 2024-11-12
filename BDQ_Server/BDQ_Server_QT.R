@@ -35,13 +35,13 @@ sim_QT <- function(input, sim_PKtable) {
   
   for (i in 1:num_regimens) {
     
-    IE <- input[[paste0("IE_", i)]]
+    IE <- input[[paste0("IE_", i, "_QT")]]
     
     if (!is.null(IE)) {
       dfQT <- dfQT %>%
         mutate(
-          CLOFA = ifelse(regimen == i & IE == "Clofazimine", 1, CLOFA),  # Set CLOFA based on IE
-          MOXI  = ifelse(regimen == i & IE == "Moxifloxacin", 1, MOXI)   # Set MOXI based on IE
+          CLOFA = ifelse(regimen == i & IE %in% c("Clofazimine", "Both"), 1, CLOFA),  # Set CLOFA based on IE
+          MOXI  = ifelse(regimen == i & IE %in% c("Moxifloxacin", "Both"), 1, MOXI)   # Set MOXI based on IE
         )
     }
   }

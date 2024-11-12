@@ -65,26 +65,31 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, mdose, mdur, mun
 }
 
 PKDDIProcessing <- function(IEval, df) {
-  if (IEval == "Efavirenz") {
-    df$THETA25 <- 2.1
-    df$THETA26 <- 2.1
+  # Define base values for Efavirenz, Lopinavir/r, Nevirapine
+  base_values <- list(
+    "Efavirenz" = c(2.1, 2.1),
+    "Lopinavir/r" = c(0.25, 0.59),
+    "Nevirapine" = c(0.82, 1.19)
+  )
+  
+  # Define override values for Rifampicin and Rifapentine
+  override_values <- list(
+    "Rifampicin" = c(4.8, 4.8),
+    "Rifapentine" = c(4.0, 4.0)
+  )
+  
+  # Check if IEval is one of the base drugs
+  if (IEval %in% names(base_values)) {
+    df$THETA25 <- base_values[[IEval]][1]
+    df$THETA26 <- base_values[[IEval]][2]
   }
-  else if (IEval == "Lopinavir/r") {
-    df$THETA25 <- 0.35
-    df$THETA26 <- 0.58
+  
+  # Check if IEval is one of the override drugs
+  if (IEval %in% names(override_values)) {
+    df$THETA25 <- override_values[[IEval]][1]
+    df$THETA26 <- override_values[[IEval]][2]
   }
-  else if (IEval == "Nevirapine") {
-    df$THETA25 <- 0.92
-    df$THETA26 <- 1.05
-  }
-  else if (IEval == "Rifampicin") {
-    df$THETA25 <- 4.8
-    df$THETA26 <- 4.8
-  }
-  else if (IEval == "Rifapentine") {
-    df$THETA25 <- 4.0
-    df$THETA26 <- 4.0
-  }
+  
   return(df)
 }
 
@@ -143,7 +148,8 @@ sim_PK <- function(input) {
     # For example:
     regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
                        common_inputs, 
-                       IE = input[[paste0("IE_", i)]])
+                       IE_HIV = input[[paste0("IE_", i, "_HIV")]], 
+                       IE_TB = input[[paste0("IE_", i, "_TB")]])
     
     # Process the rest of the regimen as needed...
   }
@@ -171,8 +177,12 @@ sim_PK <- function(input) {
       dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
       
       # 2. PK DDI details
-      if (!is.null(regimens[[i]]$IE)) {
-        dfPK <- PKDDIProcessing(regimens[[i]]$IE, dfPK)
+      if (!is.null(regimens[[i]]$IE_HIV) ) {
+        dfPK <- PKDDIProcessing(regimens[[i]]$IE_HIV, dfPK)
+      }
+      
+      if (!is.null(regimens[[i]]$IE_TB) ) {
+        dfPK <- PKDDIProcessing(regimens[[i]]$IE_TB, dfPK)
       }
       
       all_regimens_df[[i]] <- dfPK

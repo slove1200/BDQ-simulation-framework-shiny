@@ -35,9 +35,13 @@ sim_TTP <- function(input, sim_PKtable) {
   nsubjects    <- input$nsim
   num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
   
+  # "simtime" and "simunit"
+  sunit <- input$sunit        # Simulation unit: "1" day , "2" week
+  sim_timeWEEK <- ifelse(sunit == 2, input$simtime, input$simtime/7)   # Time of simulation imputed 
+  
   TTPdf   <- tidyr::crossing(
     ID    = seq(nsubjects*num_regimens),
-    WEEKP = c(1:24),
+    WEEKP = c(1:sim_timeWEEK),
     REP   = c(1:num_REPs),
     EVID  = 0,
     AMT   = 0,

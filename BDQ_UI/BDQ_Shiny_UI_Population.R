@@ -3,20 +3,39 @@
 CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
   
   # Helper to create the coMed controls
-  coMedControls <- function(regimen_num) {
+  coMedControlsHIV <- function(regimen_num) {
     div(
-      checkboxGroupInput(inputId = paste0("IE_", regimen_num), 
-                         label = NULL,
-                         choices = c("None" = "None", 
-                                     "Clofazimine" = "Clofazimine", 
-                                     "Efavirenz" = "Efavirenz", 
-                                     "Lopinavir/r" = "Lopinavir/r", 
-                                     "Moxifloxacin" = "Moxifloxacin", 
-                                     "Nevirapine" = "Nevirapine", 
-                                     "Rifampicin" = "Rifampicin", 
-                                     "Rifapentine" = "Rifapentine")
+      radioButtons(inputId = paste0("IE_", regimen_num, "_HIV"), 
+                   label = NULL,
+                   choices = c("None" = "None", 
+                               "Efavirenz" = "Efavirenz", 
+                               "Lopinavir/r" = "Lopinavir/r", 
+                               "Nevirapine" = "Nevirapine")
       ),
-      class = "comed-checkbox")
+      class = "comed-radioButtonsHIV")
+  }
+  
+  coMedControlsTB <- function(regimen_num) {
+    div(
+      radioButtons(inputId = paste0("IE_", regimen_num, "_TB"), 
+                   label = NULL,
+                   choices = c("None" = "None",
+                               "Rifampicin" = "Rifampicin", 
+                               "Rifapentine" = "Rifapentine")
+      ),
+      class = "comed-radioButtonsTB")
+  }
+  
+  coMedControlsQT <- function(regimen_num) {
+    div(
+      radioButtons(inputId = paste0("IE_", regimen_num, "_QT"), 
+                   label = NULL,
+                   choices = c("None" = "None",
+                               "Clofazimine" = "Clofazimine", 
+                               "Moxifloxacin" = "Moxifloxacin", 
+                               "Both" = "Both")
+      ),
+      class = "comed-radioButtonsQT")
   }
   
   # Optional conditionalPanel for regimens other than 1
@@ -24,40 +43,35 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
     conditionalPanel(
       condition = paste0("input.RG", regimen_num, " == true"),
       card(
-        max_height = "200px",
+        max_height = "320px",
         style = "overflow: unset;",  # Prevent overflow
         card_header(
           paste("Regimen", regimen_num), 
           style = paste0("font-size: 18px; background-color: ", background_color, "; ")
         ),
         div(
-          coMedControls(regimen_num),
-          style = "column-count: 2;" # CSS for 2-column layout
+          card(card_header(
+            "PK (HIV)", 
+            style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+            coMedControlsHIV(regimen_num), 
+            style = "padding: 6px;"),
+          card(card_header(
+            "PK (TB)", 
+            style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+            coMedControlsTB(regimen_num), 
+            style = "padding: 6px;"),
+          card(card_header(
+            "QT", 
+            style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+            coMedControlsQT(regimen_num), 
+            style = "padding: 6px;"),
+          style = "column-count: 3;" # CSS for 3-column layout
         )
-      ),
-      tags$head(
-        # JavaScript to handle "None" blocking other options
-        tags$script(HTML(paste0(
-          "
-          $(document).on('change', 'input[name=\"IE_", regimen_num, "\"]', function() {
-            var selectedValues = $('input[name=\"IE_", regimen_num, "\"]:checked').map(function() {
-              return this.value;
-            }).get();
-
-            if (selectedValues.includes('None')) {
-              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('disabled', true);
-              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('checked', false);
-            } else {
-              $('input[name=\"IE_", regimen_num, "\"]').prop('disabled', false);
-            }
-          });
-          "
-        )))
       )
     )
   else 
     card(
-      max_height = "200px",
+      max_height = "320px",
       style = "overflow: unset;",  # Prevent overflow
       card_header(
         paste("Regimen", regimen_num), 
@@ -65,27 +79,22 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
       ),
       style = "overflow: unset;",
       div(
-        coMedControls(regimen_num),
-        style = "column-count: 2"  # CSS for 2-column layout
-      ),
-      tags$head(
-        # JavaScript to handle "None" blocking other options
-        tags$script(HTML(paste0(
-          "
-          $(document).on('change', 'input[name=\"IE_", regimen_num, "\"]', function() {
-            var selectedValues = $('input[name=\"IE_", regimen_num, "\"]:checked').map(function() {
-              return this.value;
-            }).get();
-
-            if (selectedValues.includes('None')) {
-              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('disabled', true);
-              $('input[name=\"IE_", regimen_num, "\"]').not('[value=\"None\"]').prop('checked', false);
-            } else {
-              $('input[name=\"IE_", regimen_num, "\"]').prop('disabled', false);
-            }
-          });
-          "
-        )))
+        card(card_header(
+          "PK (HIV)", 
+          style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+          coMedControlsHIV(regimen_num), 
+          style = "padding: 6px;"),
+        card(card_header(
+          "PK (TB)", 
+          style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+          coMedControlsTB(regimen_num), 
+          style = "padding: 6px;"),
+        card(card_header(
+          "QT", 
+          style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
+          coMedControlsQT(regimen_num), 
+          style = "padding: 6px;"),
+        style = "column-count: 3;" # CSS for 3-column layout
       )
     )
 }
@@ -206,66 +215,7 @@ mainTabPopulation <- tabPanel(
           CoMedColumn(4, "#E7D7CB8D", default_LD = FALSE, addition_RG = TRUE)  
         )
       ),
-      
-      # Third card with custom background color and styled card header/body
-      card(
-        card_header("Advanced Settings", style = "font-size: 22px; background-color: #D8BFD8;"  # Using card_header for the title
-        ),
-        card_body(
-          fluidRow(
-            # Column for Background therapy
-            column(6,
-                   card(
-                     card_header("TTP Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
-                     card_body(
-                       selectInput("STUDY", label = tags$span(style="font-weight: bold;","Type of Model for PK-TTP"), choices = c("Treatment-naïve", "Treatment-experienced"), width = "70%"),
-                       numericInput("REP", label = tags$span(style="font-weight: bold;","Numbers of Culture Replicates"), value = 1, min = 1, max = 3, width = "70%"),
-                       numericInput("HL", label = tags$span(style="font-weight: bold;", "Bacterial Clearance (%) Faster"), value = 20, min = -300, max = 300, width = "70%"),
-                       "***HL and surge peak, surge amplitude are highly correlated"
-                     )
-                   )
-            ),
-            # Column for Model settings
-            column(6,
-                   card(
-                     card_header("Multistate Model Settings", style = "font-size: 18px; background-color: #D8BFD84D;"),
-                     card_body(
-                       numericInput("SA", label = tags$span(style="font-weight: bold;","Peak Amplitude of Conversion (%) Increased"), value = 20, min = -300, max = 300, width = "70%"), 
-                       numericInput("PT", label = tags$span(style="font-weight: bold;","Peak Time of Conversion (%) Faster"), value = 20, min = -300, max = 300, width = "70%")
-                     )
-                   )
-            )
-          ),
-          # Add second row for two more columns
-          fluidRow(
-            # Third column
-            column(6,
-                   card(
-                     style = "overflow: visible;",  # Add this to allow overflow on the card
-                     card_header("QT Model Settings", 
-                                 style = "font-size: 18px; background-color: #D8BFD84D;"),
-                     card_body(
-                       style = "overflow: visible;",  # Set overflow for card body
-                       div(
-                         style = "overflow: visible;",  # Ensure select input dropdown is fully visible
-                         selectInput("QTCor", label = tags$span(style="font-weight: bold;", "Type of QT Correction Factor"), choices = c("QTcF", "QTc-TBT"), width = "70%")
-                       )
-                     )
-                   )
-            ),
-            # Fourth column
-            column(6,
-                   card(
-                     card_header("Others", style = "font-size: 18px; background-color: #D8BFD84D;"),
-                     card_body(
-                       "Additional content for Advanced settings goes here."
-                     )
-                   )
-            )
-          ),
-        )
-      ),
-      col_widths = c(8, 4, 8)#,
+      col_widths = c(7, 5)#,
       #row_heights = c(5, 3)
     )
   ) # end of page_fillable

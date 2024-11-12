@@ -12,6 +12,8 @@ library(ggpubr)
 library(DT)
 library(bslib)
 library(dipsaus)
+library(stringr)
+library(bsicons)
 
 
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
@@ -20,7 +22,7 @@ Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BD
 # Source MainTab: About, Dosing, Population, Simulation, Results ... details
 source(paste0(UI.directory, "BDQ_Shiny_UI_About.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
-source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
+source(paste0(UI.directory, "BDQ_Shiny_UI_Population_2.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
 
@@ -90,6 +92,31 @@ source(paste0(Server.directory, "BDQMSM.R"))
 source(paste0(Server.directory, "BDQ_Server_Virtual_population.R"))
 
 server <- function(input, output, session) {
+  
+  # Dosing details ####
+  source(paste0(Server.directory, "BDQ_Server_DosingParse.R"))
+
+  # Create dynamic value boxes
+  output$regimen_boxes <- renderUI({
+    reg_strings <- regimen_strings(input)
+    validate(need(!is.null(reg_strings), "No regimen data available"))
+    
+    # Create a list of value boxes - one for each regimen
+    vbs <- lapply(seq_along(reg_strings), function(i) {
+      value_box(
+        title = tags$p(paste("Regimen", i), style = "font-size: 140%; font-weight: bold;"),
+        value = tags$p(reg_strings[[i]], style = "font-size: 110%;"),
+        showcase = bs_icon(bsicon_themes[[i]]),
+        theme = regimen_themes[[i]]  # Use custom theme from our list
+      )
+    })
+    
+    # Wrap the value boxes in a layout with appropriate width
+    layout_column_wrap(
+      width = "300px",
+      !!!vbs
+    )
+  })
   
   # PK simulation ####
   source(paste0(Server.directory, "BDQ_Server_PK.R"))
