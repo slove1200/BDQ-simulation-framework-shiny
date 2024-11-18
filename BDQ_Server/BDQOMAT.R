@@ -107,7 +107,7 @@ $SIGMA @annotated @block
 
 $MAIN                    
 // Model for Albumin
-  double TVX0    = THETA1                    ;
+  double TVX0    = ALB                       ;
   double TVXSS   = THETA2                    ;
   double TVREP   = THETA3                    ;
 
@@ -131,7 +131,7 @@ $MAIN
   A_0(8)         = X0                        ;
 
 // Model for WT
-  double TVWT0    = THETA6                   ;
+  double TVWT0    = WT                       ;
   double TVWT120  = THETA7                   ;
 
   double BSVWT0   = ETA(4)                   ;
@@ -350,5 +350,5 @@ $TABLE // $ERROR
 //     Y = IPRED  + W*EPS(2);
 //  }    
   
-$CAPTURE RACE AGE AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen SEX CACOR K TBTYPE BG MTTP
+$CAPTURE RACE AGE WT ALB AMT IPRED IPREDM2 IPREDALB IPREDWT AAUCBDQ AAUCM2 regimen SEX CACOR K TBTYPE BG MTTP
 "

@@ -67,11 +67,11 @@ Pop_generation <- function(input) {
   num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
   
   # Read in dataset for conditional distribution modeling for covariates distribution
-  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population.csv", 
+  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
                         header = T)
   # Differentiate categorical and continuous variables
   categorical_vars <- c("SEX", "RACE", "TBTYPE")  # Replace with your actual categorical variables
-  continuous_vars <- c("AGE", "MTTP", "CACOR", "K")  # Replace with your actual continuous variables
+  continuous_vars <- c("AGE", "MTTP", "CACOR", "K", "WT", "ALB")  # Replace with your actual continuous variables
   
   # Conditional distribution modeling for covariates distribution
   # Numbers of subjects depending on input (numbers of simulated individuals)

@@ -22,7 +22,7 @@ Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BD
 # Source MainTab: About, Dosing, Population, Simulation, Results ... details
 source(paste0(UI.directory, "BDQ_Shiny_UI_About.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
-source(paste0(UI.directory, "BDQ_Shiny_UI_Population_2.R"))
+source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
 
