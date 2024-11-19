@@ -5,7 +5,7 @@ sim_QT <- function(input, sim_PKtable) {
   sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
   
   # Create dataset for simulation
-  dfQT <- sim_PKtable()
+  dfQT <- sim_PKtable
   dfQT <- subset(dfQT, select = c(ID, regimen, time, IPREDM2, RACE, AGE, SEX, CACOR, K))
   dfQT <- dfQT %>% mutate(CONCM2 = exp(IPREDM2) * 1000) ## mg/L to ng/mL (concentration unit used in QT model)
   dfQT$TIMW <- 0 #dfQT$time / 24 / 7 ## TIMW = TAST/24/7 for time effect in QT model

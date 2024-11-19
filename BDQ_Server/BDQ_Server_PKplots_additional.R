@@ -1,6 +1,6 @@
 PKDavg_plots <- function(input, sim_PKtable) {
   
-  Cavg_daily <- sim_PKtable() %>% 
+  Cavg_daily <- sim_PKtable %>% 
     filter(time %% 24 == 0) %>%
     mutate(DAY = time/24)
   
@@ -54,8 +54,8 @@ PKDavg_plots <- function(input, sim_PKtable) {
     labs(x = "Time (weeks)", y = c("Daily Average BDQ concentration (ng/mL)")) +
     ggtitle("Daily Average BDQ Concentration (ng/mL) vs Time") +
     coord_cartesian(ylim = c(0, ylimitsBDQ)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles
@@ -86,8 +86,8 @@ PKDavg_plots <- function(input, sim_PKtable) {
     labs(x = "Time (weeks)", y = c("Daily Average M2 concentration (ng/mL)")) +
     ggtitle("Daily Average M2 Concentration (ng/mL) vs Time") +
     coord_cartesian(ylim = c(0, ylimitsM2)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles
@@ -108,7 +108,7 @@ PKDavg_plots <- function(input, sim_PKtable) {
 # Weekly average concentration
 PKWavg_plots <- function(input, sim_PKtable) {
   
-  Cavg_weekly <- sim_PKtable() %>% 
+  Cavg_weekly <- sim_PKtable %>% 
     filter(time %% 168 == 0) %>%
     mutate(WEEK = time/168)
   
@@ -162,8 +162,8 @@ PKWavg_plots <- function(input, sim_PKtable) {
     labs(x = "Time (weeks)", y = c("Weekly Average BDQ concentration (ng/mL)")) +
     ggtitle("Weekly Average BDQ Concentration (ng/mL) vs Time") +
     coord_cartesian(ylim = c(0, ylimitsBDQ)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles
@@ -194,8 +194,8 @@ PKWavg_plots <- function(input, sim_PKtable) {
     labs(x = "Time (weeks)", y = c("Weekly Average M2 concentration (ng/mL)")) +
     ggtitle("Weekly Average M2 Concentration (ng/mL) vs Time") +
     coord_cartesian(ylim = c(0, ylimitsM2)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles

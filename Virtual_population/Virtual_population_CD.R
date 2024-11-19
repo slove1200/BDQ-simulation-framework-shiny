@@ -32,6 +32,11 @@ library(purrr)
 library(mice)
 library(GGally)
 library(ggplot2)
+library(pmxcopula)
+library(kde1d)
+library(rvinecopulib)
+library(tidyverse)
+library(varhandle)
 
 simCovMICE <- function(m = 5, 
                        orgCovs, 
@@ -116,7 +121,7 @@ dfQT_fin <- dfQT_matchID %>% group_by(ID) %>% slice(1L) %>% ungroup() %>%
 
 df <- read.csv("Multistate_NM_dataset_BS_new_MSMmodel_20231212.csv", header = T) %>% group_by(ID) %>% slice(1L)
 dfMSM <- df %>%
-  select(ID, AGE, SEX, RACE, TBTYPE, MTTP) %>% slice(1L)
+  select(ID, AGE, SEX, RACE, TBTYPE, MTTP, WT, ALB) %>% slice(1L)
 
 df2 <- left_join(dfQT_fin, dfMSM, 
                     by = "ID")
@@ -126,17 +131,18 @@ df_fin <- df2 %>% ungroup() %>%
   select(-ID) # simulated from PK model
 
 df_fin2 <- df_fin %>% 
-  mutate(RACE  = ifelse(is.na(RACE), NA, ifelse(RACE == 2, 1, 0)), # 0: non-black, 1: black
-         TBTYPE = ifelse(TBTYPE == 1, 2, TBTYPE)) # DS to MDR-TB, TBTYPE - 2: DS or MDR, 3: pre-XDR, 4: XDR
+  mutate(RACE   = ifelse(is.na(RACE), NA, ifelse(RACE == 2, 1, 0)), # 0: non-black, 1: black
+         TBTYPE = ifelse(TBTYPE == 1, 2, TBTYPE), # DS to MDR-TB, TBTYPE - 2: DS or MDR, 3: pre-XDR, 4: XDR
+         ALB    = ALB/10) # ALB unit from g/L to g/dL 
 
 orgCovsEx <- df_fin2
 
 # Example to differentiate categorical and continuous variables
 categorical_vars <- c("SEX", "RACE", "TBTYPE") # Replace with actual categorical columns
-continuous_vars <- c("AGE", "MTTP", "CACOR", "K") # Replace with actual continuous columns
+continuous_vars <- c("AGE", "MTTP", "CACOR", "K", "WT", "ALB") # Replace with actual continuous columns
 
 set.seed(3468)
-myCovSimMICE <- simCovMICE(m = 10,orgCovs = orgCovsEx,
+myCovSimMICE <- simCovMICE(m = 50,orgCovs = orgCovsEx,
                            catCovs = c("SEX", "RACE", "TBTYPE"),
                            nsubj = 440)
 
@@ -172,7 +178,7 @@ summary_dforg <- orgCovsEx %>%
 
 # Define categorical and continuous variables
 categorical_vars <- c("SEX", "RACE", "TBTYPE")  # Replace with your actual categorical variables
-continuous_vars <- c("AGE", "MTTP", "CACOR", "K")  # Replace with your actual continuous variables
+continuous_vars <- c("AGE", "MTTP", "CACOR", "K", "WT", "ALB")  # Replace with your actual continuous variables
 
 # Create a function to plot histograms for continuous variables, ignoring NA
 plot_histogram <- function(data, var_name) {
@@ -231,7 +237,66 @@ orgCovsEx$BG <- as.factor(orgCovsEx$BG)
 ggpairs(orgCovsEx)
 ggpairs(myCovSimMICE %>% select(-NSIM))
 
-# Output simulated population (10 replicates from conditional distribution covariate modeling)
+# Output simulated population (50 replicates from conditional distribution covariate modeling)
 # and use it as an input for further CD in Shiny app to avoid sensitive data issue
-write.csv(myCovSimMICE %>% select(-NSIM), "Simulated_population_for_BDQ_virtural_population.csv", 
+write.csv(myCovSimMICE %>% select(-NSIM), "Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
           row.names = F)
+
+
+# Evaluate VPC of joint density
+orgCovsEx$logMTTP <- log(orgCovsEx$MTTP)
+myCovSimMICE$logMTTP <- log(myCovSimMICE$MTTP)
+
+orgCovsEx <- orgCovsEx %>% select(-MTTP)
+myCovSimMICE <- myCovSimMICE %>% select(-MTTP) %>% rename("simulation_nr" = "NSIM")
+
+# plot_qq(sim_data = myCovSimMICE, obs_data = orgCovsEx, sim_nr = 100,
+#         conf_band = 95, var = c("AGE","CACOR", "K", "logMTTP", "WT", "ALB"), type = "ribbon")
+# 
+# #donutVPC
+# donutVPC(sim_data = myCovSimMICE, obs_data = orgCovsEx,
+#          percentiles = c(5, 50, 95), sim_nr = 20,
+#          pairs_matrix = matrix(c("AGE", "AGE", "AGE", "AGE", "AGE",
+#                                  "CACOR", "CACOR", "CACOR", "CACOR",
+#                                  "K", "K", "K",
+#                                  "logMTTP", "logMTTP",
+#                                  "WT",
+#                                  "CACOR", "K", "logMTTP", "WT", "ALB",
+#                                  "K", "logMTTP", "WT", "ALB",
+#                                  "logMTTP", "WT", "ALB",
+#                                  "WT", "ALB",
+#                                  "ALB"), 15, 2),
+#          conf_band = 95, colors_bands = c("#99E0DC", "#E498B4"))
+# 
+# 
+# donutVPC(sim_data = myCovSimMICE, obs_data = orgCovsEx,
+#          percentiles = c(5, 50, 95), sim_nr = 50,
+#          pairs_matrix = matrix(c("AGE", "AGE", "AGE", "AGE", "AGE", "CACOR", "K", "logMTTP", "WT", "ALB"), 5, 2),
+#          conf_band = 95, colors_bands = c("#99E0DC", "#E498B4"))
+# 
+# donutVPC(sim_data = myCovSimMICE, obs_data = orgCovsEx,
+#          percentiles = c(5, 50, 95), sim_nr = 50,
+#          pairs_matrix = matrix(c("CACOR", "CACOR", "CACOR", "CACOR", "K", "logMTTP", "WT", "ALB"), 4, 2),
+#          conf_band = 95, colors_bands = c("#99E0DC", "#E498B4"))
+# 
+# donutVPC(sim_data = myCovSimMICE, obs_data = orgCovsEx,
+#          percentiles = c(5, 50, 95), sim_nr = 50,
+#          pairs_matrix = matrix(c("K", "logMTTP"), 1, 2),
+#          conf_band = 95, colors_bands = c("#99E0DC", "#E498B4"))
+# 
+# 
+# #mVPC
+# myCovSimMICECont <- myCovSimMICE %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB", "simulation_nr")
+# orgCovsExCont <- orgCovsEx %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB")
+# 
+# 
+# mVPC(sim_data = myCovSimMICECont, obs_data = orgCovsExCont, var = NULL, sim_nr = 20,
+#      percentiles = c(5, 50, 95), colors_bands = c("#99E0DC", "#E498B4"))
+# 
+# 
+# # # Create the plot
+# # ggplot(orgCovsEx, aes(x = CACOR, y = logMTTP)) +
+# #   geom_point() +
+# #   stat_density_2d() 
+
+

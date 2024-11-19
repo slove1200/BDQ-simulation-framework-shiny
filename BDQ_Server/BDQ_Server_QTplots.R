@@ -1,6 +1,6 @@
 QT_plots <- function(input, sim_QTtable) {
   
-  dfForPlotQT <- sim_QTtable() %>%
+  dfForPlotQT <- sim_QTtable %>%
     ungroup() %>%
     group_by(time, regimen) %>%
     summarize(
@@ -11,19 +11,19 @@ QT_plots <- function(input, sim_QTtable) {
   
   # Set dynamic ylim BDQ
   if (input$nsim == 1 || input$IIV == "OFF") { # individual
-    maxQT <- max(sim_QTtable()$IPRED)
+    maxQT <- max(sim_QTtable$IPRED)
     ymaxlimitsQT <- maxQT
     
-    minQT <- min(sim_QTtable()$IPRED)
+    minQT <- min(sim_QTtable$IPRED)
     yminlimitsQT <- minQT
     
     } else {
-    q90QT <- quantile(sim_QTtable()$IPRED, probs = 0.90)
-    max05QT <- max(sim_QTtable()$IPRED)*0.05
+    q90QT <- quantile(sim_QTtable$IPRED, probs = 0.90)
+    max05QT <- max(sim_QTtable$IPRED)*0.05
     ymaxlimitsQT <- q90QT + max05QT
   
-    q10QT <- quantile(sim_QTtable()$IPRED, probs = 0.10)
-    min05QT <- min(sim_QTtable()$IPRED)*0.05
+    q10QT <- quantile(sim_QTtable$IPRED, probs = 0.10)
+    min05QT <- min(sim_QTtable$IPRED)*0.05
     yminlimitsQT <- q10QT - min05QT
   }
   
@@ -36,8 +36,8 @@ QT_plots <- function(input, sim_QTtable) {
     labs(x = "Time (weeks)", y = ("QTc (ms)")) +
     ggtitle("QTc (ms) vs Time (weeks)") +
     coord_cartesian(ylim = c(yminlimitsQT, ymaxlimitsQT)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+    scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles

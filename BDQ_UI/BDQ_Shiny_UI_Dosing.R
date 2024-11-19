@@ -34,7 +34,7 @@ regimenColumn <- function(regimen_num, background_color, default_LD = FALSE, add
   # Column layout
   column(
     width = 3, 
-    style = "width: 20.833%;",
+    style = "width: 26%;",
     
     # Optional conditionalPanel for regimens other than 1
     if (addition_RG) conditionalPanel(
@@ -80,10 +80,6 @@ mainTabDosing <- tabPanel(
         condition = "input.RG2 == true", 
         checkboxInput("RG3", "Regimen 3", value = FALSE),  # Checkbox to show/hide Regimen 3
         # Conditionally show Regimen 4 only if Regimen 3 is checked
-        conditionalPanel(
-          condition = "input.RG3 == true", 
-          checkboxInput("RG4", "Regimen 4", value = FALSE)  # Checkbox to show/hide Regimen 4
-        ),
         style = "display: none;"
       ),
       style = "border-radius: 15px;"
@@ -92,7 +88,6 @@ mainTabDosing <- tabPanel(
     # Always display Regimen 1 (no condition for Regimen 1)
     regimenColumn(1, "#CBCAE3", default_LD = TRUE, addition_RG = FALSE), 
     regimenColumn(2, "#E1C3C8", default_LD = FALSE, addition_RG = TRUE),
-    regimenColumn(3, "#C1D4D7", default_LD = FALSE, addition_RG = TRUE),
-    regimenColumn(4, "#E7D7CB", default_LD = FALSE, addition_RG = TRUE)
+    regimenColumn(3, "#C1D4D7", default_LD = FALSE, addition_RG = TRUE)
   ) # end of first fluidRow
 ) # end of tab Dosing column

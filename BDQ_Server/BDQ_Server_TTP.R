@@ -3,7 +3,7 @@ sim_TTP <- function(input, sim_PKtable) {
   num_REPs <- input$REP
   
   # Retrieve information from simulated PK profiles
-  Cavg_weekly <- sim_PKtable() %>% filter(AMT == 0)
+  Cavg_weekly <- sim_PKtable %>% filter(AMT == 0)
     
   ####### Use the substituted new data frame d1
   Cavg_weekly <- Cavg_weekly %>% filter(time %% 168 == 0)
@@ -71,12 +71,15 @@ sim_TTP <- function(input, sim_PKtable) {
     # 1. Drug Resistance
     if (input$XDR == "MDR-TB") {
       TTPdf_fin$preAndXDR <- 0
+      TTPdf_fin$preXDR <- 0
       TTPdf_fin$XDR <- 0
     } else if (input$XDR == "pre-XDR-TB") {
       TTPdf_fin$preAndXDR <- 1
+      TTPdf_fin$preXDR <- 1
       TTPdf_fin$XDR <- 0
     } else {
       TTPdf_fin$preAndXDR <- 1
+      TTPdf_fin$preXDR <- 1
       TTPdf_fin$XDR <- 1
     }
     
@@ -93,8 +96,10 @@ sim_TTP <- function(input, sim_PKtable) {
 
   dfCAVG <- Cavg_weekly %>% rename("WEEKP" ="WEEK") %>%
     filter(WEEKP != 0) %>%
-    mutate(CAVG  =  weekly_BDQ/168) %>% # unit µg/mL
-    ungroup() %>% select(ID, WEEKP, CAVG)
+    mutate(
+      AUCW  =  weekly_BDQ,         # unit µg*h/mL
+      CAVG  =  weekly_BDQ/168) %>% # unit µg/mL
+    ungroup() %>% select(ID, WEEKP, AUCW, CAVG)
   
   dfTTP <- TTPdf_fin %>% full_join(dfCAVG)
   
@@ -104,7 +109,12 @@ sim_TTP <- function(input, sim_PKtable) {
   sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
   sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
   
-  modTTP <- mcode("BDQTTP", codeTTP)
+  if (input$STUDY == "Treatment-naïve") {
+    modTTP <- mcode("BDQTTP", codeTTP)
+  } else {
+    modTTP <- mcode("BDQTTP_TrtExperienced", codeTTP_TrtExperienced)
+  }
+  
   set.seed(3468)
   
   ## Interindividual variability ON/OFF

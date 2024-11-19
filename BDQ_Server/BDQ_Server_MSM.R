@@ -10,25 +10,22 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
   sim_timeMSM <- input$simtimeMSM   # Time of simulation imputed (transformed in hours during simulation)
   
   # Get MBLend and HL2 from TTP output
-  HLMBL <- sim_TTPtable() %>%
+  HLMBL <- sim_TTPtable %>%
     filter(REP == 1 & FLAG == 2) %>%
     mutate(
       dur = case_when(
         regimen == 1 & input$LD1 == TRUE  ~ input$ldur_1 + input$mdur_1,
         regimen == 2 & input$LD2 == TRUE  ~ input$ldur_2 + input$mdur_2,
         regimen == 3 & input$LD3 == TRUE  ~ input$ldur_3 + input$mdur_3,
-        regimen == 4 & input$LD4 == TRUE  ~ input$ldur_4 + input$mdur_4, 
         regimen == 1 & input$LD1 == FALSE ~ input$mdur_1,
         regimen == 2 & input$LD2 == FALSE ~ input$mdur_2,
-        regimen == 3 & input$LD3 == FALSE ~ input$mdur_3,
-        regimen == 4 & input$LD4 == FALSE ~ input$mdur_4
+        regimen == 3 & input$LD3 == FALSE ~ input$mdur_3
       )
     ) %>%
     filter(
         (regimen == 1 & WEEKP %in% c(1, 2, if (input$LD1) input$ldur_1 + input$mdur_1 else input$mdur_1)) |
         (regimen == 2 & WEEKP %in% c(1, 2, if (input$LD2) input$ldur_2 + input$mdur_2 else input$mdur_2)) |
-        (regimen == 3 & WEEKP %in% c(1, 2, if (input$LD3) input$ldur_3 + input$mdur_3 else input$mdur_3)) |
-        (regimen == 4 & WEEKP %in% c(1, 2, if (input$LD4) input$ldur_4 + input$mdur_4 else input$mdur_4))
+        (regimen == 3 & WEEKP %in% c(1, 2, if (input$LD3) input$ldur_3 + input$mdur_3 else input$mdur_3)) 
     ) %>%
     mutate(MBLend = first(MBL[WEEKP == dur]))
   
@@ -69,7 +66,7 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
   # MTTP (retrieved from TTP dataset), XDR (from TTP model),
   # HL2 (derived from TTP model), MBLend [the end of treatment, depends on the duration of the regimen] (derived from TTP model)
   # SEX (same with QT, retrieved from PK dataset), baseWT (retrieved from PK dataset)
-  dfCov <- sim_PKtable() %>% filter(time == 0)
+  dfCov <- sim_PKtable %>% filter(time == 0)
   dfCov <- dfCov %>% select(ID, regimen, WT = IPREDWT, SEX)
 
   idata <- data.table::data.table(ID=seq(nsubjects*num_regimens)) %>% left_join(dfCov, by = "ID")

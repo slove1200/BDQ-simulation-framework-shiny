@@ -1,6 +1,6 @@
 MSM_plots <- function(input, sim_MSMtable) {
   
-  dfForPlotMSM <- sim_MSMtable() %>% group_by(regimen, time, STATE) %>% summarise(prop = n()/input$nsim, .groups = "drop") %>%
+  dfForPlotMSM <- sim_MSMtable %>% group_by(regimen, time, STATE) %>% summarise(prop = n()/input$nsim, .groups = "drop") %>%
     # Ensure all combinations of time and STATE are included, even if they have no observations
     complete(regimen, time, STATE, fill = list(prop = 0))
   ## proportion = num of positive sample/total samples in each WEEKP
@@ -25,7 +25,7 @@ MSM_plots <- function(input, sim_MSMtable) {
     ggtitle("Proportions of patients being in each state") +
     theme_bw() +
     scale_x_continuous(breaks = seq(0, 120, by = 8)) +
-    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+    scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
       plot.title = element_text(size = 18),       # Main title
       axis.title = element_text(size = 16),       # Axis titles

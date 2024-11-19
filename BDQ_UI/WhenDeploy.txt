@@ -1,0 +1,25 @@
+1. Change app name into app.R
+2. Make sure every file is under the deployed directory
+
+e.g. app.R in one path, and then define
+UI.directory <- "BDQ_UI/"
+Server.directory <- "BDQ_Server/"
+
+3. Server_Virtual_population.R
+
+Change 
+  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
+                        header = T)
+
+into 
+
+  orgCovsEx <- read.csv("BDQ_Server/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
+                        header = T)
+
+and put the simulated dataset into the deployed directory
+
+4. Deploy your app via the code:
+
+rsconnect::deployApp("C:/Users/yujli183/Desktop/Deploy")
+
+https://bdqsim.shinyapps.io/deploy/

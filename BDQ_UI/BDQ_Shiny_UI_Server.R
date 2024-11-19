@@ -15,7 +15,6 @@ library(dipsaus)
 library(stringr)
 library(bsicons)
 
-
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
 Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/"
 
@@ -88,10 +87,27 @@ ui <-
 source(paste0(Server.directory, "BDQOMAT.R"))
 source(paste0(Server.directory, "BDQQT.R"))
 source(paste0(Server.directory, "BDQTTP.R"))
+source(paste0(Server.directory, "BDQTTP_TrtExperienced.R"))
 source(paste0(Server.directory, "BDQMSM.R"))
 source(paste0(Server.directory, "BDQ_Server_Virtual_population.R"))
+source(paste0(Server.directory, "BDQ_Server_DosingParse.R"))
+source(paste0(Server.directory, "BDQ_Server_PK.R"))
+source(paste0(Server.directory, "BDQ_Server_QT.R"))
+source(paste0(Server.directory, "BDQ_Server_TTP.R"))
+source(paste0(Server.directory, "BDQ_Server_MSM.R"))
+source(paste0(Server.directory, "BDQ_Server_PKplots.R"))
+source(paste0(Server.directory, "BDQ_Server_QTplots.R"))
+source(paste0(Server.directory, "BDQ_Server_TTPplots.R"))
+source(paste0(Server.directory, "BDQ_Server_MSMplots.R"))
+source(paste0(Server.directory, "BDQ_Server_PKplots_additional.R"))
 
 server <- function(input, output, session) {
+  
+  # Predefine all outputs to avoid dynamic creation errors
+  output$plot <- renderPlot({ NULL })     # Placeholder
+  output$plotQT <- renderPlot({ NULL })   # Placeholder
+  output$plotTTP <- renderPlot({ NULL })  # Placeholder
+  output$plotMSM <- renderPlot({ NULL })  # Placeholder
   
   # Dosing details ####
   source(paste0(Server.directory, "BDQ_Server_DosingParse.R"))
@@ -119,34 +135,17 @@ server <- function(input, output, session) {
   })
   
   # PK simulation ####
-  source(paste0(Server.directory, "BDQ_Server_PK.R"))
-
-  # Use the function defined in the sourced file
-  sim_PKtable <- eventReactive(input$goButton, {
-    sim_PK(input)  # Call the function and pass input
-  })
   
   # # Render PK table
   # output$sim_PKtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   sim_PKtable()
   # })
-  
-  # Render combined PK plot
-  source(paste0(Server.directory, "BDQ_Server_PKplots.R"))
 
-  output$plot <- renderPlot({
-    TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
-  })
+  
 
 
   # QT simulation ####
-  source(paste0(Server.directory, "BDQ_Server_QT.R"))
-  
-  # Use the function defined in the sourced file
-  sim_QTtable <- eventReactive(input$goButton, {
-    sim_QT(input, sim_PKtable)  # Call the function and pass input
-  })
   
   # # Render QT table
   # output$sim_QTtable <- renderTable({
@@ -154,20 +153,7 @@ server <- function(input, output, session) {
   #   head(sim_QTtable())
   # })
   
-  # Render QT plot
-  source(paste0(Server.directory, "BDQ_Server_QTplots.R"))
-  
-  output$plotQT <- renderPlot({
-    QT_plots(input, sim_QTtable)  # Call the function from the sourced file
-  })
-  
   # TTP simulation ####
-  source(paste0(Server.directory, "BDQ_Server_TTP.R"))
-  
-  # Use the function defined in the sourced file
-  sim_TTPtable <- eventReactive(input$goButton, {
-    sim_TTP(input, sim_PKtable)  # Call the function and pass input
-  })
   
   # # Render TTP table
   # output$sim_TTPtable <- renderTable({
@@ -175,21 +161,8 @@ server <- function(input, output, session) {
   #   head(sim_TTPtable(), 30)
   # })
 
-  # Render TTP plot
-  source(paste0(Server.directory, "BDQ_Server_TTPplots.R"))
 
-  output$plotTTP <- renderPlot({
-    TTP_plots(input, sim_TTPtable)  # Call the function from the sourced file
-  })
-
-  
   # MSM simulation ####
-  source(paste0(Server.directory, "BDQ_Server_MSM.R"))
-  
-  # Use the function defined in the sourced file
-  sim_MSMtable <- eventReactive(input$goButton, {
-    sim_MSM(input, sim_TTPtable, sim_PKtable)  # Call the function and pass input
-  })
   
   # # Render MSM table
   # output$sim_MSMtable <- renderTable({
@@ -197,24 +170,63 @@ server <- function(input, output, session) {
   #   head(sim_MSMtable(), 30)
   # })
 
-
-  # Render MSM plot
-  source(paste0(Server.directory, "BDQ_Server_MSMplots.R"))
-
-  output$plotMSM <- renderPlot({
-    MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
-  })
   
-  # PK-additional simulation ####
-  # Render combined PK-additional plot
-  source(paste0(Server.directory, "BDQ_Server_PKplots_additional.R"))
-  
-  output$plotPKDavg <- renderPlot({
-    PKDavg_plots(input, sim_PKtable)  # Call the function from the sourced file
-  })
+  # Add an observer to coordinate all simulations
+  observeEvent(input$goButton, {
+    withProgress(message = 'Processing All Data', value = 0, {
+      incProgress(0.12, detail = "Running PK simulation...")
+      sim_PKtable <- sim_PK(input)
+      
+      incProgress(0.12, detail = "Running QT simulation...")
+      sim_QTtable <- sim_QT(input, sim_PKtable)
+      
+      incProgress(0.12, detail = "Running TTP simulation...")
+      sim_TTPtable <- sim_TTP(input, sim_PKtable)
+      
+      incProgress(0.12, detail = "Running MSM simulation...")
+      sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
+      
+      incProgress(0.12, detail = "Generating PK plots...")
+      TypPKplot <- TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
+      output$plot <- renderPlot({
+        TypPKplot
+      })
+      
+      incProgress(0.12, detail = "Generating QT plots...")
+      QTplot <- QT_plots(input, sim_QTtable)  # Call the function from the sourced file
+      output$plotQT <- renderPlot({
+        QTplot
+      })
+      
+      incProgress(0.12, detail = "Generating TTP plots...")
+      TTPplot <- TTP_plots(input, sim_TTPtable)  # Call the function from the sourced file      
+      output$plotTTP <- renderPlot({
+        TTPplot
+      })
 
-  output$plotPKWavg <- renderPlot({
-    PKWavg_plots(input, sim_PKtable)  # Call the function from the sourced file
+      incProgress(0.12, detail = "Generating MSM plots...")
+      MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
+      output$plotMSM <- renderPlot({
+        MSMplot
+      })
+      
+      # PK-additional simulation ####
+      # Render combined PK-additional plot
+      output$plotPKDavg <- renderPlot({
+        withProgress(message = "Generating PK Daily Average plot...", value = NULL, {
+          PKDavg_plots(input, sim_PKtable)  # Call the function from the sourced file
+        })
+      })
+      
+      output$plotPKWavg <- renderPlot({
+        withProgress(message = "Generating PK Weekly Average plot...", value = NULL, {
+          PKWavg_plots(input, sim_PKtable)  # Call the function from the sourced file
+        })
+      })
+      
+      # Show a general success message as a notification
+      showNotification("All plots are generated successfully!", type = "message", duration = 5)
+    })
   })
 
   ########################################################
@@ -344,6 +356,11 @@ server <- function(input, output, session) {
 
     return(splitText)
   })
+  
+  outputOptions(output, "plot", suspendWhenHidden = FALSE)
+  outputOptions(output, "plotQT", suspendWhenHidden = FALSE)
+  outputOptions(output, "plotTTP", suspendWhenHidden = FALSE)
+  outputOptions(output, "plotMSM", suspendWhenHidden = FALSE)
 }
 
 shinyApp(ui = ui, server = server)

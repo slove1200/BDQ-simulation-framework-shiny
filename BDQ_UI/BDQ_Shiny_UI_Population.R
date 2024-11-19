@@ -3,29 +3,20 @@
 CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
   
   # Helper to create the coMed controls
-  coMedControlsHIV <- function(regimen_num) {
+  coMedControlsPK <- function(regimen_num) {
     div(
-      radioButtons(inputId = paste0("IE_", regimen_num, "_HIV"), 
+      radioButtons(inputId = paste0("IE_", regimen_num, "_PK"), 
                    label = NULL,
                    choices = c("None" = "None", 
                                "Efavirenz" = "Efavirenz", 
                                "Lopinavir/r" = "Lopinavir/r", 
-                               "Nevirapine" = "Nevirapine")
-      ),
-      class = "comed-radioButtonsHIV")
-  }
-  
-  coMedControlsTB <- function(regimen_num) {
-    div(
-      radioButtons(inputId = paste0("IE_", regimen_num, "_TB"), 
-                   label = NULL,
-                   choices = c("None" = "None",
+                               "Nevirapine" = "Nevirapine", 
                                "Rifampicin" = "Rifampicin", 
                                "Rifapentine" = "Rifapentine")
       ),
-      class = "comed-radioButtonsTB")
+      class = "comed-radioButtonsPK")
   }
-  
+
   coMedControlsQT <- function(regimen_num) {
     div(
       radioButtons(inputId = paste0("IE_", regimen_num, "_QT"), 
@@ -51,21 +42,16 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
         ),
         div(
           card(card_header(
-            "PK (HIV)", 
+            "PK", 
             style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-            coMedControlsHIV(regimen_num), 
-            style = "padding: 6px;"),
-          card(card_header(
-            "PK (TB)", 
-            style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-            coMedControlsTB(regimen_num), 
+            coMedControlsPK(regimen_num), 
             style = "padding: 6px;"),
           card(card_header(
             "QT", 
             style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
             coMedControlsQT(regimen_num), 
             style = "padding: 6px;"),
-          style = "column-count: 3;" # CSS for 3-column layout
+          style = "column-count: 2;" # CSS for 3-column layout
         )
       )
     )
@@ -80,21 +66,16 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
       style = "overflow: unset;",
       div(
         card(card_header(
-          "PK (HIV)", 
+          "PK", 
           style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-          coMedControlsHIV(regimen_num), 
-          style = "padding: 6px;"),
-        card(card_header(
-          "PK (TB)", 
-          style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-          coMedControlsTB(regimen_num), 
+          coMedControlsPK(regimen_num), 
           style = "padding: 6px;"),
         card(card_header(
           "QT", 
           style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
           coMedControlsQT(regimen_num), 
           style = "padding: 6px;"),
-        style = "column-count: 3;" # CSS for 3-column layout
+        style = "column-count: 2;" # CSS for 3-column layout
       )
     )
 }

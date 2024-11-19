@@ -66,28 +66,18 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, mdose, mdur, mun
 
 PKDDIProcessing <- function(IEval, df) {
   # Define base values for Efavirenz, Lopinavir/r, Nevirapine
-  base_values <- list(
+  DDIvalues <- list(
     "Efavirenz" = c(2.1, 2.1),
     "Lopinavir/r" = c(0.25, 0.59),
-    "Nevirapine" = c(0.82, 1.19)
-  )
-  
-  # Define override values for Rifampicin and Rifapentine
-  override_values <- list(
+    "Nevirapine" = c(0.82, 1.19),
     "Rifampicin" = c(4.8, 4.8),
     "Rifapentine" = c(4.0, 4.0)
   )
   
   # Check if IEval is one of the base drugs
-  if (IEval %in% names(base_values)) {
-    df$THETA25 <- base_values[[IEval]][1]
-    df$THETA26 <- base_values[[IEval]][2]
-  }
-  
-  # Check if IEval is one of the override drugs
-  if (IEval %in% names(override_values)) {
-    df$THETA25 <- override_values[[IEval]][1]
-    df$THETA26 <- override_values[[IEval]][2]
+  if (IEval %in% names(DDIvalues)) {
+    df$THETA25 <- DDIvalues[[IEval]][1]
+    df$THETA26 <- DDIvalues[[IEval]][2]
   }
   
   return(df)
@@ -148,8 +138,7 @@ sim_PK <- function(input) {
     # For example:
     regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
                        common_inputs, 
-                       IE_HIV = input[[paste0("IE_", i, "_HIV")]], 
-                       IE_TB = input[[paste0("IE_", i, "_TB")]])
+                       IE_PK = input[[paste0("IE_", i, "_PK")]])
     
     # Process the rest of the regimen as needed...
   }
@@ -177,12 +166,8 @@ sim_PK <- function(input) {
       dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
       
       # 2. PK DDI details
-      if (!is.null(regimens[[i]]$IE_HIV) ) {
-        dfPK <- PKDDIProcessing(regimens[[i]]$IE_HIV, dfPK)
-      }
-      
-      if (!is.null(regimens[[i]]$IE_TB) ) {
-        dfPK <- PKDDIProcessing(regimens[[i]]$IE_TB, dfPK)
+      if (!is.null(regimens[[i]]$IE_PK) ) {
+        dfPK <- PKDDIProcessing(regimens[[i]]$IE_PK, dfPK)
       }
       
       all_regimens_df[[i]] <- dfPK
@@ -229,8 +214,8 @@ sim_PK <- function(input) {
     ## Set parameters in dataset
     dfPK_combined$AGE    <- AGE
     dfPK_combined$RACE   <- RACE
-    dfPK_combined$THETA6 <- WT
-    dfPK_combined$THETA1 <- ALB
+    dfPK_combined$WT     <- WT
+    dfPK_combined$ALB    <- ALB
     dfPK_combined$SEX    <- SEX
     
   } else { # UI input is to simulate in a population-level

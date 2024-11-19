@@ -107,7 +107,6 @@ $SIGMA @annotated @block
 
 $MAIN                    
 // Model for Albumin
-  double TVX0    = ALB                       ;
   double TVXSS   = THETA2                    ;
   double TVREP   = THETA3                    ;
 
@@ -123,7 +122,7 @@ $MAIN
   double PHIXSS  = exp(BSVXSS)               ;
   double PHI2XSS = (pow(PHIXSS,SHPXSS)-1)/SHPXSS; // Box-cox transformation
   
-  double X0      = TVX0*exp(PHI2X0)          ;
+  double X0      = ALB                 ;
   double XSS     = TVXSS*exp(PHI2XSS)        ;
   double REP     = TVREP*exp(BSVREP)         ;
   double HL      = log(2)/REP                ;
@@ -131,7 +130,6 @@ $MAIN
   A_0(8)         = X0                        ;
 
 // Model for WT
-  double TVWT0    = WT                       ;
   double TVWT120  = THETA7                   ;
 
   double BSVWT0   = ETA(4)                   ;
@@ -142,7 +140,7 @@ $MAIN
   double PHIWT120  = exp(BSVWT120)           ;
   double PHI2WT120 = (pow(PHIWT120,SHPWT120)-1)/SHPWT120; // Box-cox transformation
 
-  double WT0   = TVWT0*exp(BSVWT0)           ;
+  double WT0   = WT                          ;
   double WT120 = TVWT120*exp(PHI2WT120)      ;
   double SLOPE = (WT120 - WT0)/(120*7*24)    ; // TIME in hours, 120 weeks
 
