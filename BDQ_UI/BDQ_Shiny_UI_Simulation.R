@@ -13,7 +13,7 @@ mainTabSim <- tabPanel(
         card_body(
           selectInput("STUDY", label = tags$span(style="font-weight: bold;","Type of Model for PK-TTP"), choices = c("Treatment-naïve", "Treatment-experienced"), width = "70%"),
           numericInput("REP", label = tags$span(style="font-weight: bold;","Numbers of Culture Replicates"), value = 1, min = 1, max = 3, width = "70%"),
-          numericInput("HL", label = tags$span(style="font-weight: bold;", "Bacterial Clearance (%) Faster"), value = 20, min = -300, max = 300, width = "70%"),
+          numericInput("HLEFF", label = tags$span(style="font-weight: bold;", "Bacterial Clearance (%) Faster"), value = 0, min = -50, max = 150, width = "70%"),
           "***HL and surge peak, surge amplitude are highly correlated"
         )
       ),
@@ -22,10 +22,9 @@ mainTabSim <- tabPanel(
         card_header("Simulation Setting", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
         card_body(
           numericInput("nsim", label = tags$span(style="font-weight: bold;","Number of simulated individuals per regimen"), value = 1, min = 1, max = 300, width = "70%"),
-          numericInput("simtime", label = tags$span(style="font-weight: bold;","Simulation time (PK, efficacy, safety)"), value = 24, min = 1, max = 300, width = "70%"),
-          selectInput("sunit", label = tags$span(style="font-weight: bold;","Simulation time unit (PK, efficacy, safety)"), c("week" = "2", "day" = "1"), width = "70%"),
-          selectInput("IIV", label = tags$span(style="font-weight: bold;","Interindiviual variability"), c("OFF", "ON"), selected = "OFF", width = "70%"), 
+          numericInput("simtime", label = tags$span(style="font-weight: bold;","Simulation time in weeks (PK, efficacy, safety)"), value = 24, min = 1, max = 200, width = "70%"),
           numericInput("simtimeMSM", label = tags$span(style="font-weight: bold;","Simulation time in weeks (Long-term outcome)"), value = 48, min = 1, max = 1000, width = "70%"),
+          selectInput("IIV", label = tags$span(style="font-weight: bold;","Interindiviual variability"), c("OFF", "ON"), selected = "OFF", width = "70%"), 
           actionButton("goButton", "Start simulation")
         )
       ),

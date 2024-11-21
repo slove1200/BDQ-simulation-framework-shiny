@@ -1,6 +1,6 @@
 #### MSM ####
 ######## Create MSM dataframe for simulation
-sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
+sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
   
   # Create dataset for simulation
   sim_time     <- input$simtime
@@ -53,27 +53,20 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
 
   ####
   # Set up event
-  ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(nsubjects*num_regimens))
-  ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(0,1,2,3,4,5), evid = c(2,4,1,1,1,1),
-            ID = seq(nsubjects*num_regimens), addl = sim_timeMSM, ii = 168, rate = 0, realize = T)
-  data.dose <- seq(ev0, ev1)
-  data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
-    mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
-
-
-  #### Covariates used in MSM
-  # MTTP (retrieved from TTP dataset), XDR (from TTP model),
-  # HL2 (derived from TTP model), MBLend [the end of treatment, depends on the duration of the regimen] (derived from TTP model)
-  # SEX, WT (same with QT, retrieved from PK dataset)
+  ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = 1:(nsubjects*num_regimens))
+  ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(6,1,2,3,4,5), evid = c(2,4,1,1,1,1), ID = 1:(nsubjects*num_regimens),
+            addl = sim_timeMSM, ii = 168, rate = 0, realize = T)
+  data.dose2 <- seq(ev0, ev1)
+  data.dose2 <- data.table::setDT(as.data.frame(data.dose2)) %>% arrange(ID, time) %>%
+    mutate(evid = ifelse(time != 0, 2, ifelse((time == 0 & amt == 0), 0, evid)))
+  
+  
   dfCov <- sim_PKtable %>% filter(time == 0)
   dfCov <- dfCov %>% select(ID, regimen, WT, SEX)
-
-  idata <- data.table::data.table(ID=seq(nsubjects*num_regimens)) %>% left_join(dfCov, by = "ID")
-  data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov, by = c("ID", "time")) %>%
+  
+  idata <- dfCov
+  data.all2 <- merge(data.dose2, idata, by = "ID") %>% left_join(TTPcov, by = c("ID", "time")) %>%
     group_by(ID) %>% zoo::na.locf()
-
-  # MSM simulation ########
-  # Simulation settings
 
   modMSM <- mcode("BDQMSM", BDQMSM)
   modMSM <- update(modMSM, outvars = outvars(modMSM)$capture)
@@ -81,10 +74,9 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
   set.seed(3468)
 
   outMSM <- modMSM %>%
-    data_set(data.all) %>%
+    data_set(data.all2) %>%
     mrgsim(end = sim_timeMSM*168, delta = 168) %>%
     as.data.frame %>%
-    filter(EVID == 0) %>%
     mutate(time = time/24/7) %>%
     rename("STATE" = "XDV") %>%
     select(-EVID, -P_4)

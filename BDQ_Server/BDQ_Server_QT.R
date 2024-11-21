@@ -2,7 +2,6 @@ sim_QT <- function(input, sim_PKtable) {
   ## Simulation settings
   # 2. "simtime" and "simunit"
   sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
-  sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
   
   # Create dataset for simulation
   dfQT <- sim_PKtable
@@ -31,7 +30,7 @@ sim_QT <- function(input, sim_PKtable) {
   dfQT$MOXI <- 0
   
   # Create a list to hold the selected regimens
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
+  num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   
   for (i in 1:num_regimens) {
     
@@ -55,13 +54,13 @@ sim_QT <- function(input, sim_PKtable) {
     outQT <- modQT %>%
       zero_re() %>%
       data_set(dfQT) %>%
-      mrgsim(end = sim_time * sunit, delta = 1) %>%
+      mrgsim(end = sim_time * 168, delta = 1) %>%
       as.data.frame()
   } else {
     outQT <- modQT %>%
       zero_re(sigma) %>%
       data_set(dfQT) %>%
-      mrgsim(end = sim_time * sunit, delta = 1) %>%
+      mrgsim(end = sim_time * 168, delta = 1) %>%
       as.data.frame()
   }
   

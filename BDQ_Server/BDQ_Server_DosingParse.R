@@ -11,18 +11,13 @@ regimen_themes <- list(
   value_box_theme(
     bg = "#C1D4D78D",
     fg = "black"
-  ),
-  value_box_theme(
-    bg = "#E7D7CB8D",
-    fg = "black"
   )
 )
 
 bsicon_themes <- list(
   "1-square", 
   "2-square",
-  "3-square",
-  "4-square"
+  "3-square"
 )
 
 # Get regimen strings from your parsing function

@@ -95,11 +95,14 @@ source(paste0(Server.directory, "BDQ_Server_PK.R"))
 source(paste0(Server.directory, "BDQ_Server_QT.R"))
 source(paste0(Server.directory, "BDQ_Server_TTP.R"))
 source(paste0(Server.directory, "BDQ_Server_MSM.R"))
+source(paste0(Server.directory, "BDQ_Server_MSM_individual.R"))
 source(paste0(Server.directory, "BDQ_Server_PKplots.R"))
 source(paste0(Server.directory, "BDQ_Server_QTplots.R"))
 source(paste0(Server.directory, "BDQ_Server_TTPplots.R"))
 source(paste0(Server.directory, "BDQ_Server_MSMplots.R"))
+source(paste0(Server.directory, "BDQ_Server_MSMplots_individual.R"))
 source(paste0(Server.directory, "BDQ_Server_PKplots_additional.R"))
+
 
 server <- function(input, output, session) {
   
@@ -135,35 +138,27 @@ server <- function(input, output, session) {
   })
   
   # PK simulation ####
-  
   # # Render PK table
   # output$sim_PKtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   sim_PKtable()
   # })
 
-  
-
-
   # QT simulation ####
-  
-  # # Render QT table
+    # # Render QT table
   # output$sim_QTtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   head(sim_QTtable())
   # })
   
   # TTP simulation ####
-  
   # # Render TTP table
   # output$sim_TTPtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   head(sim_TTPtable(), 30)
   # })
 
-
   # MSM simulation ####
-  
   # # Render MSM table
   # output$sim_MSMtable <- renderTable({
   #   # Call the reactive expression to get the data frame
@@ -184,8 +179,12 @@ server <- function(input, output, session) {
       sim_TTPtable <- sim_TTP(input, sim_PKtable)
       
       incProgress(0.12, detail = "Running MSM simulation...")
-      sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
-      
+      if (input$population_radio == "Individual") {
+          sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
+        } else {
+          sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
+        }
+
       incProgress(0.12, detail = "Generating PK plots...")
       TypPKplot <- TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
       output$plot <- renderPlot({
@@ -205,10 +204,17 @@ server <- function(input, output, session) {
       })
 
       incProgress(0.12, detail = "Generating MSM plots...")
-      MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
-      output$plotMSM <- renderPlot({
-        MSMplot
-      })
+      if (input$population_radio == "Individual") {
+        MSMidvplot <- MSMidv_plots(input, sim_MSMtable)
+        output$plotMSM <- renderPlot({
+          MSMidvplot
+        })
+        } else {
+          MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
+          output$plotMSM <- renderPlot({
+            MSMplot
+          })
+        }
       
       # PK-additional simulation ####
       # Render combined PK-additional plot
@@ -225,7 +231,7 @@ server <- function(input, output, session) {
       })
       
       # Show a general success message as a notification
-      showNotification("All plots are generated successfully!", type = "message", duration = 5)
+      showNotification("All plots are generated successfully!", type = "message", duration = 3)
     })
   })
 
@@ -272,10 +278,6 @@ server <- function(input, output, session) {
     #     ggtitle("Albumin Concentration (g/dL) vs Time(weeks)")
     # 
     #   plot <- grid.arrange(e1, e2, nrow = 2)
-
-
-
-
 
   ## DOWNLOAD SIMULATED DATAFRAME ####
   # Dataset of Simulated dataframe

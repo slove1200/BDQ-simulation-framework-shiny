@@ -44,7 +44,8 @@ subjectID = 1,
 REP = 1, 
 AUCW = 0, 
 TTPD = 1, 
-regimen = 1
+regimen = 1,
+HLEFF = 0.0
 // value = 0.1
 
 
@@ -96,7 +97,7 @@ $MAIN //The same as $PK in NONMEM
   double ETATR   = (pow(PHI, BXPAR) - 1)/BXPAR ;  // Box-Cox transformation of the IIV in half-life (HL)
   double N0MBL   = THETA3 * 10000 * pow((MTTP/163.7), MTTPEFF) ; // Number of mycobacterial at start of treatment 
   // double N0MBL   = value ; // For validate TTP model
-  double HL      = THETA4 * (1 + BDQEFF1) * (1 + preAndXDREFF * preAndXDR) * exp(ETATR) ; // HL mycobacterial clearance
+  double HL      = THETA4 * (1 + BDQEFF1) * (1 + preAndXDREFF * preAndXDR) * exp(ETATR) * (1.0/(1.0+HLEFF/100.0)) ; // HL mycobacterial clearance
   double KD      = log(2)/HL ;
 
 

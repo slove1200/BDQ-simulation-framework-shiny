@@ -83,7 +83,7 @@ PKDDIProcessing <- function(IEval, df) {
   return(df)
 }
 
-PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
+PKSimulation <- function(IIVval, mod, df, sim_time) {
   
   ## IIV "ON"/"OFF"
   if(IIVval == "OFF") {
@@ -97,7 +97,7 @@ PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
   return(
     mod %>%
       data_set(df) %>%
-      mrgsim(end = sim_time * sunit, delta = 1) %>%
+      mrgsim(end = sim_time * 168, delta = 1) %>%  # sim_time in weeks, transform to hours
       as.data.frame() %>% filter(AMT == 0)
   )
 }
@@ -109,14 +109,13 @@ sim_PK <- function(input) {
   nsamples <- input$nsim      # Number of simulated individuals
   
   # 2. "simtime" and "simunit"
-  sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
-  sunit <- convertTimeUnit(input$sunit)   # Simulation unit: "1" day, "2" week
+  sim_time <- input$simtime   # Time of simulation imputed (weeks transformed in hours during simulation)
   
   # Common inputs shared across all regimens
   regimens <- NULL
   
   # Create a list to hold the selected regimens
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
+  num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   
   # Loop over the selected regimens
   for (i in 1:num_regimens) {
@@ -230,7 +229,7 @@ sim_PK <- function(input) {
   
   # Run simulation
   set.seed(3468)
-  out <- PKSimulation(input$IIV, mod, dfPK_combined, sim_time, sunit)
+  out <- PKSimulation(input$IIV, mod, dfPK_combined, sim_time)
   
   return(out)
 }

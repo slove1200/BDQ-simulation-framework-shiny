@@ -66,34 +66,24 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, mdose, mdur, mun
 
 PKDDIProcessing <- function(IEval, df) {
   # Define base values for Efavirenz, Lopinavir/r, Nevirapine
-  base_values <- list(
+  DDIvalues <- list(
     "Efavirenz" = c(2.1, 2.1),
     "Lopinavir/r" = c(0.25, 0.59),
-    "Nevirapine" = c(0.82, 1.19)
-  )
-  
-  # Define override values for Rifampicin and Rifapentine
-  override_values <- list(
+    "Nevirapine" = c(0.82, 1.19),
     "Rifampicin" = c(4.8, 4.8),
     "Rifapentine" = c(4.0, 4.0)
   )
   
   # Check if IEval is one of the base drugs
-  if (IEval %in% names(base_values)) {
-    df$THETA25 <- base_values[[IEval]][1]
-    df$THETA26 <- base_values[[IEval]][2]
-  }
-  
-  # Check if IEval is one of the override drugs
-  if (IEval %in% names(override_values)) {
-    df$THETA25 <- override_values[[IEval]][1]
-    df$THETA26 <- override_values[[IEval]][2]
+  if (IEval %in% names(DDIvalues)) {
+    df$THETA25 <- DDIvalues[[IEval]][1]
+    df$THETA26 <- DDIvalues[[IEval]][2]
   }
   
   return(df)
 }
 
-PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
+PKSimulation <- function(IIVval, mod, df, sim_time) {
   
   ## IIV "ON"/"OFF"
   if(IIVval == "OFF") {
@@ -107,7 +97,7 @@ PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
   return(
     mod %>%
       data_set(df) %>%
-      mrgsim(end = sim_time * sunit, delta = 1) %>%
+      mrgsim(end = sim_time * 168, delta = 1) %>%
       as.data.frame() %>% filter(AMT == 0)
   )
 }
@@ -115,7 +105,7 @@ PKSimulation <- function(IIVval, mod, df, sim_time, sunit) {
 #### functions for virtual pop generation using MICE, conditional distribution ####
 simCovMICE <- function(m = 5, 
                        orgCovs, 
-                       catCovs = c("SEX","RACE","TBTYPE"), 
+                       catCovs = c("SEX","RACE"), 
                        seedCovs = NULL,
                        targetRangeSeedCovs = NULL,
                        seedCovsValues = NULL,
@@ -179,13 +169,13 @@ simCovMICE <- function(m = 5,
 
 Pop_generation <- function(input) {
   nsubjects <- input$nsim
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
+  num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   
   # Read in dataset for conditional distribution modeling for covariates distribution
-  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
+  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Virtual_Population.csv", 
                         header = T)
   # Differentiate categorical and continuous variables
-  categorical_vars <- c("SEX", "RACE", "TBTYPE")  # Replace with your actual categorical variables
+  categorical_vars <- c("SEX", "RACE")  # Replace with your actual categorical variables
   continuous_vars <- c("AGE", "MTTP", "CACOR", "K", "WT", "ALB")  # Replace with your actual continuous variables
   
   # Conditional distribution modeling for covariates distribution
@@ -193,7 +183,7 @@ Pop_generation <- function(input) {
   set.seed(3468)
   myCovSimMICE <- simCovMICE(m = 1, 
                              orgCovs = orgCovsEx,
-                             catCovs = c("SEX", "RACE", "TBTYPE"),
+                             catCovs = c("SEX", "RACE"),
                              nsubj = nsubjects*num_regimens)
   
   myCovSimMICE <- myCovSimMICE %>% ungroup() %>% 
@@ -210,9 +200,8 @@ Pop_generation <- function(input) {
 
 #### input ####
 input <- c()
-input$nsim    <- 10  # Number of simulated individuals
+input$nsim    <- 5  # Number of simulated individuals
 input$simtime <- 24   # Time of simulation imputed (transformed in hours during simulation)
-input$sunit   <- 168  ## Simulation unit: "1" day, "2" week
 
 
 #### PK ####
@@ -234,7 +223,7 @@ input$ldur_2      <- 2   # Loading dose duration (transformed in hours during si
 input$lunit_2     <- 2 # Loading dose unit: "1" day, "2" week
 input$lfreq_2     <- "Once daily" # Loading dose unit: "1" day, "2" week
 input$mdose_2     <- 100 # Maintenance dose amount (mg)
-input$mdur_2      <- 22 # Maintenance dose duration (transformed in hours during simulation)
+input$mdur_2      <- 6 # Maintenance dose duration (transformed in hours during simulation)
 input$munit_2     <- 2 # Maintenance dose unit: "1" day, "2" week
 input$mfreq_2     <- "Once daily" # Maintenance dose unit: "1" day, "2" week
 input$IE_2_HIV    <- "None"
@@ -252,31 +241,29 @@ input$mfreq_3     <- "Three times weekly" # Maintenance dose unit: "1" day, "2" 
 input$IE_3_HIV    <- "None"
 input$IE_3_TB     <- "None"
 
-input$IIV         <- "ON" # ON or OFF
+input$IIV         <- "OFF" # ON or OFF
 
 input$RG1       <- T
 input$RG2       <- T
-input$RG3       <- F
-input$RG4       <- F
+input$RG3       <- T
 
 ## Common model covariates
-input$population_radio <- "Population"
+input$population_radio <- "Individual"
 input$RACE             <- "Non-Black"
-input$WT               <- 60
-input$ALB              <- 3.1
-input$AGE              <- 45
+input$WT               <- 53
+input$ALB              <- 3.5
+input$AGE              <- 32
 input$SEX              <- "Male"
 
 nsamples <- input$nsim    
 sim_time <- input$simtime 
-sunit <- convertTimeUnit(input$sunit) 
 
 ## Dosing details
 # Common inputs shared across all regimens
 regimens <- NULL
 
 # Create a list to hold the selected regimens
-num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
+num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
 
 # Loop over the selected regimens
 for (i in 1:num_regimens) {
@@ -298,8 +285,7 @@ for (i in 1:num_regimens) {
   # For example:
   regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
                      common_inputs, 
-                     IE_HIV = input[[paste0("IE_", i, "_HIV")]], 
-                     IE_TB = input[[paste0("IE_", i, "_TB")]])
+                     IE_PK = input[[paste0("IE_", i, "_PK")]])
   
   # Process the rest of the regimen as needed...
 }
@@ -327,12 +313,8 @@ for (i in 1:num_regimens) {
     dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
     
     # 2. PK DDI details
-    if (!is.null(regimens[[i]]$IE_HIV) ) {
-      dfPK <- PKDDIProcessing(regimens[[i]]$IE_HIV, dfPK)
-    }
-    
-    if (!is.null(regimens[[i]]$IE_TB) ) {
-      dfPK <- PKDDIProcessing(regimens[[i]]$IE_TB, dfPK)
+    if (!is.null(regimens[[i]]$IE_PK) ) {
+      dfPK <- PKDDIProcessing(regimens[[i]]$IE_PK, dfPK)
     }
     
     all_regimens_df[[i]] <- dfPK
@@ -393,7 +375,7 @@ mod <- update(mod, outvars = outvars(mod)$capture)
 
 # Run simulation
 set.seed(3468)
-out <- PKSimulation(input$IIV, mod, dfPK_combined, sim_time, sunit)
+out <- PKSimulation(input$IIV, mod, dfPK_combined, sim_time)
 
 
 #### PK plots ####
@@ -425,8 +407,8 @@ a1 <- ggplot(dfForPlotBDQ, aes(x = time / 168, y = median,
   labs(x = "Time (weeks)", y = c("BDQ concentration (ng/mL)")) +
   ggtitle("BDQ Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsBDQ)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
@@ -466,8 +448,8 @@ a2 <- ggplot(dfForPlotM2, aes(x = time / 168, y = median,
   labs(x = "Time (weeks)", y = c("M2 concentration (ng/mL)")) +
   ggtitle("M2 Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsM2)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
@@ -538,8 +520,8 @@ a3 <- ggplot(dfForPlot_CavgD, aes(x = time / 168, y = median_CavgDBDQ,
   labs(x = "Time (weeks)", y = c("Daily Average BDQ concentration (ng/mL)")) +
   ggtitle("Daily Average BDQ Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsBDQ)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
@@ -570,8 +552,8 @@ a4 <- ggplot(dfForPlot_CavgD, aes(x = time / 168, y = median_CavgDM2,
   labs(x = "Time (weeks)", y = c("Daily Average M2 concentration (ng/mL)")) +
   ggtitle("Daily Average M2 Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsM2)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
@@ -642,8 +624,8 @@ a5 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWBDQ,
   labs(x = "Time (weeks)", y = c("Weekly Average BDQ concentration (ng/mL)")) +
   ggtitle("Weekly Average BDQ Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsBDQ)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
@@ -674,8 +656,8 @@ a6 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWM2,
   labs(x = "Time (weeks)", y = c("Weekly Average M2 concentration (ng/mL)")) +
   ggtitle("Weekly Average M2 Concentration (ng/mL) vs Time") +
   coord_cartesian(ylim = c(0, ylimitsM2)) +
-  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
-  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F", "#C7B73E")) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
     plot.title = element_text(size = 18),       # Main title
     axis.title = element_text(size = 16),       # Axis titles
