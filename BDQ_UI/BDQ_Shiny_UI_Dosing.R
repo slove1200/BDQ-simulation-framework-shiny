@@ -65,21 +65,32 @@ regimenColumn <- function(regimen_num, background_color, default_LD = FALSE, add
 mainTabDosing <- tabPanel(
   "Dosing",
   br(),
+  # Add JavaScript to handle dependency
+  tags$script(HTML("
+    $(document).ready(function() {
+      // Watch for changes to RG2 checkbox
+      $('#RG2').on('change', function() {
+        // If trying to uncheck RG2 while RG3 is checked, prevent it
+        if (!this.checked && $('#RG3').prop('checked')) {
+          this.checked = true;
+          alert('Please uncheck Regimen 3 first before unchecking Regimen 2.');
+        }
+      });
+    });
+  ")),
   fluidRow(
-    
     sidebarPanel(
       width = 2, 
       h4("Add regimen"), 
       br(),
       
       # Checkbox for Regimen 2
-      checkboxInput("RG2", "Regimen 2", value = FALSE),  # Checkbox to show/hide Regimen 2
+      checkboxInput("RG2", "Regimen 2", value = FALSE),
       
       # Conditionally show Regimen 3 only if Regimen 2 is checked
       conditionalPanel(
         condition = "input.RG2 == true", 
-        checkboxInput("RG3", "Regimen 3", value = FALSE),  # Checkbox to show/hide Regimen 3
-        # Conditionally show Regimen 4 only if Regimen 3 is checked
+        checkboxInput("RG3", "Regimen 3", value = FALSE),
         style = "display: none;"
       ),
       style = "border-radius: 15px;"

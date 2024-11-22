@@ -33,6 +33,13 @@ source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
 ui <-
   fluidPage(
     useShinyjs(), 
+    # Add div for the waiting game (initially hidden)
+    div(
+      id = "waiting-game",
+      style = "display: none;",
+      img(id = "click-cat", src = "cat_closed.png", alt = "Clickable Cat"),
+      div(id = "click-counter", "Clicks: 0")
+    ),
     tags$style(HTML("
     .shiny-options-group {
       margin-top: 0 !important;
@@ -62,27 +69,27 @@ ui <-
                     ")),
     
     titlePanel("BEDAQUILINE DOSE REGIMEN"),
-
-      tabsetPanel(
-        id = "mainTab",  # Set id for main tabsetPanel
-        
+    
+    tabsetPanel(
+      id = "mainTab",  # Set id for main tabsetPanel
+      
       # Call UI - Dosing
       tabPanel("Dosing", value = "Dosing", mainTabDosing),
-
+      
       # Call UI - Population
       tabPanel("Population", value = "Population", mainTabPopulation),
-
+      
       # Call UI - Simulation
       tabPanel("Simulation", value = "Simulation", mainTabSim),
-
+      
       # Call UI - Results
       tabPanel("Results", value = "Results", mainTabResults),
       
       # Call UI - About   
       tabPanel("About", value = "About", mainTabAbout)
-
-
-      ) # end of tabsetPanel
+      
+      
+    ) # end of tabsetPanel
   ) # end of fluidPage
 
 #### Define server logic ####
@@ -112,21 +119,21 @@ source(paste0(Server.directory, "BDQ_Server_Population_summary_plots.R"))
 
 
 server <- function(input, output, session) {
-# Create reactive values to store regimen state
+  # Create reactive values to store regimen state
   stored_regimens <- reactiveVal(c(TRUE, FALSE, FALSE))  # Initial state: only regimen 1 active
-
-# Predefine all outputs to avoid dynamic creation errors
+  
+  # Predefine all outputs to avoid dynamic creation errors
   output$plot <- renderPlot({ NULL })     # Placeholder
   output$plotQT <- renderPlot({ NULL })   # Placeholder
   output$plotTTP <- renderPlot({ NULL })  # Placeholder
   output$plotMSM <- renderPlot({ NULL })  # Placeholder
   
-# Add a reactive value for the loading state
+  # Add a reactive value for the loading state
   loading <- reactiveVal(FALSE)
   
   # Add custom CSS for the loading overlay and notifications
-tags$head(
-  tags$style(HTML("
+  tags$head(
+    tags$style(HTML("
     #loading-overlay {
       position: fixed;
       top: 0;
@@ -183,21 +190,71 @@ tags$head(
       justify-content: center !important;
       align-items: center !important;
     }
-  "))
-) -> loading_css
+
+    #waiting-game {
+      position: fixed;
+      top: 90%;
+      left: 95%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      text-align: center;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    #click-cat {
+      cursor: pointer;
+      transition: transform 0.1s;
+      width: 100px;
+      height: 100px;
+    }
+    
+    #click-cat:active {
+      transform: scale(0.9);
+    }
+    
+    #click-counter {
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  ")), 
+    # Add this JavaScript code after the existing tags$style
+    tags$script(HTML("
+  let counter = 0;
+  
+  function resetCounter() {
+    counter = 0;
+    document.getElementById('click-counter').innerHTML = 'Clicks: 0';
+  }
+  
+  $(document).on('click', '#click-cat', function() {
+    counter++;
+    document.getElementById('click-counter').innerHTML = 'Clicks: ' + counter;
+    
+    // Change image temporarily
+    this.src = 'cat_open.png';
+    setTimeout(() => {
+      this.src = 'cat_closed.png';
+    }, 100);
+  });
+"))
+  ) -> loading_css
   
   # Insert CSS once at startup
   insertUI(selector = "head", where = "beforeEnd", ui = loading_css, immediate = TRUE)
-
+  
   # PK simulation ####
   # # Render PK table
   # output$sim_PKtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   sim_PKtable()
   # })
-
+  
   # QT simulation ####
-    # # Render QT table
+  # # Render QT table
   # output$sim_QTtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   head(sim_QTtable())
@@ -209,37 +266,30 @@ tags$head(
   #   # Call the reactive expression to get the data frame
   #   head(sim_TTPtable(), 30)
   # })
-
+  
   # MSM simulation ####
   # # Render MSM table
   # output$sim_MSMtable <- renderTable({
   #   # Call the reactive expression to get the data frame
   #   head(sim_MSMtable(), 30)
   # })
-
+  
   
   # Add an observer to coordinate all simulations
   observeEvent(input$goButton, {
-  # Use runjs to directly trigger click on Results tab
-  shinyjs::runjs("$('a[data-value=\"Results\"]').tab('show');")
-  
-  # Show loading overlay
-  loading(TRUE)
-  
-  # Insert loading overlay
-  insertUI(
-    selector = "body",
-    where = "beforeEnd",
-    ui = div(
-      id = "loading-overlay"
-    ),
-    immediate = TRUE
-  )
-
+    # Show the game
+    shinyjs::show("waiting-game")
+    
+    # Use runjs to directly trigger click on Results tab
+    shinyjs::runjs("$('a[data-value=\"Results\"]').tab('show');")
+    
+    # Show loading overlay
+    loading(TRUE)
+    
     withProgress(message = 'Processing All Data', value = 0, {
       # Store current regimen state when Go button is clicked
       stored_regimens(c(TRUE, input$RG2, input$RG3))
-
+      
       # Update dosing regimen boxes first
       output$regimen_boxes <- renderUI({
         create_regimen_boxes(input, stored_regimens())
@@ -261,7 +311,7 @@ tags$head(
       output$PopSummaryPlot <- renderPlot({
         PopSummary_plot
       })
-
+      
       # PK simulation
       incProgress(0.12, detail = "Running PK simulation...")
       sim_PKtable <- sim_PK(input, virtual_population_df)
@@ -277,11 +327,11 @@ tags$head(
       # MSM simulation
       incProgress(0.12, detail = "Running MSM simulation...")
       if (input$population_radio == "Individual") {
-          sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
-        } else {
-          sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
-        }
-
+        sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
+      } else {
+        sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
+      }
+      
       # Generate PK plots
       incProgress(0.12, detail = "Generating PK plots...")
       TypPKplot <- TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
@@ -302,7 +352,7 @@ tags$head(
       output$plotTTP <- renderPlot({
         TTPplot
       })
-
+      
       # Generate MSM plots
       incProgress(0.12, detail = "Generating MSM plots...")
       if (input$population_radio == "Individual") {
@@ -310,12 +360,12 @@ tags$head(
         output$plotMSM <- renderPlot({
           MSMidvplot
         })
-        } else {
-          MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
-          output$plotMSM <- renderPlot({
-            MSMplot
-          })
-        }
+      } else {
+        MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
+        output$plotMSM <- renderPlot({
+          MSMplot
+        })
+      }
       
       # PK-additional simulation ####
       # Render combined PK-additional plot
@@ -337,68 +387,75 @@ tags$head(
         type = "message", 
         duration = 3
       )
-
-      # After all simulations complete, remove the overlay
+      
+      # After all simulations complete
+      shinyjs::hide("waiting-game")
+      shinyjs::runjs("resetCounter()")  # Reset the counter for next time
+      
       removeUI(selector = "#loading-overlay", immediate = TRUE)
       loading(FALSE)
+      
+      # After all simulations complete
+      shinyjs::hide("waiting-game")
+      shinyjs::runjs("resetCounter()")  # Reset the counter for next time
     })
   })
-
+  
   ########################################################
   ##### RENDER IMAGE ####
-    # } else if (input$ipred == 5) {
-    #   dfForPlotWT <- sim_PKtable() %>%
-    #     ungroup() %>%
-    #     group_by(time) %>%
-    #     summarize(
-    #       lower = quantile(IPREDWT, probs = 0.05),
-    #       median = quantile(IPREDWT, probs = 0.5),
-    #       upper = quantile(IPREDWT, probs = 0.95)
-    #     )
-    # 
-    #   e1 <- ggplot(dfForPlotWT, aes(x = time / 168, y = median)) +
-    #     geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
-    #     geom_line(size = 1.2) +
-    #     theme_bw() +
-    #     theme(text = element_text(size = 15)) +
-    #     theme(axis.text = element_text(size = 15)) +
-    #     scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 25)) +
-    #     # scale_y_continuous(breaks = seq(0, 4, 0.5),limits = c(0,2.5)) +
-    #     labs(x = "Time (weeks)", y = ("Body weight (kg)")) +
-    #     ggtitle("Body Weight (kg) vs Time (weeks)")
-    # 
-    #   dfForPlotALB <- sim_PKtable() %>%
-    #     ungroup() %>%
-    #     group_by(time) %>%
-    #     summarize(
-    #       lower = quantile(IPREDALB, probs = 0.05),
-    #       median = quantile(IPREDALB, probs = 0.5),
-    #       upper = quantile(IPREDALB, probs = 0.95)
-    #     )
-    # 
-    #   e2 <- ggplot(dfForPlotALB, aes(x = time / 168, y = median)) +
-    #     geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
-    #     geom_line(size = 1.2) +
-    #     theme_bw() +
-    #     theme(text = element_text(size = 15)) +
-    #     theme(axis.text = element_text(size = 15)) +
-    #     scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 25)) +
-    #     labs(x = "Time (weeks)", y = ("Albumin concentration (g/dL)")) +
-    #     ggtitle("Albumin Concentration (g/dL) vs Time(weeks)")
-    # 
-    #   plot <- grid.arrange(e1, e2, nrow = 2)
-
+  # } else if (input$ipred == 5) {
+  #   dfForPlotWT <- sim_PKtable() %>%
+  #     ungroup() %>%
+  #     group_by(time) %>%
+  #     summarize(
+  #       lower = quantile(IPREDWT, probs = 0.05),
+  #       median = quantile(IPREDWT, probs = 0.5),
+  #       upper = quantile(IPREDWT, probs = 0.95)
+  #     )
+  # 
+  #   e1 <- ggplot(dfForPlotWT, aes(x = time / 168, y = median)) +
+  #     geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
+  #     geom_line(size = 1.2) +
+  #     theme_bw() +
+  #     theme(text = element_text(size = 15)) +
+  #     theme(axis.text = element_text(size = 15)) +
+  #     scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 25)) +
+  #     # scale_y_continuous(breaks = seq(0, 4, 0.5),limits = c(0,2.5)) +
+  #     labs(x = "Time (weeks)", y = ("Body weight (kg)")) +
+  #     ggtitle("Body Weight (kg) vs Time (weeks)")
+  # 
+  #   dfForPlotALB <- sim_PKtable() %>%
+  #     ungroup() %>%
+  #     group_by(time) %>%
+  #     summarize(
+  #       lower = quantile(IPREDALB, probs = 0.05),
+  #       median = quantile(IPREDALB, probs = 0.5),
+  #       upper = quantile(IPREDALB, probs = 0.95)
+  #     )
+  # 
+  #   e2 <- ggplot(dfForPlotALB, aes(x = time / 168, y = median)) +
+  #     geom_ribbon(aes(ymin = lower, ymax = upper), fill = "grey70") +
+  #     geom_line(size = 1.2) +
+  #     theme_bw() +
+  #     theme(text = element_text(size = 15)) +
+  #     theme(axis.text = element_text(size = 15)) +
+  #     scale_x_continuous(breaks = seq(0, 24, 2), limits = c(0, 25)) +
+  #     labs(x = "Time (weeks)", y = ("Albumin concentration (g/dL)")) +
+  #     ggtitle("Albumin Concentration (g/dL) vs Time(weeks)")
+  # 
+  #   plot <- grid.arrange(e1, e2, nrow = 2)
+  
   ## DOWNLOAD SIMULATED DATAFRAME ####
   # Dataset of Simulated dataframe
   output$sim_dataQTDT <- DT::renderDataTable({
     sim_dataframeQT()
   })
-
+  
   output$sim_dataDT <- DT::renderDataTable({
     sim_PKtable()
   })
-
-
+  
+  
   # Downloadable csv of Sim dataframe
   output$download_simdata <- downloadHandler(
     filename = function() {
@@ -408,12 +465,12 @@ tags$head(
       write.csv(sim_PKtable(), file, row.names = FALSE)
     }
   )
-
+  
   # Dataset of Trough dataframe
   output$trough_dataDT <- DT::renderDataTable({
     sim_dataframe24()
   })
-
+  
   # Downloadable csv of Trough dataframe
   output$download_troughdata <- downloadHandler(
     filename = function() {
@@ -423,13 +480,13 @@ tags$head(
       write.csv(sim_dataframe24(), file, row.names = FALSE)
     }
   )
-
-
+  
+  
   # Dataset of Cavg-daily  dataframe
   output$cavgdaily_dataDT <- DT::renderDataTable({
     Cavg_daily()
   })
-
+  
   # Downloadable csv of Sim dataframe
   output$download_cavgdaily <- downloadHandler(
     filename = function() {
@@ -439,12 +496,12 @@ tags$head(
       write.csv(Cavg_daily(), file, row.names = FALSE)
     }
   )
-
+  
   # Dataset of Cavg weekly dataframe
   output$cavgweekly_dataDT <- DT::renderDataTable({
     Cavg_weekly()
   })
-
+  
   # Downloadable csv of Sim dataframe
   output$download_cavgweekly <- downloadHandler(
     filename = function() {
@@ -454,17 +511,17 @@ tags$head(
       write.csv(Cavg_weekly(), file, row.names = FALSE)
     }
   )
-
+  
   output$ui_script <- renderText({
     text <- readLines(rstudioapi::getSourceEditorContext()$path)
-
+    
     # split the text into a list of character vectors
     #   Each element in the list contains one line
     splitText <- paste(str = text, collapse = "\t\n")
-
+    
     # wrap a paragraph tag around each element in the list
     # replacedText <- lapply(splitText, p)
-
+    
     return(splitText)
   })
   

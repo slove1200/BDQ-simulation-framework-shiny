@@ -1,4 +1,4 @@
-sim_TTP <- function(input, sim_PKtable) {
+sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   # User input
   num_REPs <- input$REP
   
@@ -86,7 +86,7 @@ sim_TTP <- function(input, sim_PKtable) {
     # input$MTTP unit in days, PK-efficacy model unit in hours
     TTPdf_fin$MTTP <- input$MTTP*24
   } else {
-    TTPdf_fin <- full_join(TTPdf_fin, Pop_generation(input), by = c("ID", "regimen"))
+    TTPdf_fin <- full_join(TTPdf_fin, virtual_population_df, by = c("ID"))
     TTPdf_fin <- TTPdf_fin %>%
       mutate(preXDR    = ifelse(TBTYPE == 3, 1, 0),
              preAndXDR = ifelse(TBTYPE == 3 | TBTYPE == 4, 1, 0),  # pre-XDR + XDR

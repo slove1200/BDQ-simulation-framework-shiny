@@ -21,10 +21,11 @@ bsicon_themes <- list(
 )
 
 # Get regimen strings from your parsing function
-regimen_strings <- function(input) {
+# Get regimen strings from your parsing function
+regimen_strings <- function(input, stored_regimens) {  # Add stored_regimens parameter
   validate(need(input, "Waiting for input..."))
   
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))
+  num_regimens <- sum(stored_regimens)  # Use stored_regimens instead
   regimen_strings <- list()
   
   for (i in 1:num_regimens) {
@@ -69,4 +70,26 @@ regimen_strings <- function(input) {
   }
   
   return(regimen_strings)
+}
+
+create_regimen_boxes <- function(input, stored_regimens) {
+  num_regimens <- sum(stored_regimens)
+  reg_strings <- regimen_strings(input, stored_regimens)  # Pass stored_regimens
+  validate(need(!is.null(reg_strings), "No regimen data available"))
+  
+  # Create a list of value boxes - one for each regimen
+  vbs <- lapply(seq_len(num_regimens), function(i) {
+    value_box(
+      title = tags$p(paste("Regimen", i), style = "font-size: 140%; font-weight: bold;"),
+      value = tags$p(reg_strings[[i]], style = "font-size: 110%;"),
+      showcase = bs_icon(bsicon_themes[[i]]),
+      theme = regimen_themes[[i]]
+    )
+  })
+  
+  # Wrap the value boxes in a layout with appropriate width
+  layout_column_wrap(
+    width = "300px",
+    !!!vbs
+  )
 }

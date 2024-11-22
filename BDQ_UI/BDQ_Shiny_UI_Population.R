@@ -14,7 +14,7 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
                                "Rifampicin" = "Rifampicin", 
                                "Rifapentine" = "Rifapentine")
       ),
-      class = "comed-radioButtonsPK")
+      class = "comed-radioButtonsPK bslib-gap-spacing html-fill-item html-fill-container")
   }
 
   coMedControlsQT <- function(regimen_num) {
@@ -26,7 +26,7 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
                                "Moxifloxacin" = "Moxifloxacin", 
                                "Both" = "Both")
       ),
-      class = "comed-radioButtonsQT")
+      class = "comed-radioButtonsQT bslib-gap-spacing html-fill-item html-fill-container")
   }
   
   # Optional conditionalPanel for regimens other than 1
@@ -35,7 +35,6 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
       condition = paste0("input.RG", regimen_num, " == true"),
       card(
         max_height = "320px",
-        style = "overflow: unset;",  # Prevent overflow
         card_header(
           paste("Regimen", regimen_num), 
           style = paste0("font-size: 18px; background-color: ", background_color, "; ")
@@ -44,13 +43,13 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
           card(card_header(
             "PK", 
             style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-            coMedControlsPK(regimen_num), 
-            style = "padding: 6px;"),
+            coMedControlsPK(regimen_num)
+            ),
           card(card_header(
             "QT", 
             style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
-            coMedControlsQT(regimen_num), 
-            style = "padding: 6px;"),
+            coMedControlsQT(regimen_num)
+            ),
           style = "column-count: 2;" # CSS for 3-column layout
         )
       )
@@ -58,23 +57,23 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
   else 
     card(
       max_height = "320px",
-      style = "overflow: unset;",  # Prevent overflow
+      style = "overflow: hidden;",  # Prevent overflow
       card_header(
         paste("Regimen", regimen_num), 
         style = paste0("font-size: 18px; background-color: ", background_color, "; ")
       ),
-      style = "overflow: unset;",
+      style = "overflow: hidden;",
       div(
         card(card_header(
           "PK", 
           style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
           coMedControlsPK(regimen_num), 
-          style = "padding: 6px;"),
+          style = "padding: 6px; margin-bottom: 0;"),
         card(card_header(
           "QT", 
           style = paste0("font-size: 16px; background-color: ", background_color, "; ")), 
           coMedControlsQT(regimen_num), 
-          style = "padding: 6px;"),
+          style = "padding: 6px; margin-bottom: 0;"),
         style = "column-count: 2;" # CSS for 3-column layout
       )
     )
@@ -93,11 +92,14 @@ mainTabPopulation <- tabPanel(
                           .shiny-options-group {
                             margin-top: 0 !important;
                           }
-                          div.header-checkbox div.checkbox {
-                            margin-bottom: 0;
+                          .card-body.bslib-gap-spacing {
+                            margin: 0 !important;
                           }
-                          div.header-checkbox > div.shiny-input-container {
-                            width: unset;
+                          .form-group.shiny-input-radiogroup {
+                            margin-bottom: 0 !important;
+                          }
+                          .bslib-card .card-body {
+                            overflow: unset;
                           }
                           .semi-transparent-overlay {
                             position: absolute;
@@ -123,7 +125,7 @@ mainTabPopulation <- tabPanel(
                             position: relative; /* To ensure the overlay stays on top of the content */
                           }
                     ")),
-          class = "d-flex mb-3",
+          class = "d-flex",
           style = "background-color: #CDD8DA;", 
           div("Covariates", 
               class = "me-auto p-0", 

@@ -16,7 +16,7 @@ into
   orgCovsEx <- read.csv("BDQ_Server/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
                         header = T)
 
-and put the simulated dataset into the deployed directory
+and put the simulated dataset into the deployed directory/BDQ_Server
 
 4. Deploy your app via the code:
 

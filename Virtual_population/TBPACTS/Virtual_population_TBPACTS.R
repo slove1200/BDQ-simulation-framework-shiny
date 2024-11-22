@@ -186,6 +186,7 @@ combined_data <- combined_data %>%
 
 combined_data$MTTP[is.nan(combined_data$MTTP)] <- NA
 
+# output original TBPACTS dataset
 # setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")
 # write.csv(combined_data, file = "TBPACTS_Virtual_Population.csv", row.names = FALSE)
 
@@ -248,7 +249,18 @@ continuous_vars <- c("AGE", "MTTP", "CACOR", "K", "WT", "ALB") # Replace with ac
 set.seed(1734)
 myCovSimMICE <- simCovMICE(m = 15,orgCovs = orgCovsEx,
                            catCovs = c("SEX", "RACE"),
-                           nsubj = 556)
+                           nsubj = 556) %>%
+  mutate(TBTYPE = sample(c(2, 3, 4), 
+                        size = nrow(.), 
+                        replace = TRUE, 
+                        prob = c(0.7, 0.2, 0.1)), 
+         ID      = row_number())  %>%
+  select(ID, everything())
+  
+
+# Output simulated virtual population
+setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")
+write.csv(myCovSimMICE, file = "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", row.names = FALSE)
 
 
 # Function to summarize continuous variables (median and range)

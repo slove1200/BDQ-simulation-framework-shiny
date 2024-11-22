@@ -103,7 +103,7 @@ PKSimulation <- function(IIVval, mod, df, sim_time) {
 }
 
 ## define sim_PK() ####
-sim_PK <- function(input) {
+sim_PK <- function(input, virtual_population_df) {
   ## Simulation settings
   # 1. "nsim"
   nsamples <- input$nsim      # Number of simulated individuals
@@ -218,7 +218,7 @@ sim_PK <- function(input) {
     dfPK_combined$SEX    <- SEX
     
   } else { # UI input is to simulate in a population-level
-    dfPK_combined <- full_join(dfPK_combined, Pop_generation(input), by = c("ID", "regimen"))
+    dfPK_combined <- full_join(dfPK_combined, virtual_population_df, by = c("ID"))
   }
   
   # ##############################################

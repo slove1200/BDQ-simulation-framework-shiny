@@ -2,14 +2,23 @@
 # Results settings ####
 mainTabResults <- tabPanel(
   title = "Results",
-  value = "Results",  # Explicit value for the Results tab
-  # Move CSS to the top level of the tab panel
+  value = "Results",
   tags$head(
     tags$style(HTML("
       /* Value box styles */
       .value-box {
         margin-bottom: 1rem;
       }
+      
+      /* Remove scrollbars from cards by default */
+      .card {
+        overflow: unset !important;
+      }
+      
+      .card-body {
+        overflow: unset !important;
+      }
+
     "))
   ),
   tabsetPanel(
@@ -93,17 +102,16 @@ mainTabResults <- tabPanel(
       layout_columns(
         card(
           card_header("Table", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("Put table summary here"
+          card_body(tableOutput("PopSummaryTable")
           )
         ),
         # Second card with custom background color and styled card header/body
         card(
           card_header("Plot", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body("Put plot summary here"
+          card_body(plotOutput("PopSummaryPlot")
           )
         ),
-        col_widths = c(12,12),
-        row_heights = c(6,6)
+        col_widths = c(5,7)
       )
     )
   )
