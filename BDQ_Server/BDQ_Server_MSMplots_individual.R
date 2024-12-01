@@ -9,8 +9,14 @@ MSMidv_plots <- function(input, sim_MSMtable) {
     )
   
   # Split the data into two groups
-  high_prob <- outMSMLongFormat %>% filter(State %in% c("P_1", "P_2"))
-  low_prob <- outMSMLongFormat %>% filter(State %in% c("P_3", "P_5"))
+  high_prob <- outMSMLongFormat %>% filter(State %in% c("P_1", "P_2")) %>% group_by(time, State, regimen) %>%
+    summarise(lower  = quantile(Probability, 0.05), 
+              median = quantile(Probability, 0.50), 
+              upper  = quantile(Probability, 0.95))
+  low_prob <- outMSMLongFormat %>% filter(State %in% c("P_3", "P_5")) %>% group_by(time, State, regimen) %>%
+    summarise(lower  = quantile(Probability, 0.05), 
+              median = quantile(Probability, 0.50), 
+              upper  = quantile(Probability, 0.95))
   
   # First, determine which regimens are active
   active_regimens <- outMSMLongFormat %>%
@@ -28,12 +34,16 @@ MSMidv_plots <- function(input, sim_MSMtable) {
   plot <- ggplot() +
     # High probability states (P1, P2)
     geom_line(data = high_prob, 
-              aes(x = time, y = Probability * 100, color = State), 
+              aes(x = time, y = median * 100, color = State), 
               size = 1.5) +
+    geom_ribbon(data = high_prob, 
+                aes(x = time, ymin = lower * 100, ymax = upper * 100, fill = State), alpha = 0.3, colour = NA) +
     # Low probability states (P3, P5) - scaled
     geom_line(data = low_prob, 
-              aes(x = time, y = Probability * 1000, color = State), 
+              aes(x = time, y = median * 1000, color = State), 
               size = 1.5) +
+    geom_ribbon(data = low_prob, 
+                aes(x = time, ymin = lower * 1000, ymax = upper * 1000, fill = State), alpha = 0.3, colour = NA) +
     # Dynamic faceting based on active regimens with free y scales
     facet_wrap2(~factor(regimen, 
                         levels = active_regimens,
@@ -68,6 +78,11 @@ MSMidv_plots <- function(input, sim_MSMtable) {
       )
     ) +
     scale_color_manual(
+      values = c("P_1" = "#cf597e", "P_2" = "#009392", 
+                 "P_3" = "#eeb479", "P_5" = "#CACACA"),
+      labels = c("Active infection", "Converted", "Recurrent TB", "Death")
+    ) +
+    scale_fill_manual(
       values = c("P_1" = "#cf597e", "P_2" = "#009392", 
                  "P_3" = "#eeb479", "P_5" = "#CACACA"),
       labels = c("Active infection", "Converted", "Recurrent TB", "Death")

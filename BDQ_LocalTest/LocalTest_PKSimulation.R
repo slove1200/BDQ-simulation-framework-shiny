@@ -218,7 +218,7 @@ Pop_generation <- function(input) {
 
 #### input ####
 input <- c()
-input$nsim    <- 5  # Number of simulated individuals
+input$nsim    <- 500  # Number of simulated individuals
 input$simtime <- 24   # Time of simulation imputed (transformed in hours during simulation)
 
 
@@ -236,30 +236,30 @@ input$IE_1_HIV    <- "None"
 input$IE_1_TB     <- "None"
 
 input$LD2         <- TRUE
-input$ldose_2     <- 400 # Loading dose amount (mg)
-input$ldur_2      <- 2   # Loading dose duration (transformed in hours during simulation)
+input$ldose_2     <- 200 # Loading dose amount (mg)
+input$ldur_2      <- 8   # Loading dose duration (transformed in hours during simulation)
 input$lunit_2     <- 2 # Loading dose unit: "1" day, "2" week
 input$lfreq_2     <- "Once daily" # Loading dose unit: "1" day, "2" week
 input$mdose_2     <- 100 # Maintenance dose amount (mg)
-input$mdur_2      <- 6 # Maintenance dose duration (transformed in hours during simulation)
+input$mdur_2      <- 16 # Maintenance dose duration (transformed in hours during simulation)
 input$munit_2     <- 2 # Maintenance dose unit: "1" day, "2" week
 input$mfreq_2     <- "Once daily" # Maintenance dose unit: "1" day, "2" week
 input$IE_2_HIV    <- "None"
 input$IE_2_TB     <- "None"
 
-input$LD3         <- FALSE
+input$LD3         <- TRUE
 input$ldose_3     <- 400 # Loading dose amount (mg)
 input$ldur_3      <- 2   # Loading dose duration (transformed in hours during simulation)
 input$lunit_3     <- 2 # Loading dose unit: "1" day, "2" week
 input$lfreq_3     <- "Once daily" # Loading dose unit: "1" day, "2" week
-input$mdose_3     <- 200 # Maintenance dose amount (mg)
+input$mdose_3     <- 100 # Maintenance dose amount (mg)
 input$mdur_3      <- 22 # Maintenance dose duration (transformed in hours during simulation)
 input$munit_3     <- 2 # Maintenance dose unit: "1" day, "2" week
-input$mfreq_3     <- "Three times weekly" # Maintenance dose unit: "1" day, "2" week
+input$mfreq_3     <- "Once daily" # Maintenance dose unit: "1" day, "2" week
 input$IE_3_HIV    <- "None"
 input$IE_3_TB     <- "None"
 
-input$IIV         <- "OFF" # ON or OFF
+input$IIV         <- "ON" # ON or OFF
 
 input$RG1       <- T
 input$RG2       <- T

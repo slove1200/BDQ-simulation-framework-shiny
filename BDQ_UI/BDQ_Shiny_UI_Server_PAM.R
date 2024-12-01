@@ -311,7 +311,7 @@ tags$head(
           MSMidvplot
         })
         } else {
-          MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
+          MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file      
           output$plotMSM <- renderPlot({
             MSMplot
           })

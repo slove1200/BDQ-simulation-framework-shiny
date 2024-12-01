@@ -137,7 +137,7 @@ if (input$IIV == "OFF") {
 
 
 ######## MSM ####
-input$simtimeMSM <- 48
+input$simtimeMSM <- 72
 
 sim_timeMSM <- input$simtimeMSM
 
@@ -226,7 +226,7 @@ outMSM <- modMSM %>%
   rename("STATE" = "XDV") %>%
   select(-EVID, -P_4)
 
-  
+
 dfForPlotMSM <- outMSM %>% group_by(regimen, time, STATE) %>% summarise(prop = n()/input$nsim, .groups = "drop") %>%
   # Ensure all combinations of time and STATE are included, even if they have no observations
   complete(regimen, time, STATE, fill = list(prop = 0))
@@ -265,7 +265,7 @@ ggplot(dfForPlotMSM %>% filter(time %in% c(0,4,8,16,24,48,72,96,120)),
   ) +
   guides(color = guide_legend("Regimen"))
 
-## population individual ####
+## Individual MSM ####
 ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = 1:(nsubjects*num_regimens))
 ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(6,1,2,3,4,5), evid = c(2,4,1,1,1,1), ID = 1:(nsubjects*num_regimens),
           addl = sim_timeMSM, ii = 168, rate = 0, realize = T)
@@ -305,8 +305,14 @@ outMSMLongFormat <- outMSM2 %>% group_by(regimen) %>%
   )
 
 # Split the data into two groups
-high_prob <- outMSMLongFormat %>% filter(State %in% c("P_1", "P_2"))
-low_prob <- outMSMLongFormat %>% filter(State %in% c("P_3", "P_5"))
+high_prob <- outMSMLongFormat %>% filter(State %in% c("P_1", "P_2")) %>% group_by(time, State, regimen) %>%
+  summarise(lower  = quantile(Probability, 0.05), 
+            median = quantile(Probability, 0.50), 
+            upper  = quantile(Probability, 0.95))
+low_prob <- outMSMLongFormat %>% filter(State %in% c("P_3", "P_5")) %>% group_by(time, State, regimen) %>%
+  summarise(lower  = quantile(Probability, 0.05), 
+            median = quantile(Probability, 0.50), 
+            upper  = quantile(Probability, 0.95))
 
 # Plot
 # First, determine which regimens are active
@@ -328,12 +334,16 @@ strip_colors <- strip_themed(background_x = elem_list_rect(fill = c("#CBCAE39D",
 ggplot() +
   # High probability states (P1, P2)
   geom_line(data = high_prob, 
-            aes(x = time, y = Probability * 100, color = State), 
+            aes(x = time, y = median * 100, color = State), 
             size = 1.5) +
+  geom_ribbon(data = high_prob, 
+              aes(x = time, ymin = lower * 100, ymax = upper * 100, fill = State), alpha = 0.3, colour = NA) +
   # Low probability states (P3, P5) - scaled
   geom_line(data = low_prob, 
-            aes(x = time, y = Probability * 1000, color = State), 
+            aes(x = time, y = median * 1000, color = State), 
             size = 1.5) +
+  geom_ribbon(data = low_prob, 
+              aes(x = time, ymin = lower * 1000, ymax = upper * 1000, fill = State), alpha = 0.3, colour = NA) +
   # Dynamic faceting based on active regimens with free y scales
   facet_wrap2(~factor(regimen, 
                       levels = active_regimens,
@@ -358,7 +368,7 @@ ggplot() +
     axis.text = element_text(size = 14),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_text(size = 16, color = "black", margin = margin(t = 15, b = 15)),
+    strip.text = element_text(size = 18, color = "black", face = "bold", margin = margin(t = 10, b = 10)),
     legend.position = "bottom",
     legend.box = "horizontal",
     panel.spacing = unit(1, "lines"),
@@ -371,4 +381,35 @@ ggplot() +
     values = c("P_1" = "#cf597e", "P_2" = "#009392", 
                "P_3" = "#eeb479", "P_5" = "#CACACA"),
     labels = c("Active infection", "Converted", "Recurrent TB", "Death")
+  ) +
+  scale_fill_manual(
+    values = c("P_1" = "#cf597e", "P_2" = "#009392", 
+               "P_3" = "#eeb479", "P_5" = "#CACACA"),
+    labels = c("Active infection", "Converted", "Recurrent TB", "Death")
   )
+
+
+#### check individual probability distribution ####
+check <- outMSMLongFormat %>% group_by(ID, time, regimen, State) %>% slice(1L)
+
+ggplot(data = check %>% filter(State == "P_1" & time == 8 & regimen == 1), aes(x = Probability)) +
+  geom_histogram(binwidth=0.01, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+  theme_bw() +
+  geom_vline(xintercept = 0.475, color = "red") +
+  geom_vline(xintercept = 0.342, color = "red", linetype = "dashed") +
+  geom_vline(xintercept = 0.944, color = "red", linetype = "dashed")
+
+
+
+
+check2 <- check %>% filter(State == "P_2" & time == 24 & regimen == 1)
+
+sum(check2$Probability)/500
+
+
+ggplot(data = check %>% filter(State == "P_2" & time == 24 & regimen == 1), aes(x = Probability)) +
+  geom_histogram(binwidth=0.01, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+  theme_bw() +
+  geom_vline(xintercept = 0.882, color = "red") +
+  geom_vline(xintercept = 0.360, color = "red", linetype = "dashed") +
+  geom_vline(xintercept = 0.898, color = "red", linetype = "dashed")
