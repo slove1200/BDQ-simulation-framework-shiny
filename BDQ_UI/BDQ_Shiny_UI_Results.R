@@ -33,7 +33,7 @@ mainTabResults <- tabPanel(
       layout_columns(
         # Dosing details
         card(
-          card_header("Dosing regimens", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Dosing regimens", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(
             # Add a text output element to display regimen details
             uiOutput("regimen_boxes")
@@ -46,9 +46,9 @@ mainTabResults <- tabPanel(
             style = "background-color: #CDD8DA;", 
             div("Pharmacokinetics", 
                 class = "me-auto p-0", 
-                style = "font-size: 22px; background-color: #CDD8DA;"),
+                style = "font-size: 20px; background-color: #CDD8DA;"),
             div(class = "pe-2 header-radio", 
-                style = "font-size: 16px;",
+                style = "font-size: 14px;",
                 radioButtons("PKplot_radio", 
                              label = NULL, 
                              choices = c("Full Concentration", "Daily Avg Concentration", "Weekly Avg Concentration"), 
@@ -72,21 +72,21 @@ mainTabResults <- tabPanel(
         ),
         # Second card with custom background color and styled card header/body
         card(
-          card_header("Efficacy (Time to positivity signal)", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Efficacy (Time to positivity signal)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_TTPtable"),
                     plotOutput("plotTTP")
           )
         ),
         # Third card with custom background color and styled card header/body
         card(
-          card_header("Safety (QT)", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Safety (QT)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_QTtable"),
                     plotOutput("plotQT")
           )
         ),
         # Fourth card with custom background color and styled card header/body
         card(
-          card_header("Long-term outcome", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Long-term outcome", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_MSMtable"),
                     plotOutput("plotMSM")
           )
@@ -101,13 +101,13 @@ mainTabResults <- tabPanel(
     page_fillable(
       layout_columns(
         card(
-          card_header("Table", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Table", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(tableOutput("PopSummaryTable")
           )
         ),
         # Second card with custom background color and styled card header/body
         card(
-          card_header("Plot", style = "font-size: 22px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Plot", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(plotOutput("PopSummaryPlot")
           )
         ),

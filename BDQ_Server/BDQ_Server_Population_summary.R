@@ -1,4 +1,24 @@
-Virtual_population_summary <- function(df_virtualPop) {
+Virtual_population_summary <- function(df_virtualPop, input) {
+  
+  if(input$population_radio == "Individual") {
+    # Create a single-row dataframe for individual case
+    df_virtualPop <- data.frame(
+      AGE = input$AGE,
+      WT = input$WT,
+      SEX = ifelse(input$SEX == "Female", 1, 0),
+      RACE = ifelse(input$RACE == "Black", 1, 0),
+      ALB = input$ALB,
+      CACOR = input$CACOR,
+      K = input$K,
+      MTTP = input$MTTP * 24,  # Convert days to hours
+      TBTYPE = case_when(
+        input$XDR == "MDR-TB" ~ 2,
+        input$XDR == "pre-XDR-TB" ~ 3,
+        input$XDR == "XDR-TB" ~ 4
+      )
+    )
+}
+
   # MTTP in hours to days first
   df_virtualPop$MTTPd <- df_virtualPop$MTTP/24
   

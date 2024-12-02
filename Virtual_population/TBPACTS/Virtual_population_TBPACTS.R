@@ -240,7 +240,7 @@ summary_table$`N of missing values (%)` <- c(
 print(summary_table)
 
 
-orgCovsEx <- combined_data %>% select(-STUDYID, -USUBJID)
+orgCovsEx <- combined_data %>% select(-STUDYID, -USUBJID) %>% mutate(MTTP = ifelse(MTTP == 1021, 1008, MTTP))
 
 # Example to differentiate categorical and continuous variables
 categorical_vars <- c("SEX", "RACE") # Replace with actual categorical columns
@@ -262,6 +262,12 @@ myCovSimMICE <- simCovMICE(m = 15,orgCovs = orgCovsEx,
 setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")
 write.csv(myCovSimMICE, file = "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", row.names = FALSE)
 
+# Output template virtual population
+template <- myCovSimMICE %>% filter(ID %in% c(seq(1, 500, by = 10))) %>% select(-NSIM) %>%
+  mutate(ID = row_number())
+
+setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")
+write.csv(template, file = "Virtual_population_template.csv", row.names = FALSE)
 
 # Function to summarize continuous variables (median and range)
 summarize_continuous <- function(x) {

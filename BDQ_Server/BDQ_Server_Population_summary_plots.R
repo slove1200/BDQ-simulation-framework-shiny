@@ -1,5 +1,24 @@
-create_population_plots <- function(df_virtualPop) {
+create_population_plots <- function(df_virtualPop, input) {
   
+  if (input$population_radio == "Individual") {
+    # Create a single-row dataframe for individual case
+    df_virtualPop <- data.frame(
+      AGE = input$AGE,
+      WT = input$WT,
+      CACOR = input$CACOR,
+      K = input$K,
+      MTTP = input$MTTP * 24,  # Convert days to hours
+      ALB = input$ALB,
+      # Add type columns for faceting
+      AGETYPE = "Age",
+      WTTYPE = "Weight",
+      CACORTYPE = "Corrected Ca",
+      KTYPE = "Potassium",
+      TTPTYPE = "Baseline TTP",
+      ALBTYPE = "Albumin"
+    )
+  }
+
   # Import full simulated dataset for boxplot
   myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
                            header = T)
@@ -34,7 +53,7 @@ create_population_plots <- function(df_virtualPop) {
   p1 <- ggplot(myCovSimMICE, aes(x = "Age", y = AGE)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "Age", y = AGE),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Age (years)", x = "") +
@@ -44,7 +63,7 @@ create_population_plots <- function(df_virtualPop) {
   p2 <- ggplot(myCovSimMICE, aes(x = "Weight", y = WT)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "Weight", y = WT),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Weight (kg)", x = "") +
@@ -54,7 +73,7 @@ create_population_plots <- function(df_virtualPop) {
   p3 <- ggplot(myCovSimMICE, aes(x = "Calcium", y = CACOR)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "Calcium", y = CACOR),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Corrected calcium level (mmol/L)", x = "") +
@@ -64,7 +83,7 @@ create_population_plots <- function(df_virtualPop) {
   p4 <- ggplot(myCovSimMICE, aes(x = "Potassium", y = K)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "Potassium", y = K),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Potassium level (mmol/L)", x = "") +
@@ -74,7 +93,7 @@ create_population_plots <- function(df_virtualPop) {
   p5 <- ggplot(myCovSimMICE %>% mutate(MTTPd = round(MTTP/24, 2)), aes(x = "TTP", y = MTTPd)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "TTP", y = MTTPd),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Baseline time-to-positivity (days)", x = "") +
@@ -84,7 +103,7 @@ create_population_plots <- function(df_virtualPop) {
   p6 <- ggplot(myCovSimMICE, aes(x = "Albumin", y = ALB)) +
     geom_boxplot(fill = "lightblue", na.rm = TRUE, outliers = FALSE) +
     geom_point(data = df_virtualPop, aes(x = "Albumin", y = ALB),
-               alpha = 0.6, position = position_jitter(width = 0.2),
+               alpha = 0.6, position = position_jitter(width = 0.2, height = 0),
                color = "gray10", 
                size = 2.5) +
     labs(y = "Albumin (g/dL)", x = "") +
