@@ -20,16 +20,16 @@ mainTabSim <- tabPanel(
             value = 1, min = 1, max = 3, 
             width = "70%"),
           numericInput("HLEFF", 
-            label = tags$span(style="font-size: 13px; font-weight: bold;", "Bacterial Clearance (%) Faster"), 
-            value = 0, min = -50, max = 150, 
-            width = "70%"),
+                         label = tags$span(style = "font-size: 13px; font-weight: bold;", "Bacterial Clearance (%) Faster"), 
+                         value = 0, min = -50, max = 150, 
+                         width = "70%"),
           tags$span(style="font-size: 13px; font-style: italic;", 
             "***HL and surge peak, surge amplitude are highly correlated")
         )
       ),
       # Second card with custom background color and styled card header/body
       card(
-        card_header("Simulation Setting", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
+        card_header("Simulation Setting", style = "font-size: 20px; background-color: #CDD8DA;"),
         card_body(
           numericInput("nsim", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Number of simulated individuals per regimen"), 
@@ -46,7 +46,7 @@ mainTabSim <- tabPanel(
             value = 48, min = 1, max = 1000, 
             width = "70%"),
           selectInput("IIV", 
-            label = tags$span(style="font-size: 13px; font-weight: bold;", "Interindiviual variability"), 
+            label = tags$span(style="font-size: 13px; font-weight: bold;", "Interindividual variability"), 
             choices = c("OFF", "ON"), 
             selected = "OFF", 
             width = "70%"),

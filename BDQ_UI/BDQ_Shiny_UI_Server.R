@@ -21,6 +21,7 @@ library(ggh4x)
 library(gridExtra)
 library(patchwork)
 library(shinyjs)
+library(jquerylib)
 
 # Set directory paths
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
@@ -33,6 +34,7 @@ source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
+source(paste0(UI.directory, "BDQ_Shiny_UI_SourceCode.R"))
 
 ###################### UI DEFINITION ######################
 ui <- fluidPage(
@@ -84,6 +86,7 @@ ui <- fluidPage(
         tabPanel("Population", value = "Population", mainTabPopulation),
         tabPanel("Simulation", value = "Simulation", mainTabSim),
         tabPanel("Results", value = "Results", mainTabResults),
+        tabPanel("Source Code", value = "Source Code", mainTabCode()),
         tabPanel("About", value = "About", mainTabAbout)
     )
 )
@@ -401,6 +404,44 @@ server <- function(input, output, session) {
     outputOptions(output, "plotQT", suspendWhenHidden = FALSE)
     outputOptions(output, "plotTTP", suspendWhenHidden = FALSE)
     outputOptions(output, "plotMSM", suspendWhenHidden = FALSE)
+
+    ###################### DOWNLOAD CODE HANDLER ######################
+    output$download_code <- downloadHandler(
+        filename = function() {
+            "BDQ_Shiny_App_Source_Code.zip"
+        },
+        content = function(file) {
+            # Create a temporary directory
+            temp_dir <- tempdir()
+            
+            # List of files to include in the zip - R and CSV files
+            files_to_zip <- c(
+                # UI Components
+                list.files(UI.directory, pattern = "\\.(R|csv)$", full.names = TRUE),
+                
+                # Server Components
+                list.files(Server.directory, pattern = "\\.(R|csv)$", full.names = TRUE)
+            )
+            
+            # Create directories in temp folder
+            dir.create(file.path(temp_dir, "BDQ_UI"), recursive = TRUE, showWarnings = FALSE)
+            dir.create(file.path(temp_dir, "BDQ_Server"), recursive = TRUE, showWarnings = FALSE)
+            
+            # Copy only existing R and CSV files
+            for(f in files_to_zip) {
+                if(file.exists(f)) {  # Only copy if file exists
+                    if(grepl("BDQ_UI", f)) {
+                        file.copy(f, file.path(temp_dir, "BDQ_UI", basename(f)), overwrite = TRUE)
+                    } else {
+                        file.copy(f, file.path(temp_dir, "BDQ_Server", basename(f)), overwrite = TRUE)
+                    }
+                }
+            }
+            
+            # Create zip file
+            zip::zipr(file, files = list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv)$"))
+        }
+    )
 }
 
 # Run the application

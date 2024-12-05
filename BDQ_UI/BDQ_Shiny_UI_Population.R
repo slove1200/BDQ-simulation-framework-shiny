@@ -40,41 +40,52 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
           style = paste0("font-size: 16px; background-color: ", background_color, "; ")
         ),
         div(
-          card(card_header(
-            "PK", 
-            style = paste0("font-size: 14px; background-color: ", background_color, "; ")), 
-            coMedControlsPK(regimen_num)
-            ),
-          card(card_header(
-            "QT", 
-            style = paste0("font-size: 14px; background-color: ", background_color, "; ")), 
-            coMedControlsQT(regimen_num)
-            ),
-          style = "column-count: 2;" # CSS for 3-column layout
+          card(
+            card_header(
+              "PK", 
+              style = paste0("font-size: 14px; background-color: ", background_color, "; ")
+            ), 
+            coMedControlsPK(regimen_num),
+            style = "padding: 6px; margin-bottom: 12px;"  # Added margin-bottom
+          ),
+          card(
+            card_header(
+              "QT", 
+              style = paste0("font-size: 14px; background-color: ", background_color, "; ")
+            ), 
+            coMedControlsQT(regimen_num),
+            style = "padding: 6px; margin-bottom: 0;"
+          ),
+          style = "column-count: 2;" # CSS for 2-column layout
         )
       )
     )
   else 
     card(
       max_height = "320px",
-      style = "overflow: hidden;",  # Prevent overflow
+      style = "overflow: hidden;",
       card_header(
         paste("Regimen", regimen_num), 
         style = paste0("font-size: 16px; background-color: ", background_color, "; ")
       ),
-      style = "overflow: hidden;",
       div(
-        card(card_header(
-          "PK", 
-          style = paste0("font-size: 14px; background-color: ", background_color, "; ")), 
-          coMedControlsPK(regimen_num), 
-          style = "padding: 6px; margin-bottom: 0;"),
-        card(card_header(
-          "QT", 
-          style = paste0("font-size: 14px; background-color: ", background_color, "; ")), 
-          coMedControlsQT(regimen_num), 
-          style = "padding: 6px; margin-bottom: 0;"),
-        style = "column-count: 2;" # CSS for 3-column layout
+        card(
+          card_header(
+            "PK", 
+            style = paste0("font-size: 14px; background-color: ", background_color, "; ")
+          ), 
+          coMedControlsPK(regimen_num),
+          style = "padding: 6px; margin-bottom: 12px;"  # Added margin-bottom
+        ),
+        card(
+          card_header(
+            "QT", 
+            style = paste0("font-size: 14px; background-color: ", background_color, "; ")
+          ), 
+          coMedControlsQT(regimen_num),
+          style = "padding: 6px; margin-bottom: 0;"
+        ),
+        style = "column-count: 2;" # CSS for 2-column layout
       )
     )
 }
