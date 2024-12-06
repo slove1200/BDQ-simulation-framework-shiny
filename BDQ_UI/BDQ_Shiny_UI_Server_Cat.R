@@ -300,14 +300,14 @@ server <- function(input, output, session) {
       virtual_population_df <- Pop_generation(input)
       
       # Summary of virtual population
-      PopSummary_df <- Virtual_population_summary(virtual_population_df)      
+      PopSummary_df <- Virtual_population_summary(virtual_population_df, input)      
       output$PopSummaryTable <- renderTable({
         PopSummary_df
         names(PopSummary_df)[2] <- "Median (Range) or N (%)"
         PopSummary_df
       }, sanitize.text.function = function(x) x)
       
-      PopSummary_plot <- create_population_plots(virtual_population_df) 
+      PopSummary_plot <- create_population_plots(virtual_population_df, input) 
       output$PopSummaryPlot <- renderPlot({
         PopSummary_plot
       })

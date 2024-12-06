@@ -407,6 +407,13 @@ mVPC <- function(sim_data,
   
 }
 
+orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Virtual_Population.csv") %>%
+  mutate(MTTP = ifelse(MTTP > 1008, 1008, MTTP)) %>%
+  select(-STUDYID, -USUBJID, -RACE)
+
+myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv") %>%
+  select(-ID, -RACE, -TBTYPE)
+
 # Evaluate VPC of joint density
 orgCovsEx$logMTTP <- log(orgCovsEx$MTTP)
 myCovSimMICE$logMTTP <- log(myCovSimMICE$MTTP)
@@ -429,8 +436,16 @@ myCovSimMICE <- myCovSimMICE %>% select(-MTTP) %>% rename("simulation_nr" = "NSI
 #                                  "ALB"), 15, 2),
 #          conf_band = 95, colors_bands = c("#99E0DC", "#E498B4"))
 
-myCovSimMICECont <- myCovSimMICE %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB", "simulation_nr")
-orgCovsExCont <- orgCovsEx %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB")
+# subgroup analysis: only male
+myCovSimMICE_male <- myCovSimMICE %>% filter(SEX == 0) %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB", "simulation_nr")
+orgCovsEx_male <- orgCovsEx %>% filter(SEX == 0) %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB")
 
-mVPC(sim_data = myCovSimMICECont, obs_data = orgCovsExCont, var = NULL, sim_nr = 15,
+mVPC(sim_data = myCovSimMICE_male, obs_data = orgCovsEx_male, var = NULL, sim_nr = 15,
+     percentiles = c(5, 50, 95), colors_bands = c("#99E0DC", "#E498B4"))
+
+# subgroup analysis: only female
+myCovSimMICE_female <- myCovSimMICE %>% filter(SEX == 1) %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB", "simulation_nr")
+orgCovsEx_female <- orgCovsEx %>% filter(SEX == 1) %>% select("AGE","CACOR", "K", "logMTTP", "WT", "ALB")
+
+mVPC(sim_data = myCovSimMICE_female, obs_data = orgCovsEx_female, var = NULL, sim_nr = 15,
      percentiles = c(5, 50, 95), colors_bands = c("#99E0DC", "#E498B4"))

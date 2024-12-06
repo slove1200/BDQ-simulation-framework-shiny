@@ -11,6 +11,11 @@ mainTabSim <- tabPanel(
       card(
         card_header("Advanced Setting", style = "font-size: 20px; background-color: #D8BFD8;"),
         card_body(
+          tags$style(HTML("
+            #HLEFFplot {
+              height: auto !important; /* Removes the fixed height */
+            }
+          ")),
           selectInput("STUDY", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Model for PK-TTP"), 
             choices = c("Treatment-naïve", "Treatment-experienced"), 
@@ -24,7 +29,8 @@ mainTabSim <- tabPanel(
                          value = 0, min = -50, max = 150, 
                          width = "70%"),
           tags$span(style="font-size: 13px; font-style: italic;", 
-            "***HL and surge peak, surge amplitude are highly correlated")
+            "***HL and surge peak, surge amplitude are highly correlated"), 
+          imageOutput("HLEFFplot")
         )
       ),
       # Second card with custom background color and styled card header/body

@@ -7,6 +7,7 @@
 library(mrgsolve)
 library(dplyr)
 library(tidyr)
+library(purrr)
 library(zoo)
 library(ggplot2)
 library(shiny)
@@ -102,9 +103,9 @@ source(paste0(Server.directory, "BDQMSM.R"))
 # Source server functions
 source(paste0(Server.directory, "BDQ_Server_DosingParse.R"))
 source(paste0(Server.directory, "BDQ_Server_Virtual_population_TBPACTS.R"))
-source(paste0(Server.directory, "BDQ_Server_PK.R"))
-source(paste0(Server.directory, "BDQ_Server_QT.R"))
-source(paste0(Server.directory, "BDQ_Server_TTP.R"))
+source(paste0(Server.directory, "BDQ_Server_PK_same_indv.R"))
+source(paste0(Server.directory, "BDQ_Server_QT_same_indv.R"))
+source(paste0(Server.directory, "BDQ_Server_TTP_same_indv.R"))
 source(paste0(Server.directory, "BDQ_Server_MSM.R"))
 source(paste0(Server.directory, "BDQ_Server_MSM_individual.R"))
 
@@ -398,6 +399,21 @@ server <- function(input, output, session) {
                            type = "error", duration = 4)
         })
     })
+    
+    ###################### RENDER ADVANCED SETTING FOR HL EFFECTS #######
+    # Render the PNG image
+    output$HLEFFplot <- renderImage({
+      # Path to the PNG file
+      filePath <- paste0(UI.directory, "HLEFF.png")
+      
+      # Return a list with the image path and optional width/height
+      list(
+        src = filePath,
+        contentType = 'image/png',
+        alt = "Plot image",
+        width = "100%" # Optional: Adjust as needed
+      )
+    }, deleteFile = FALSE)  # Set to FALSE if the file should not be deleted after rendering
 
     ###################### OUTPUT OPTIONS ######################
     outputOptions(output, "plot", suspendWhenHidden = FALSE)
