@@ -259,14 +259,14 @@ input$mfreq_3     <- "Once daily" # Maintenance dose unit: "1" day, "2" week
 input$IE_3_HIV    <- "None"
 input$IE_3_TB     <- "None"
 
-input$IIV         <- "OFF" # ON or OFF
+input$IIV         <- "ON" # ON or OFF
 
 input$RG1       <- T
-input$RG2       <- F
-input$RG3       <- F
+input$RG2       <- T
+input$RG3       <- T
 
 ## Common model covariates
-input$population_radio <- "Individual"
+input$population_radio <- "Population"
 input$RACE             <- "Non-Black"
 input$WT               <- 53
 input$ALB              <- 3.5
@@ -484,28 +484,27 @@ plot
 
 
 # daily average ####
+# Filter and add the DAY column
 Cavg_daily <- out %>% 
   filter(time %% 24 == 0) %>%
-  mutate(DAY = time/24)
+  mutate(DAY = time / 24)
 
-Cavg_daily <- subset(Cavg_daily, select = c(ID, time, regimen, DAY, AAUCBDQ, AAUCM2))
+# Subset relevant columns
+Cavg_daily <- Cavg_daily %>% select(ID, time, regimen, DAY, AAUCBDQ, AAUCM2)
 
-# Calculate daily AUC
-Cavg_daily$AUCDBDQ <- 0
-Cavg_daily$AUCDM2 <- 0
+# Calculate daily AUC using the `lag` function for vectorized operations
+Cavg_daily <- Cavg_daily %>%
+  mutate(
+    AUCDBDQ = AAUCBDQ - lag(AAUCBDQ, default = 0),
+    AUCDM2  = AAUCM2 - lag(AAUCM2, default = 0)
+  )
 
-i <- 2
-while (i <= length(Cavg_daily$ID)) {
-  Cavg_daily$AUCDBDQ[i] <- Cavg_daily$AAUCBDQ[i] - Cavg_daily$AAUCBDQ[i - 1]
-  Cavg_daily$AUCDM2[i] <- Cavg_daily$AAUCM2[i] - Cavg_daily$AAUCM2[i - 1]
-  
-  i <- i + 1
-}
-
-Cavg_daily <- Cavg_daily %>% mutate(
-  AUCDBDQ = ifelse(time == 0, 0, AUCDBDQ), 
-  AUCDM2  = ifelse(time == 0, 0, AUCDM2)
-)
+# Ensure AUC values are zero for `time == 0` as required
+Cavg_daily <- Cavg_daily %>%
+  mutate(
+    AUCDBDQ = ifelse(time == 0, 0, AUCDBDQ),
+    AUCDM2  = ifelse(time == 0, 0, AUCDM2)
+  )
 
 ###### summarise by
 dfForPlot_CavgD <- Cavg_daily %>%
@@ -588,28 +587,32 @@ plot2
 
 
 # Weekly average concentration
-Cavg_weekly <- out %>% 
+# Filter and add the WEEK column
+Cavg_weekly <- out %>%
   filter(time %% 168 == 0) %>%
-  mutate(WEEK = time/168)
+  mutate(WEEK = time / 168)
 
-Cavg_weekly <- subset(Cavg_weekly, select = c(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2))
+# Subset relevant columns
+Cavg_weekly <- Cavg_weekly %>% select(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2)
 
 # Calculate weekly AUC
 Cavg_weekly$AUCWBDQ <- 0
 Cavg_weekly$AUCWM2 <- 0
 
-i <- 2
-while (i <= length(Cavg_weekly$ID)) {
-  Cavg_weekly$AUCWBDQ[i] <- Cavg_weekly$AAUCBDQ[i] - Cavg_weekly$AAUCBDQ[i - 1]
-  Cavg_weekly$AUCWM2[i] <- Cavg_weekly$AAUCM2[i] - Cavg_weekly$AAUCM2[i - 1]
-  
-  i <- i + 1
-}
+# Calculate daily AUC using the `lag` function for vectorized operations
+Cavg_weekly <- Cavg_weekly %>%
+  mutate(
+    AUCWBDQ = AAUCBDQ - lag(AAUCBDQ, default = 0),
+    AUCWM2  = AAUCM2 - lag(AAUCM2, default = 0)
+  )
 
-Cavg_weekly <- Cavg_weekly %>% mutate(
-  AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ), 
-  AUCWM2  = ifelse(time == 0, 0, AUCWM2)
-)
+# Ensure AUC values are zero for `time == 0` as required
+Cavg_weekly <- Cavg_weekly %>%
+  mutate(
+    AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ),
+    AUCWM2  = ifelse(time == 0, 0, AUCWM2)
+  )
+
 
 ###### summarise by
 dfForPlot_CavgW <- Cavg_weekly %>%

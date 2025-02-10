@@ -35,7 +35,7 @@ source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
-source(paste0(UI.directory, "BDQ_Shiny_UI_SourceCode.R"))
+#source(paste0(UI.directory, "BDQ_Shiny_UI_SourceCode.R"))
 
 ###################### UI DEFINITION ######################
 ui <- fluidPage(
@@ -87,7 +87,7 @@ ui <- fluidPage(
         tabPanel("Population", value = "Population", mainTabPopulation),
         tabPanel("Simulation", value = "Simulation", mainTabSim),
         tabPanel("Results", value = "Results", mainTabResults),
-        tabPanel("Source Code", value = "Source Code", mainTabCode()),
+        #tabPanel("Source Code", value = "Source Code", mainTabCode()),
         tabPanel("About", value = "About", mainTabAbout)
     )
 )
@@ -254,8 +254,13 @@ server <- function(input, output, session) {
         
         # Sampling virutal population 
         incProgress(0.12, detail = "Sampling virutal population...")
-        if (input$population_radio == "Population") {
+        if (input$population_radio == "Population" & input$dataset_source == "Default") {
         virtual_population_df <- Pop_generation(input)
+        }
+        
+        if (input$population_radio == "Population" & input$dataset_source == "Import") {
+          virtual_population_df <- read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",") %>% 
+            filter(row_number() <= input$nsim)
         }
         
         # Summary of individual or virtual population
@@ -375,7 +380,7 @@ server <- function(input, output, session) {
             file.copy(from = template_path, to = file)
         }
     )
-
+    
     ###################### FILE UPLOAD HANDLER ######################
     observeEvent(input$uploaded_data, {
         if (is.null(input$uploaded_data)) return(NULL)
@@ -398,6 +403,46 @@ server <- function(input, output, session) {
             showNotification("Error reading file. Please ensure it's a valid CSV file.",
                            type = "error", duration = 4)
         })
+    })
+    
+    ###################### WARNING IF POPULATION NUMBER < NUMBERS FOR SIMULATION #######
+    # Add validation for nsim
+    output$nsim_validation <- renderText({
+      # Only proceed if in Population mode
+      if (input$population_radio != "Population") {
+        return(NULL)
+      }
+      
+      # Calculate number of regimens
+      num_regimens <- sum(c(TRUE, input$RG2, input$RG3))
+      
+      # Read and filter the dataset
+      myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                               header = T) %>% select(-RACE, -TBTYPE)
+      
+      # Apply all filters to get actual available population size
+      filtered_data <- myCovSimMICE %>%
+        filter(
+          SEX %in% c(0, 1),
+          AGE >= input$AGE_min & AGE <= input$AGE_max &
+            WT >= input$WT_min & WT <= input$WT_max &
+            ALB >= input$ALB_min & ALB <= input$ALB_max &
+            CACOR >= input$CACOR_min & CACOR <= input$CACOR_max &
+            K >= input$K_min & K <= input$K_max &
+            MTTP >= input$MTTP_min * 24 & MTTP <= input$MTTP_max * 24
+        )
+      
+      # Calculate required vs available subjects
+      required_n <- input$nsim * num_regimens
+      available_n <- nrow(filtered_data)
+      
+      # Return warning message if needed
+      if (required_n > available_n) {
+        sprintf("The number of population (%d) is lower than the number of individuals intended for simulation (%d). Only %d will be simulated.", 
+                available_n, required_n, available_n)
+      } else {
+        NULL
+      }
     })
     
     ###################### RENDER ADVANCED SETTING FOR HL EFFECTS #######

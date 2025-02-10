@@ -2,6 +2,7 @@
 library(mrgsolve)
 library(dplyr)
 library(tidyr)
+library(purrr)
 library(zoo)
 library(ggplot2)
 library(shiny)
@@ -218,7 +219,7 @@ Pop_generation <- function(input) {
 
 #### input ####
 input <- c()
-input$nsim    <- 20  # Number of simulated individuals
+input$nsim    <- 500  # Number of simulated individuals
 input$simtime <- 24   # Time of simulation imputed (transformed in hours during simulation)
 
 
@@ -397,6 +398,7 @@ if (input$population_radio == "Individual") {
 
 ############# PK simulation  #####
 # Load mrgsolve model
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQOMAT.R")
 mod <- mcode("BDQOMAT", code)
 mod <- update(mod, outvars = outvars(mod)$capture)
 
@@ -416,3 +418,28 @@ out <- map_dfr(1:num_regimens, ~ {
   })
 
 check <- out %>% group_by(ID) %>% slice(1L)
+
+##### calculate cumulative exposures #####
+d2 <- out %>% filter(AMT == 0)
+
+dd2res <- d2 %>% filter(time %% 24 == 0)
+
+dd2res$DAY <- dd2res$time / 24
+dd2res$WEEK <- dd2res$time / 168
+
+dd2day <- subset(dd2res, select = c(ID, time, DAY, WEEK, AAUCBDQ)) %>% filter(DAY == 13 | DAY == 14)
+dd2day <- dd2day %>% group_by(ID) %>% mutate(AUCDBDQ = AAUCBDQ - lag(AAUCBDQ)) 
+
+dd2wk8 <- subset(dd2res, select = c(ID, time, DAY, WEEK, AAUCBDQ)) %>% filter(WEEK == 7 | WEEK == 8)
+dd2wk8 <- dd2wk8 %>% group_by(ID) %>% mutate(AUCWBDQ = AAUCBDQ - lag(AAUCBDQ)) 
+
+dd2wk24 <- subset(dd2res, select = c(ID, time, DAY, WEEK, AAUCBDQ)) %>% filter(WEEK == 23 | WEEK == 24)
+dd2wk24 <- dd2wk24 %>% group_by(ID) %>% mutate(AUCWBDQ = AAUCBDQ - lag(AAUCBDQ)) 
+
+dd2res2 <- rbind(dd2day, dd2wk8, dd2wk24) %>% mutate(cpd = "Bedaquiline") %>% filter(is.na(AUCDBDQ) == F |
+                                                                                       is.na(AUCWBDQ) == F)
+
+dd2cum <- dd2res %>% filter(time == 168*2 | time == 168*8 | time == 168*24) %>% select(ID, time, DAY, AAUCBDQ, regimen)
+
+
+dd2cum %>% group_by(regimen, DAY) %>% summarise(median = median(AAUCBDQ)) %>% arrange(DAY, regimen)

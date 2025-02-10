@@ -3,26 +3,30 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   num_REPs <- input$REP
   
   # Retrieve information from simulated PK profiles
-  Cavg_weekly <- sim_PKtable %>% filter(AMT == 0)
-    
-  ####### Use the substituted new data frame d1
-  Cavg_weekly <- Cavg_weekly %>% filter(time %% 168 == 0)
-  Cavg_weekly$WEEK <- Cavg_weekly$time / 168
-  Cavg_weekly <- subset(Cavg_weekly, select = c(ID, time, regimen, WEEK, AAUCBDQ))
+  Cavg_weekly <- sim_PKtable %>%
+    filter(AMT == 0 & time %% 168 == 0) %>%
+    mutate(WEEK = time / 168)
+  
+  # Subset relevant columns
+  Cavg_weekly <- Cavg_weekly %>% select(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2)
   
   # Calculate weekly AUC
   Cavg_weekly$AUCWBDQ <- 0
+  Cavg_weekly$AUCWM2 <- 0
   
-  i <- 2
-  while (i <= length(Cavg_weekly$ID)) {
-    Cavg_weekly$AUCWBDQ[i] <- Cavg_weekly$AAUCBDQ[i] - Cavg_weekly$AAUCBDQ[i - 1]
-    
-    i <- i + 1
-  }
-
-  Cavg_weekly <- Cavg_weekly %>% mutate(
-    AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ)
-  )
+  # Calculate daily AUC using the `lag` function for vectorized operations
+  Cavg_weekly <- Cavg_weekly %>%
+    mutate(
+      AUCWBDQ = AAUCBDQ - lag(AAUCBDQ, default = 0),
+      AUCWM2  = AAUCM2 - lag(AAUCM2, default = 0)
+    )
+  
+  # Ensure AUC values are zero for `time == 0` as required
+  Cavg_weekly <- Cavg_weekly %>%
+    mutate(
+      AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ),
+      AUCWM2  = ifelse(time == 0, 0, AUCWM2)
+    )
 
   ###### summarise by
   Cavg_weekly <- Cavg_weekly %>%

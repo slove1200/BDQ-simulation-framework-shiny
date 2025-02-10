@@ -5,16 +5,41 @@ e.g. app.R in one path, and then define
 UI.directory <- "BDQ_UI/"
 Server.directory <- "BDQ_Server/"
 
-3. Server_Virtual_population.R
+3. 
+*app.R*
 
 Change 
-  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
+
+template_path <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/Virtual_population_template.csv"
+
+into 
+
+template_path <- "BDQ_Server/Virtual_population_template.csv"
+
+*Server_Virtual_population_TBPACTS.R*
+
+Change 
+  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
                         header = T)
 
 into 
 
-  orgCovsEx <- read.csv("BDQ_Server/Simulated_population_for_BDQ_virtural_population_WTALB.csv", 
+  orgCovsEx <- read.csv("BDQ_Server/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
                         header = T)
+
+*Server_Population_summary_plots.R*
+
+Change
+
+myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                           header = T)
+
+into 
+
+myCovSimMICE <- read.csv("BDQ_Server/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                           header = T)
+
+
 
 and put the simulated dataset into the deployed directory/BDQ_Server
 
