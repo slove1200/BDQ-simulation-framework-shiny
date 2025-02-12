@@ -10,12 +10,7 @@ Virtual_population_summary <- function(df_virtualPop, input) {
       ALB = input$ALB,
       CACOR = input$CACOR,
       K = input$K,
-      MTTP = input$MTTP * 24,  # Convert days to hours
-      TBTYPE = case_when(
-        input$XDR == "MDR-TB" ~ 2,
-        input$XDR == "pre-XDR-TB" ~ 3,
-        input$XDR == "XDR-TB" ~ 4
-      )
+      MTTP = input$MTTP * 24  # Convert days to hours
     )
 }
 
@@ -48,11 +43,7 @@ Virtual_population_summary <- function(df_virtualPop, input) {
       "Albumin (g/dL)",
       "Corrected calcium level (mmol/L)",
       "Potassium level (mmol/L)",
-      "Baseline time-to-positivity (days)",
-      "<strong>Drug Resistance Profile</strong>",
-      "DS or MDR-TB",
-      "pre-XDR-TB",
-      "XDR-TB"
+      "Baseline time-to-positivity (days)"
     ),
     Value = c(
       "", 
@@ -64,11 +55,7 @@ Virtual_population_summary <- function(df_virtualPop, input) {
       calc_median_range(df_virtualPop$ALB),
       calc_median_range(df_virtualPop$CACOR),
       calc_median_range(df_virtualPop$K),
-      calc_median_range(df_virtualPop$MTTPd),
-      "", 
-      calc_percentage(df_virtualPop$TBTYPE, 2),
-      calc_percentage(df_virtualPop$TBTYPE, 3),
-      calc_percentage(df_virtualPop$TBTYPE, 4)
+      calc_median_range(df_virtualPop$MTTPd)
     ),
     stringsAsFactors = FALSE
   )

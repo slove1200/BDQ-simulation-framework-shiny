@@ -70,23 +70,7 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   # if UI input is to simulate in an individual-level
   if (input$population_radio == "Individual") {
     
-    # 1. Drug Resistance
-    if (input$XDR == "MDR-TB") {
-      TTPdf_fin$preAndXDR <- 0
-      TTPdf_fin$preXDR <- 0
-      TTPdf_fin$XDR <- 0
-    } else if (input$XDR == "pre-XDR-TB") {
-      TTPdf_fin$preAndXDR <- 1
-      TTPdf_fin$preXDR <- 1
-      TTPdf_fin$XDR <- 0
-    } else {
-      TTPdf_fin$preAndXDR <- 1
-      TTPdf_fin$preXDR <- 1
-      TTPdf_fin$XDR <- 1
-    }
-    
-    
-    # 2. Mean time-to-posistivity (MTTP)
+    # 1. Mean time-to-posistivity (MTTP)
     # input$MTTP unit in days, PK-efficacy model unit in hours
     TTPdf_fin$MTTP <- input$MTTP*24
   } else {
@@ -99,11 +83,6 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
       mutate(ID = row_number())
     
     TTPdf_fin <- left_join(TTPdf_fin, virtual_population_df, by = c("ID", "regimen"))
-    
-    TTPdf_fin <- TTPdf_fin %>%
-      mutate(preXDR    = ifelse(TBTYPE == 3, 1, 0),
-             preAndXDR = ifelse(TBTYPE == 3 | TBTYPE == 4, 1, 0),  # pre-XDR + XDR
-             XDR       = ifelse(TBTYPE == 4, 1, 0)) 
   }
   
   TTPdf_fin$HLEFF <- input$HLEFF

@@ -48,7 +48,7 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
     mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1/(1+(input$HLEFF/100))), HL2), # median of HL
            time = WEEKP*168)  %>% # hours
     filter(WEEKP %in% c(0, 1, 2, 3)) %>%
-    select(ID, MTTP, XDR, time, HL2, MBLend, dur)
+    select(ID, MTTP, time, HL2, MBLend, dur)
 
 
   ####

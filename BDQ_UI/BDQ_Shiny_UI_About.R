@@ -15,28 +15,35 @@ mainTabAbout <- tabPanel(
                     card_header("Overview", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         layout_columns(
-                            # Application Purpose Column
-                            div(
-                                tags$span(tags$strong("Application Purpose:", style = "font-size: 14px;")),
-                                div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
-                                    p("This interactive application is aimed for interested users to visualize and explore different dosing strategies of bedaquiline in an intergrated pharmacokinetic, pharmacodynamic and long-term outcome modelling framework using patient characteristics, concomitant medications in flexible simulation settings.")
-                                )
-                            ),
-                            # Navigation Structure Column
-                            div(
-                                tags$span(tags$strong("Navigation Structure:", style = "font-size: 14px;")),
-                                div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
-                                    p("The application consists of five main tabs:"),
-                                    tags$ol(
-                                        tags$li("Dosing"),
-                                        tags$li("Population"),
-                                        tags$li("Simulation"),
-                                        tags$li("Results"),
-                                        tags$li("About")
-                                    )
-                                )
-                            ),
-                            col_widths = c(6, 6)
+                          # Application Purpose
+                          card(
+                            card_header("Application Purpose", style = "font-size: 20px; background-color: #E8ECEE;"),
+                            card_body(
+                              div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
+                                  "This interactive application is aimed for interested users to visualize and explore 
+                                   different dosing strategies of bedaquiline in an integrated pharmacokinetic, pharmacodynamic and 
+                                   long-term outcome modelling framework using patient characteristics, concomitant medications in flexible simulation settings."
+                              )
+                            )
+                          ),
+                          
+                          # Navigation Structure
+                          card(
+                            card_header("Navigation Structure", style = "font-size: 20px; background-color: #E8ECEE;"),
+                            card_body(
+                              tags$span(tags$strong("The application consists of five main tabs:", style = "font-size: 14px;")),
+                              div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
+                                  tags$ul(
+                                    tags$li("Dosing"),
+                                    tags$li("Population"),
+                                    tags$li("Simulation"),
+                                    tags$li("Results"),
+                                    tags$li("About")
+                                  )
+                              )
+                            )
+                          ),
+                          col_widths = c(6, 6)
                         )
                     )
                 ),
@@ -71,7 +78,7 @@ mainTabAbout <- tabPanel(
                     card_body(
                         tags$span("Choose to simulate in population level or individial level. In population mode, a group of subjects will be sampled from a large virtual population, 
                                               in which the covariate distribution was simulated using conditional distribution modelling (Smania and Johnsson, CPT: PSP, 2021). 
-                                              Numbers of subjects can be set by users in the 3. Simulation tab", style = "font-size: 14px;")
+                                              Numbers of subjects can be set by users in the 3. Simulation tab.", style = "font-size: 14px;")
                         ),
                         layout_columns(
                             # Individual Mode Card
@@ -201,7 +208,6 @@ mainTabAbout <- tabPanel(
                 card(
                     card_header("4. Results Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        ),
                         layout_columns(
                             # Overview Card
                             card(
@@ -212,9 +218,9 @@ mainTabAbout <- tabPanel(
                                         tags$li("Efficacy (% of negative culture samples in MGIT culture)"),
                                         tags$li("Safety (QTcF interval)"),
                                         tags$li("Long-term outcome:individual trajectory of outcomes will be shown if users choose to simulate in an individual level. If population mode is chosen (in the Population tab), outcome will be presented in the form of proportions of patients in each state")
-                                    )
-                                )
-                            ),
+                                      )
+                                  )
+                                ),
                             
                             # Patient Characteristics Card
                             card(
@@ -251,8 +257,7 @@ mainTabAbout <- tabPanel(
                                     tags$li("BDQ_Shiny_UI_Population.R"),
                                     tags$li("BDQ_Shiny_UI_Simulation.R"),
                                     tags$li("BDQ_Shiny_UI_Results.R"),
-                                    tags$li("BDQ_Shiny_UI_About.R"),
-                                    tags$li("BDQ_Shiny_UI_SourceCode.R")
+                                    tags$li("BDQ_Shiny_UI_About.R")
                                 )
                             ),
                             tags$li("Server Components:", 

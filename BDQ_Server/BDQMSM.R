@@ -61,7 +61,7 @@ $SIGMA  0
 
 $MAIN
 //------------------- Define surge function parameters --------------
-  double SAi = SA/10000*exp(BetaHL2_12*(HL2-0.69443)+BetaXDR12*XDR)                     ;    // Surge amplitude in hours-1, scaling for easily computation
+  double SAi = SA/10000*exp(BetaHL2_12*(HL2-0.69443))                     ;    // Surge amplitude in hours-1, scaling for easily computation
   double PTi = PT*24*7*exp(-BetaHL2_12*(HL2-0.69443)-BetaMTTP12*((MTTP-217.6667)/24/7)) ;    // Peak time in weeks
   double SWi = SW*24*7*exp(BetaMTTP12*((MTTP-217.6667)/24/7))                           ;    // Surge width in weeks
 

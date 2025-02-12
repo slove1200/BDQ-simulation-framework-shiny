@@ -219,15 +219,14 @@ sim_PK <- function(input, virtual_population_df) {
     
   } else { # UI input is to simulate in a population-level
     # Dynamically bind rows based on `num_regimens`
-    virtual_population_df <- virtual_population_df %>%
-      map_dfr(1:num_regimens, ~ {
+    virtual_population_df <- map_dfr(1:num_regimens, ~ {
         virtual_population_df %>%
           filter(ID %in% 1:nsamples) %>%
           mutate(regimen  = .x) # Optional: Add a column to indicate duplication
       }) %>% ungroup() %>%
       mutate(ID = row_number())
     
-    dfPK_combined <- full_join(dfPK_combined, virtual_population_df, by = c("ID"))
+    dfPK_combined <- full_join(dfPK_combined, virtual_population_df, by = c("ID", "regimen"))
   }
   
   # ##############################################

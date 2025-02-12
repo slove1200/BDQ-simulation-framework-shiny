@@ -387,7 +387,7 @@ server <- function(input, output, session) {
         
         tryCatch({
             df <- read.csv(input$uploaded_data$datapath)
-            required_cols <- c("AGE", "WT", "ALB", "CACOR", "K", "MTTP", "SEX", "RACE", "TBTYPE")
+            required_cols <- c("AGE", "WT", "ALB", "CACOR", "K", "MTTP", "SEX", "RACE")
             missing_cols <- setdiff(required_cols, names(df))
             
             if (length(missing_cols) > 0) {
@@ -418,7 +418,7 @@ server <- function(input, output, session) {
       
       # Read and filter the dataset
       myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
-                               header = T) %>% select(-RACE, -TBTYPE)
+                               header = T) %>% select(-RACE, -TBTYPE, -NSIM)
       
       # Apply all filters to get actual available population size
       filtered_data <- myCovSimMICE %>%
@@ -433,7 +433,7 @@ server <- function(input, output, session) {
         )
       
       # Calculate required vs available subjects
-      required_n <- input$nsim * num_regimens
+      required_n <- input$nsim 
       available_n <- nrow(filtered_data)
       
       # Return warning message if needed
@@ -503,6 +503,49 @@ server <- function(input, output, session) {
             zip::zipr(file, files = list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv)$"))
         }
     )
+
+    # Add this inside your server function
+    observeEvent(input$simtime, {
+        # Calculate maximum dosing duration across all active regimens
+        max_duration <- reactive({
+            # Start with regimen 1 (always active)
+            durations <- c(
+                if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0,
+                input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7)
+            )
+            
+            # Add regimen 2 if active
+            if(input$RG2) {
+                durations <- c(durations,
+                    if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0,
+                    input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)
+                )
+            }
+            
+            # Add regimen 3 if active
+            if(input$RG3) {
+                durations <- c(durations,
+                    if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0,
+                    input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)
+                )
+            }
+            
+            # Return maximum duration in weeks
+            max(durations, na.rm = TRUE)
+        })
+        
+        # Check if simulation time is less than maximum dosing duration
+        output$simtime_validation <- renderText({
+            max_dur <- max_duration()
+            if (input$simtime < max_dur) {
+                paste0("Warning: Simulation time (", input$simtime, 
+                      " weeks) is less than the maximum dosing duration (", 
+                      round(max_dur, 1), " weeks).")
+            } else {
+                NULL
+            }
+        })
+    })
 }
 
 # Run the application

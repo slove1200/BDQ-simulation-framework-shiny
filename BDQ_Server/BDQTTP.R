@@ -13,7 +13,6 @@
 #;LASTR - 0/1 Flag for simulations marking last possible time for MGIT positive signal (42days)
 #;TREATMENT - 0/1 placebo or bedaquiline treatment arm
 #;CAVG - Individual weekly average concentration [µg/mL]
-#;TBTYPE  - 1/2/3/4 Drug sensitivity classification DS/MDR/pre-XDR/XDR 
 #;MTTP - Individual mean time to positivity at baseline [hours] 
 
 # TASTW (in weeks) = TAST/24/7 
@@ -97,7 +96,7 @@ $MAIN //The same as $PK in NONMEM
   double ETATR   = (pow(PHI, BXPAR) - 1)/BXPAR ;  // Box-Cox transformation of the IIV in half-life (HL)
   double N0MBL   = THETA3 * 10000 * pow((MTTP/163.7), MTTPEFF) ; // Number of mycobacterial at start of treatment 
   // double N0MBL   = value ; // For validate TTP model
-  double HL      = THETA4 * (1 + BDQEFF1) * (1 + preAndXDREFF * preAndXDR) * exp(ETATR) * (1.0/(1.0+HLEFF/100.0)) ; // HL mycobacterial clearance
+  double HL      = THETA4 * (1 + BDQEFF1) * exp(ETATR) * (1.0/(1.0+HLEFF/100.0)) ; // HL mycobacterial clearance
   double KD      = log(2)/HL ;
 
 
@@ -212,5 +211,5 @@ if (ORTTE == 0 && LASTR == 1) {
 
 
 // $CAPTURE TAST TASTW WEEKP REP TTPD FLAG DV ETATR NEWIND N0MBL N0 OMBL MBL OTAST DTAST SURV HAZ CHZ ORTTE RTTE USUR1 USUR2 P1 NEG LASTR
-$CAPTURE TASTW WEEKP MTTP preAndXDR XDR REP TTPD FLAG DV BDQEFF1 ETATR USUR1 USUR2 HL N0MBL MBL SURV HAZ CHZ ORTTE RTTE P1 NEG LASTR regimen
+$CAPTURE TASTW WEEKP MTTP REP TTPD FLAG DV BDQEFF1 ETATR USUR1 USUR2 HL N0MBL MBL SURV HAZ CHZ ORTTE RTTE P1 NEG LASTR regimen
 "

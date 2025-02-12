@@ -243,10 +243,18 @@ mainTabPopulation <- tabPanel(
                              choices = c("Male", "Female")),
                            selectInput("RACE", 
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "Race"), 
-                             choices = c("Non-Black", "Black")),
-                           selectInput("XDR", 
-                             label = tags$span(style="font-size: 13px; font-weight: bold;", "Drug Resistance"), 
-                             choices = c("MDR-TB", "pre-XDR-TB", "XDR-TB"))
+                             choices = c("Non-Black", "Black"))
+                         )
+                       ), 
+                       card(
+                         style = "overflow: visible;",
+                         card_header("Half-life Modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                         card_body(
+                           style = "overflow: visible;",
+                           numericInput("HLEFF", 
+                             label = tags$span(style="font-size: 13px; font-weight: bold;", "% Shorter Half-life of Mycobacteria"), 
+                             value = 40, min = -500, max = 100), 
+                           imageOutput("HLEFFplot") 
                          )
                        )
                 )
@@ -354,19 +362,11 @@ mainTabPopulation <- tabPanel(
                       condition = "input.dataset_source == 'Import'",
                       div(class = "semi-transparent-overlay")
                     ),
-                    # Original cards
                     card(
-                      card_header("Drug Resistance Profile", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                      card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                       card_body(
-                        numericInput("popMDR", label = tags$span(style="font-size: 13px; font-weight: bold;","% of Drug Sensitive or MDR-TB"), value = 70, min = 1, max = 100),
-                        numericInput("poppXDR", label = tags$span(style="font-size: 13px; font-weight: bold;","% of pre-XDR-TB"), value = 20, min = 1, max = 100),
-                        numericInput("popXDR", label = tags$span(style="font-size: 13px; font-weight: bold;","% of XDR-TB"), value = 10, min = 1, max = 100)
-                      )
-                    ),
-                    card(
-                      card_header("Race", style = "font-size: 16px; background-color: #CDD8DA4D;"),
-                      card_body(
-                        numericInput("popRACE", label = tags$span(style="font-size: 13px; font-weight: bold;","% of Black Race"), value = 40, min = 1, max = 100)
+                        numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Shorter Half-life of Mycobacteria"), value = 40, min = -500, max = 100), 
+                        imageOutput("HLEFFplot")
                       )
                     )
                   )
@@ -417,7 +417,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Calcium row
                         fluidRow(
-                          column(4, "Calcium (IU/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Calcium (mmol/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
                           column(3, numericInput("CACOR_min", NULL, value = 2.00, min = 0, max = 20)),
                           column(3, numericInput("CACOR_max", NULL, value = 3.08, min = 0, max = 20)),
                           column(2, actionButton("reset_CACOR", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -425,7 +425,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Potassium row
                         fluidRow(
-                          column(4, "Potassium (IU/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Potassium (mmol/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
                           column(3, numericInput("K_min", NULL, value = 3.20, min = 0, max = 20)),
                           column(3, numericInput("K_max", NULL, value = 6.26, min = 0, max = 20)),
                           column(2, actionButton("reset_K", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -444,6 +444,13 @@ mainTabPopulation <- tabPanel(
                           column(4, "Sex (% Female)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
                           column(6, numericInput("SEX_female", NULL, value = 50, min = 0, max = 100)),
                           column(2, actionButton("reset_SEX", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
+                        ),
+
+                        # Race row
+                        fluidRow(
+                          column(4, "Race (% Black)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(6, numericInput("popRACE", NULL, value = 40, min = 0, max = 100)),
+                          column(2, actionButton("reset_RACE", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
                         )
                       )
                     )

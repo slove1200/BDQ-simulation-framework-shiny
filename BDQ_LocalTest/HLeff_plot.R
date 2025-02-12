@@ -1,3 +1,5 @@
+# get PK output from local PK simulation, using 500 typical individuals with IIV (so we have Cavg of BDQ over 500 subjects)
+
 # TTP ####
 input$REP <- 1
 input$STUDY <- "Treatment-naïve" # or Treatment-experienced

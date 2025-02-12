@@ -23,14 +23,14 @@ mainTabSim <- tabPanel(
           numericInput("REP", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Numbers of Culture Replicates"), 
             value = 1, min = 1, max = 3, 
-            width = "70%"),
-          numericInput("HLEFF", 
-                         label = tags$span(style = "font-size: 13px; font-weight: bold;", "Bacterial Clearance (%) Faster"), 
-                         value = 0, min = -50, max = 150, 
-                         width = "70%"),
-          tags$span(style="font-size: 13px; font-style: italic;", 
-            "***HL and surge peak, surge amplitude are highly correlated"), 
-          imageOutput("HLEFFplot")
+            width = "70%")
+          # numericInput("HLEFF", 
+          #                label = tags$span(style = "font-size: 13px; font-weight: bold;", "Bacterial Clearance (%) Faster"), 
+          #                value = 0, min = -50, max = 150, 
+          #                width = "70%"),
+          # tags$span(style="font-size: 13px; font-style: italic;", 
+          #   "***HL and surge peak, surge amplitude are highly correlated"), 
+          # imageOutput("HLEFFplot")
         )
       ),
       # Second card with custom background color and styled card header/body
@@ -47,6 +47,8 @@ mainTabSim <- tabPanel(
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Simulation time in weeks (PK, efficacy, safety)"), 
             value = 24, min = 1, max = 200, 
             width = "70%"),
+          textOutput("simtime_validation"),
+          tags$style("#simtime_validation{color: red; margin-top: -15px; margin-bottom: -15px; font-style: italic;}"),
           numericInput("simtimeMSM", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Simulation time in weeks (Long-term outcome)"), 
             value = 48, min = 1, max = 1000, 
