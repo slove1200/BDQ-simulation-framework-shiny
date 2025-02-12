@@ -406,45 +406,129 @@ server <- function(input, output, session) {
     })
     
     ###################### WARNING IF POPULATION NUMBER < NUMBERS FOR SIMULATION #######
-    # Add validation for nsim
+    # Create a reactive value to track validation states
+    validationStates <- reactiveValues(
+        enough_subjects = TRUE,
+        enough_time = TRUE,
+        enough_timeMSM = TRUE
+    )
+
+    # Population size validation
     output$nsim_validation <- renderText({
       # Only proceed if in Population mode
       if (input$population_radio != "Population") {
+        validationStates$enough_subjects <- TRUE
         return(NULL)
       }
       
-      # Calculate number of regimens
-      num_regimens <- sum(c(TRUE, input$RG2, input$RG3))
+      # Get and filter the virtual population based on data source
+      filtered_data <- if (input$dataset_source == "Default") {
+        read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                 header = T) %>% 
+          select(-RACE, -TBTYPE, -NSIM) %>%
+          filter(
+            SEX %in% c(0, 1),
+            AGE >= input$AGE_min & AGE <= input$AGE_max &
+              WT >= input$WT_min & WT <= input$WT_max &
+              ALB >= input$ALB_min & ALB <= input$ALB_max &
+              CACOR >= input$CACOR_min & CACOR <= input$CACOR_max &
+              K >= input$K_min & K <= input$K_max &
+              MTTP >= input$MTTP_min * 24 & MTTP <= input$MTTP_max * 24
+          )
+      } else {
+        # Use uploaded data
+        read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",")
+      }
       
-      # Read and filter the dataset
-      myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
-                               header = T) %>% select(-RACE, -TBTYPE, -NSIM)
-      
-      # Apply all filters to get actual available population size
-      filtered_data <- myCovSimMICE %>%
-        filter(
-          SEX %in% c(0, 1),
-          AGE >= input$AGE_min & AGE <= input$AGE_max &
-            WT >= input$WT_min & WT <= input$WT_max &
-            ALB >= input$ALB_min & ALB <= input$ALB_max &
-            CACOR >= input$CACOR_min & CACOR <= input$CACOR_max &
-            K >= input$K_min & K <= input$K_max &
-            MTTP >= input$MTTP_min * 24 & MTTP <= input$MTTP_max * 24
-        )
-      
-      # Calculate required vs available subjects
-      required_n <- input$nsim 
+      required_n <- input$nsim
       available_n <- nrow(filtered_data)
       
+      # Update validation state
+      validationStates$enough_subjects <- required_n <= available_n
+      
       # Return warning message if needed
-      if (required_n > available_n) {
-        sprintf("The number of population (%d) is lower than the number of individuals intended for simulation (%d). Only %d will be simulated.", 
+      if (!validationStates$enough_subjects) {
+        sprintf("The number of population (%d) is lower than the number of individuals intended simulation for each regimen.", 
                 available_n, required_n, available_n)
       } else {
         NULL
       }
     })
-    
+
+    # Simulation time validation
+    observe({
+        # Check if simtime or simtimeMSM is missing or invalid
+        if (is.null(input$simtime) || is.na(input$simtime) || 
+            is.null(input$simtimeMSM) || is.na(input$simtimeMSM)) {
+            validationStates$enough_time <- FALSE
+            validationStates$enough_timeMSM <- FALSE
+            output$simtime_validation <- renderText({ NULL })
+            output$simtimeMSM_validation <- renderText({ NULL })
+            return()
+        }
+        
+        max_dur <- {
+            durations <- (if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0) + 
+                        (input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7))
+            
+            if(input$RG2) {
+                reg2_dur <- (if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0) + 
+                           (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7))
+                durations <- c(durations, reg2_dur)
+            }
+            
+            if(input$RG3) {
+                reg3_dur <- (if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0) + 
+                           (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7))
+                durations <- c(durations, reg3_dur)
+            }
+            
+            max(durations, na.rm = TRUE)
+        }
+        
+        # Update validation states
+        validationStates$enough_time <- input$simtime >= max_dur
+        validationStates$enough_timeMSM <- input$simtimeMSM >= max_dur
+        
+        output$simtime_validation <- renderText({
+            if (!validationStates$enough_time) {
+                paste0("Warning: Simulation time (", input$simtime, 
+                      " weeks) is less than the maximum dosing duration (", 
+                      round(max_dur, 1), " weeks).")
+            } else {
+                NULL
+            }
+        })
+
+        output$simtimeMSM_validation <- renderText({
+            if (!validationStates$enough_timeMSM) {
+                paste0("Warning: Long-term outcome simulation time (", input$simtimeMSM, 
+                      " weeks) is less than the maximum dosing duration (", 
+                      round(max_dur, 1), " weeks).")
+            } else {
+                NULL
+            }
+        })
+    }) %>% bindEvent(
+        input$simtime,
+        input$simtimeMSM,
+        input$LD1, input$ldur_1, input$lunit_1, input$mdur_1, input$munit_1,
+        input$LD2, input$ldur_2, input$lunit_2, input$mdur_2, input$munit_2,
+        input$LD3, input$ldur_3, input$lunit_3, input$mdur_3, input$munit_3,
+        input$RG2, input$RG3
+    )
+
+    # Combined validation observer
+    observe({
+        if (validationStates$enough_subjects && 
+            validationStates$enough_time && 
+            validationStates$enough_timeMSM) {
+            shinyjs::enable("goButton")
+        } else {
+            shinyjs::disable("goButton")
+        }
+    })
+
     ###################### RENDER ADVANCED SETTING FOR HL EFFECTS #######
     # Render the PNG image
     output$HLEFFplot <- renderImage({
@@ -503,49 +587,6 @@ server <- function(input, output, session) {
             zip::zipr(file, files = list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv)$"))
         }
     )
-
-    # Add this inside your server function
-    observeEvent(input$simtime, {
-        # Calculate maximum dosing duration across all active regimens
-        max_duration <- reactive({
-            # Start with regimen 1 (always active)
-            durations <- c(
-                if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0,
-                input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7)
-            )
-            
-            # Add regimen 2 if active
-            if(input$RG2) {
-                durations <- c(durations,
-                    if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0,
-                    input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)
-                )
-            }
-            
-            # Add regimen 3 if active
-            if(input$RG3) {
-                durations <- c(durations,
-                    if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0,
-                    input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)
-                )
-            }
-            
-            # Return maximum duration in weeks
-            max(durations, na.rm = TRUE)
-        })
-        
-        # Check if simulation time is less than maximum dosing duration
-        output$simtime_validation <- renderText({
-            max_dur <- max_duration()
-            if (input$simtime < max_dur) {
-                paste0("Warning: Simulation time (", input$simtime, 
-                      " weeks) is less than the maximum dosing duration (", 
-                      round(max_dur, 1), " weeks).")
-            } else {
-                NULL
-            }
-        })
-    })
 }
 
 # Run the application

@@ -45,12 +45,9 @@ Pop_generation <- function(input) {
   df_virtualPop <- bind_rows(females_data, males_data) %>%
     # Create sequential ID
     mutate(ID = row_number()) %>%
-    # Assign RACE in exact proportions
+    # Randomly assign RACE
     mutate(
-      RACE = case_when(
-        row_number() <= n_black ~ 1,
-        TRUE ~ 0
-      )
+      RACE = sample(c(rep(1, n_black), rep(0, n_nonblack)))
     )
   
   return(df_virtualPop)

@@ -53,6 +53,8 @@ mainTabSim <- tabPanel(
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Simulation time in weeks (Long-term outcome)"), 
             value = 48, min = 1, max = 1000, 
             width = "70%"),
+          textOutput("simtimeMSM_validation"),
+          tags$style("#simtimeMSM_validation{color: red; margin-top: -15px; margin-bottom: -15px; font-style: italic;}"),
           selectInput("IIV", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Interindividual variability"), 
             choices = c("OFF", "ON"), 
