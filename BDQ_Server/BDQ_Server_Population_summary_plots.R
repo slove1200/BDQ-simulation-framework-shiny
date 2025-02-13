@@ -40,7 +40,7 @@ create_population_plots <- function(df_virtualPop, input) {
       panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
       plot.margin = margin(5, 5, 5, 5), 
       plot.title = element_text(size = 18),       # Main title
-      axis.title = element_text(size = 16),       # Axis titles
+      axis.title = element_text(size = 15.5),       # Axis titles
       axis.text = element_text(size = 14),        # Axis text
       legend.title = element_text(size = 16),     # Legend title
       legend.text = element_text(size = 14),      # Legend text

@@ -23,6 +23,7 @@ library(gridExtra)
 library(patchwork)
 library(shinyjs)
 library(jquerylib)
+library(survival)
 
 # Set directory paths
 UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
@@ -35,6 +36,7 @@ source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
+source(paste0(UI.directory, "BDQ_Shiny_UI_TTPsim.R"))
 
 ###################### UI DEFINITION ######################
 ui <- fluidPage(
@@ -229,7 +231,8 @@ ui <- fluidPage(
         tabPanel("Population", value = "Population", mainTabPopulation),
         tabPanel("Simulation", value = "Simulation", mainTabSim),
         tabPanel("Results", value = "Results", mainTabResults),
-        tabPanel("About", value = "About", mainTabAbout)
+        tabPanel("About", value = "About", mainTabAbout), 
+        tabPanel("TTP Simulation", value = "TTPsim", mainTabTTPSim)
     )
 )
 
@@ -262,6 +265,10 @@ source(paste0(Server.directory, "BDQ_Server_PKplots_additional.R"))
 source(paste0(Server.directory, "BDQ_Server_Population_summary.R"))
 source(paste0(Server.directory, "BDQ_Server_Population_summary_plots.R"))
 
+# Source TTP simulation functions
+source(paste0(Server.directory, "TTPsim.R"))
+source(paste0(Server.directory, "Server_TTP_simulation.R"))
+
 ###################### SERVER LOGIC ######################
 server <- function(input, output, session) {
     # Initialize reactive values
@@ -273,6 +280,7 @@ server <- function(input, output, session) {
     output$plotQT <- renderPlot({ NULL })
     output$plotTTP <- renderPlot({ NULL })
     output$plotMSM <- renderPlot({ NULL })
+    output$plotTTPsim <- renderPlot({ NULL })
 
     ###################### RESET BUTTON OBSERVERS ######################
     # Reset buttons for each parameter
@@ -366,6 +374,14 @@ server <- function(input, output, session) {
     )
 
     ###################### SIMULATION HANDLER ######################
+    # Main TTP tab simulation observer
+    observeEvent(input$goButton_TTP, {
+      plotTTPsim <- TTPsimplots(input)  # Call the function from the sourced file      
+      output$plotTTPsim <- renderPlot({
+        plotTTPsim
+      })
+    })
+    
     # Main simulation observer
     observeEvent(input$goButton, {
     # Use runjs to directly trigger click on Results tab
@@ -483,7 +499,7 @@ server <- function(input, output, session) {
   
         # Generate MSM plots
         incProgress(0.12, detail = "Generating MSM plots...")
-        if (input$population_radio == "Individual") {
+        if (input$population_radio == "Individual" | input$nsim == 1) {
           MSMidvplot <- MSMidv_plots(input, sim_MSMtable)
           output$plotMSM <- renderPlot({
             MSMidvplot
