@@ -44,8 +44,8 @@ sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
   HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
   
   TTPcov <- HLMBL2 %>% group_by(ID) %>%
-    mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1/(1+(input$HLEFF/100))), lag(HL))) %>%
-    mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1/(1+(input$HLEFF/100))), HL2), # median of HL
+    mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1+(input$HLEFF/100)), lag(HL))) %>%
+    mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1+(input$HLEFF/100)), HL2), # median of HL
            time = WEEKP*168)  %>% # hours
     filter(WEEKP %in% c(0, 1, 2, 3)) %>%
     select(ID, MTTP, time, HL2, MBLend, dur)

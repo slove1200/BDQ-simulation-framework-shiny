@@ -31,7 +31,7 @@ SW              : 5.58883          : SW in week
 HZA15           : 1.96131          : HZA15
 BetaMTTP12      : 0.442668         : MTTP on trasition 12
 BetaHL2_12      : -0.686145        : HL2 on trasition 12
-BetaXDR12       : -0.622792        : XDR on trasition 12
+// BetaXDR12       : -0.622792        : XDR on trasition 12
 BetaC208_14_24  : 0                : C208 study on trasition 14/24
 BetaAge14_24    : 0                : Age on trasition 14/24
 BetaWT15_25     : -0.0838138       : Baseline weight on trasition 15/25
@@ -41,7 +41,7 @@ BetaMBLend_23   : 0.0371081        : MBLend on transition 23
 $PARAM @annotated // reference values for covariate
 HL2          : 0.69443             : Half-life (derived PD predictor)
 MTTP         : 217.6667            : Mean TTP (hour)
-XDR          : 0                   : XDR status (0: MDR/pre-XDR, 1: XDR)
+// XDR          : 0                   : XDR status (0: MDR/pre-XDR, 1: XDR)
 C208         : 0                   : Enrolled in the C208 study (0: CC09 study, 1: C208 study)
 AGE          : 33                  : Age (year)
 WT           : 55                  : Baseline weight (kg)

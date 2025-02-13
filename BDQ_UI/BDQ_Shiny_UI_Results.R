@@ -58,29 +58,29 @@ mainTabResults <- tabPanel(
                   # Pharmacokinetics section
                   div(class = "download-section",
                       tags$div(class = "download-header", "Pharmacokinetics data"),
-                      downloadButton("download_simPK", "PK_output.csv")
+                      downloadButton("download_simPK", "Download PK data")
                   ),
                   # Efficacy section
                   div(class = "download-section",
                       tags$div(class = "download-header", "Efficacy data (Time to positivity signal)"),
-                      downloadButton("download_simTTP", "TTP_output.csv")
+                      downloadButton("download_simTTP", "Download TTP data")
                   ),
                   # Population characteristics section
                   div(class = "download-section",
                       tags$div(class = "download-header", "Virtual individual or population characteristics"),
-                      downloadButton("download_virtual_population", "virtual_individual_or_population.csv")
+                      downloadButton("download_virtual_population", "Download Individual/Population Data")
                   ),
                 ), 
                 div(
                   # Safety section
                   div(class = "download-section",
                       tags$div(class = "download-header", "Safety data (QT)"),
-                      downloadButton("download_simQT", "QT_output.csv")
+                      downloadButton("download_simQT", "Download QT Data")
                   ),
                   # Long-term outcome section
                   div(class = "download-section",
                       tags$div(class = "download-header", "Long-term outcome data"),
-                      downloadButton("download_simMSM", "longTermOutcome_output.csv")
+                      downloadButton("download_simMSM", "Download Long-term Outcome Data")
                   )
                 ), 
                 col_widths = c(6, 6)

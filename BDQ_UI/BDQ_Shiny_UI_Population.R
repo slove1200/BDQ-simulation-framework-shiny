@@ -298,8 +298,8 @@ mainTabPopulation <- tabPanel(
                          card_body(
                            style = "overflow: visible;",
                            numericInput("HLEFF", 
-                             label = tags$span(style="font-size: 13px; font-weight: bold;", "% Shorter Half-life of Mycobacteria"), 
-                             value = 40, min = -500, max = 100), 
+                             label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
+                             value = -50, min = -100, max = 500), 
                            imageOutput("HLEFFplot") 
                          )
                        )
@@ -405,7 +405,7 @@ mainTabPopulation <- tabPanel(
                   card(
                     card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
-                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Shorter Half-life of Mycobacteria"), value = 40, min = -500, max = 100), 
+                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial load"), value = -50, min = -100, max = 500), 
                       imageOutput("HLEFFplot")
                     )
                   )

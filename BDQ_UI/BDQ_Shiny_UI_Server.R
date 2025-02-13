@@ -417,7 +417,7 @@ server <- function(input, output, session) {
                 stringsAsFactors = FALSE
             ) %>% 
             # Ensure we have at least one row
-            slice(rep(1, max(1, input$nsim)))
+            slice(1L)
         }
         
         # Summary of individual or virtual population
@@ -522,83 +522,177 @@ server <- function(input, output, session) {
 
         # Set up download handlers after data generation
         output$download_virtual_population <- downloadHandler(
-            filename = function() { "virtual_individual_or_population.csv" },
+            filename = function() {
+                "Population_data_package.zip"
+            },
             content = function(file) {
+                temp_dir <- tempdir()
+                temp_files <- c(
+                    file.path(temp_dir, "virtual_individual_or_population.csv"),
+                    file.path(temp_dir, "virtual_individual_or_population_specification.txt")
+                )
+                
                 write.csv(virtual_population_df %>% 
                             mutate(ALB   = round(ALB, 1), 
                                    CACOR = round(CACOR, 2), 
                                    K     = round(K, 1), 
                                    WT    = round(WT, 1)), 
-                         file, row.names = FALSE)
-            }
+                         temp_files[1], 
+                         row.names = FALSE)
+                
+                file.copy(
+                    from = file.path(Server.directory, "virtual_individual_or_population_specification.txt"),
+                    to = temp_files[2]
+                )
+                
+                zip(file, files = temp_files, flags = "-j")
+                unlink(temp_files)
+            },
+            contentType = "application/zip"
         )
 
         output$download_simPK <- downloadHandler(
-            filename = function() { "PK_output.csv" },
+            filename = function() {
+                "PK_data_package.zip"
+            },
             content = function(file) {
+                # Create a temporary directory
+                temp_dir <- tempdir()
+                temp_files <- c(
+                    file.path(temp_dir, "PK_output.csv"),
+                    file.path(temp_dir, "PK_specification.txt")
+                )
+                
+                # Write CSV file
                 write.csv(sim_PKtable %>%
                             mutate(
-                              IPRED      = round(exp(IPRED)*1000, 2), 
-                              IPREDM2    = round(exp(IPREDM2)*1000, 2),
-                              IPREDALB   = round(IPREDALB, 2), 
-                              IPREDWT    = round(IPREDWT,  2), 
-                              AAUCBDQ    = round(AAUCBDQ*1000,  2)
-                              ) %>%
-                            select(-AMT, -WT, -ALB, -AAUCM2, -SEX, -CACOR, -K) %>%
-                            rename("CONCBDQ" = "IPRED", 
-                                   "CONCM2"  = "IPREDM2", 
-                                   "AUCBDQ"  = "AAUCBDQ"
-                            ),
-                         file, row.names = FALSE)
-            }
+                                IPRED      = round(exp(IPRED)*1000, 2), 
+                                IPREDM2    = round(exp(IPREDM2)*1000, 2),
+                                IPREDALB   = round(IPREDALB, 2), 
+                                IPREDWT    = round(IPREDWT,  2), 
+                                AAUCBDQ    = round(AAUCBDQ*1000,  2)
+                            ) %>%
+                            select(-AMT, -WT, -ALB, -AAUCM2, -SEX, -CACOR, -K), 
+                         temp_files[1], 
+                         row.names = FALSE)
+                
+                # Copy specification file
+                file.copy(
+                    from = file.path(Server.directory, "PK_specification.txt"),
+                    to = temp_files[2]
+                )
+                
+                # Create zip file
+                zip(file, files = temp_files, flags = "-j")  # -j flag removes path information
+                
+                # Clean up temporary files
+                unlink(temp_files)
+            },
+            contentType = "application/zip"
         )
 
         output$download_simQT <- downloadHandler(
-            filename = function() { "QT_output.csv" },
+            filename = function() {
+                "QT_data_package.zip"
+            },
             content = function(file) {
+                temp_dir <- tempdir()
+                temp_files <- c(
+                    file.path(temp_dir, "QT_output.csv"),
+                    file.path(temp_dir, "QT_specification.txt")
+                )
+                
                 write.csv(sim_QTtable %>%
-                mutate(
-                  CACOR = round(CACOR, 2), 
-                  K     = round(K, 1), 
-                  IPRED = round(IPRED, 2)
-                ) %>%
-                rename("QTcF"  = "IPRED"),
-                         file, row.names = FALSE)
-            }
+                            mutate(
+                                CACOR = round(CACOR, 2), 
+                                K     = round(K, 1), 
+                                IPRED = round(IPRED, 2)
+                            ) %>%
+                            rename("QTcF"  = "IPRED"),
+                         temp_files[1], 
+                         row.names = FALSE)
+                
+                file.copy(
+                    from = file.path(Server.directory, "QT_specification.txt"),
+                    to = temp_files[2]
+                )
+                
+                zip(file, files = temp_files, flags = "-j")
+                unlink(temp_files)
+            },
+            contentType = "application/zip"
         )
 
         output$download_simTTP <- downloadHandler(
-            filename = function() { "TTP_output.csv" },
+            filename = function() {
+                "TTP_data_package.zip"
+            },
             content = function(file) {
+                temp_dir <- tempdir()
+                temp_files <- c(
+                    file.path(temp_dir, "TTP_output.csv"),
+                    file.path(temp_dir, "TTP_specification.txt")
+                )
+                
                 write.csv(sim_TTPtable %>%
                             mutate(
-                              HL      = round(HL, 2)
+                                HL      = round(HL, 2)
                             ) %>%
                             select(-TIME, -MBL, -Y) %>%
                             rename("WEEK" = "WEEKP", 
                                    "TTPpos"  = "RTTE", 
                                    "CULneg"  = "NEG"
                             ),
-                         file, row.names = FALSE)
-            }
+                         temp_files[1], 
+                         row.names = FALSE)
+                
+                file.copy(
+                    from = file.path(Server.directory, "TTP_specification.txt"),
+                    to = temp_files[2]
+                )
+                
+                zip(file, files = temp_files, flags = "-j")
+                unlink(temp_files)
+            },
+            contentType = "application/zip"
         )
 
         output$download_simMSM <- downloadHandler(
-            filename = function() { "longTermOutcome_output.csv" },
+            filename = function() {
+                "MSM_data_package.zip"
+            },
             content = function(file) {
+                temp_dir <- tempdir()
+                temp_files <- c(
+                    file.path(temp_dir, "longTermOutcome_output.csv"),
+                    file.path(temp_dir, "longTermOutcome_specification.txt")
+                )
+                
                 write.csv(sim_MSMtable %>%
                             mutate(
-                              HL2      = round(HL2, 2),
-                              Log10MBLend = round(Log10MBLend, 2), 
-                              P_1      = round(P_1, 3),
-                              P_2      = round(P_2, 3),
-                              P_3      = round(P_3, 5),
-                              P_5      = round(P_5, 5)
+                                HL2      = round(HL2, 2),
+                                Log10MBLend = round(Log10MBLend, 2), 
+                                P_1      = round(P_1, 3),
+                                P_2      = round(P_2, 3),
+                                P_3      = round(P_3, 5),
+                                P_5      = round(P_5, 5)
                             ) %>%
                             rename("WEEK" = "time") %>%
-                            select(-regimen, everything(), regimen),
-                            file, row.names = FALSE)
-            }
+                            select(-regimen, everything(), regimen) %>%
+                            group_by(ID, WEEK) %>%
+                            slice(1L),
+                         temp_files[1], 
+                         row.names = FALSE)
+                
+                file.copy(
+                    from = file.path(Server.directory, "longTermOutcome_specification.txt"),
+                    to = temp_files[2]
+                )
+                
+                zip(file, files = temp_files, flags = "-j")
+                unlink(temp_files)
+            },
+            contentType = "application/zip"
         )
       })
     })
