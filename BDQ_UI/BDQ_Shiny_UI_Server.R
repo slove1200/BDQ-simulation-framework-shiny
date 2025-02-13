@@ -884,11 +884,26 @@ server <- function(input, output, session) {
         }
     })
 
-    ###################### RENDER ADVANCED SETTING FOR HL EFFECTS #######
+    ###################### Render HL effect plot for individual mode #######
     # Render the PNG image
-    output$HLEFFplot <- renderImage({
+    output$HLEFFplot_indv <- renderImage({
       # Path to the PNG file
-      filePath <- paste0(UI.directory, "HLEFF.png")
+      filePath <- paste0(UI.directory, "HLEFF_halfLife.png")
+      
+      # Return a list with the image path and optional width/height
+      list(
+        src = filePath,
+        contentType = 'image/png',
+        alt = "Plot image",
+        width = "100%"# Optional: Adjust as needed
+      )
+    }, deleteFile = FALSE)  # Set to FALSE if the file should not be deleted after rendering
+    
+    ###################### Render HL effect plot for population mode ####### 
+    # Render the PNG image
+    output$HLEFFplot_pop <- renderImage({
+      # Path to the PNG file
+      filePath <- paste0(UI.directory, "HLEFF_halfLife.png")
       
       # Return a list with the image path and optional width/height
       list(

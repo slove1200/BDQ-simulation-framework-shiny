@@ -1,0 +1,19 @@
+############### Data specification ###############
+# Project: BDQ Shiny App
+# Dataset: QT_output.csv
+# Author: Yu-Jou Lin
+# Uppsala University Pharmacometrics Group
+
+# Column definitions:
+ID       - Subject ID number
+time     - Time after start of treatment [hours]
+CLOFA    - 0 = without, 1 = with clofazimine co-medication
+MOXI     - 0 = without, 1 = with moxifloxacin co-medication
+CACOR    - Baseline Corrected Calcium Level [mmol/L]. 
+Calculated from the equation: Corrected Ca [mmol/L] = Measured Ca [mmol/L] + 0.8 × (4 − Albumin [g/dL])
+K        - Baseline Potassium Level (mmol/L)
+SEX      - 0 = Male, 1 = Female
+RACE     - 0 = Non-Black race, 1 = Black race
+AGE      - Age [years]
+regimen  - Regimens specified by the users
+QTcF     - QT interval corrected using Fridericia’s formula [ms]

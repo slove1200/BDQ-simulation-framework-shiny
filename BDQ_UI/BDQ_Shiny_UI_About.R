@@ -21,7 +21,7 @@ mainTabAbout <- tabPanel(
                         layout_columns(
                           # Model Description
                           card(
-                            card_header("Models Included in the Application", style = "font-size: 14px; background-color: #E8ECEE;"),
+                            card_header("Models Included in the Application", style = "font-size: 16px; background-color: #E8ECEE;"),
                             card_body(
                                 tags$span(tags$strong("This application incorporates:", style = "font-size: 14px;")),
                                 tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
@@ -36,7 +36,7 @@ mainTabAbout <- tabPanel(
                           
                           # Navigation Structure
                           card(
-                            card_header("Navigation Structure", style = "font-size: 14px; background-color: #E8ECEE;"),
+                            card_header("Navigation Structure", style = "font-size: 16px; background-color: #E8ECEE;"),
                             card_body(
                               tags$span(tags$strong("The application consists of five main tabs:", style = "font-size: 14px;")),
                               tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
@@ -346,8 +346,8 @@ mainTabAbout <- tabPanel(
                             ), 
                             tags$li("Dataset Components:", 
                                     tags$ul(
-                                      tags$li("Virtual Population Template .csv File"),
-                                      tags$li("Simulated Virtual Population .csv File")
+                                      tags$li("Virtual Population Template.csv File"),
+                                      tags$li("Simulated Virtual Population.csv File")
                                     )
                             )
                         )

@@ -1,0 +1,17 @@
+############### Data specification ###############
+# Project: BDQ Shiny App
+# Dataset: TTP_output.csv
+# Author: Yu-Jou Lin
+# Uppsala University Pharmacometrics Group
+
+# Column definitions:
+ID       - Subject ID number
+WEEK     - Week of culture sampling time
+TTPD     - Time in MGIT tube for each sample [days]. >42 days are considered as negative culture
+MTTP     - Individual mean time to positivity at baseline [hours] 
+REP      - Number of replicate sputum sample collected at the same week
+FLAG     - 1 = Records for time-to-event model, 2 = Records for logistic model
+HL       - Model-derived time-varying half-life of mycobacterial load
+TTPpos   - Positive TTP signal [days]. If Culture is negative, TTPpos will be 42 days (considered as negative culture)
+CULneg   - 0 = Culture positive, 1 = Culture negative for each sample at each week
+regimen  - Regimens specified by the users

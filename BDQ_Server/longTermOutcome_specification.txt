@@ -1,0 +1,38 @@
+############### Data specification ###############
+# Project: BDQ Shiny App
+# Dataset: longTermOutcome_output.csv
+# Author: Yu-Jou Lin
+# Uppsala University Pharmacometrics Group
+
+# State definition:
+1 – Active TB (active tuberculosis after initial infection)
+2 – Converted (the day of the first of two negative sputum cultures collected at least 25 days apart, not intervened by positive cultures. i.e., no detectable active infection)
+3 – Recurrent TB (the day of the first of two consecutive positive sputum cultures or a single positive result before the patient completed or discontinued from the trial, after conversion)
+5 – Death
+
+The definitions of Converted and Recurrent TB states were based on sputum culture status throughout the study period. Therefore, patients who had bacteriological reversion (i.e., cultures returned to positive after conversion) whether on treatment or after treatment completion were both defined as in the recurrent TB state 
+
+# OBS! For columns of HL2:
+# Records in baseline or week 1 is values at baseline, week 2 is values at week 1, and so on.
+# This enables to avoid immortal bias. In the other way is like "using week 1 data to predict the outcome at week 2".
+# For example: in columns HL2 where HL2 has dynamic change until week 2, the value at week 2 will carry forward to the last observation.
+# At baseline, HL2 = baseline; 
+# At week 1, HL2 = baseline;
+# At week 2, HL2 = week 1 HL2; 
+# At week 3, HL2 = week 2 HL2;
+# At week 4, HL2 = CARRY FORWARD from week 2 HL2, i.e. week 2 HL2.
+
+# Column definitions:
+ID          - Subject ID number
+WEEK        - Week of the visits
+STATE       - Outcome state
+HL2         - Model-derived time-varying half-life of mycobacterial load until week 2 (LOCF after week 2) from the PK-efficacy model
+MTTP        - Individual mean time to positivity at baseline [hours] 
+WT          - Baseline weight [kg]
+SEX         - 0 = Male, 1 = Female
+Log10MBLend - Model-derived mycobacterial load at the end of treatment from the PK-efficacy model [in log10 scale]
+P_1         - Probability of being in State 1 (Active infection)
+P_2         - Probability of being in State 2 (Converted)
+P_3         - Probability of being in State 3 (Recurrent TB)
+P_5         - Probability of being in State 5 (Death)
+regimen     - Regimens specified by the users

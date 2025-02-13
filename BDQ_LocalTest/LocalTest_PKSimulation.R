@@ -259,14 +259,14 @@ input$mfreq_3     <- "Once daily" # Maintenance dose unit: "1" day, "2" week
 input$IE_3_HIV    <- "None"
 input$IE_3_TB     <- "None"
 
-input$IIV         <- "ON" # ON or OFF
+input$IIV         <- "OOF" # ON or OFF
 
 input$RG1       <- T
-input$RG2       <- T
-input$RG3       <- T
+input$RG2       <- F
+input$RG3       <- F
 
 ## Common model covariates
-input$population_radio <- "Population"
+input$population_radio <- "Individual"
 input$RACE             <- "Non-Black"
 input$WT               <- 53
 input$ALB              <- 3.5

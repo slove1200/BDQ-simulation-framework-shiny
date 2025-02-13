@@ -1,0 +1,17 @@
+############### Data specification ###############
+# Project: BDQ Shiny App
+# Dataset: virtual_individual_or_population.csv
+# Author: Yu-Jou Lin
+# Uppsala University Pharmacometrics Group
+
+# Column definitions:
+ID    - Subject ID number
+AGE   - Age [years]
+SEX   - 0 = Male, 1 = Female
+ALB   - Baseline albumin concentration [g/dL]
+CACOR - Baseline Corrected Calcium Level [mmol/L]. 
+Calculated from the equation: Corrected Ca [mmol/L] = Measured Ca [mmol/L] + 0.8 × (4 − Albumin [g/dL])
+K     - Baseline Potassium Level (mmol/L)
+WT    - Baseline weight [kg]
+MTTP  - Individual mean time to positivity at baseline [hours] 
+RACE  - 0 = Non-Black race, 1 = Black race

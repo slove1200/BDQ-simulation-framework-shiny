@@ -104,6 +104,15 @@ mainTabPopulation <- tabPanel(
   # Add CSS styles for radio buttons
   tags$head(
     tags$style(HTML("
+    .shiny-image-output {
+      height: auto !important;  /* Remove fixed height */
+      max-height: none !important;  /* Remove any max-height */
+    }
+    .shiny-bound-output {
+      height: auto !important;  /* Remove fixed height */
+      max-height: none !important;  /* Remove any max-height */
+    }
+
       /* Regimen 1 radio buttons */
       .comed-regimen-1 input[type='radio']:checked {
         background-color: #65658F !important;
@@ -293,14 +302,12 @@ mainTabPopulation <- tabPanel(
                          )
                        ), 
                        card(
-                         style = "overflow: visible;",
                          card_header("Half-life Modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                          card_body(
-                           style = "overflow: visible;",
                            numericInput("HLEFF", 
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
                              value = -50, min = -100, max = 500), 
-                           imageOutput("HLEFFplot") 
+                           imageOutput("HLEFFplot_indv")
                          )
                        )
                 )
@@ -406,7 +413,7 @@ mainTabPopulation <- tabPanel(
                     card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
                       numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial load"), value = -50, min = -100, max = 500), 
-                      imageOutput("HLEFFplot")
+                      imageOutput("HLEFFplot_pop")
                     )
                   )
                 ),
@@ -508,7 +515,7 @@ mainTabPopulation <- tabPanel(
         card_body(
           CoMedColumn(1, "#CBCAE38D", default_LD = TRUE, addition_RG = FALSE), 
           CoMedColumn(2, "#E1C3C88D", default_LD = FALSE, addition_RG = TRUE),
-          CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE)
+          CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE),
         )
       )
     ) # end of page_fillable

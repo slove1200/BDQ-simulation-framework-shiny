@@ -36,7 +36,7 @@ mainTabResults <- tabPanel(
       }
 
       .download-header {
-        font-size: 18px;
+        font-size: 14px;
         font-weight: bold;
         margin-bottom: 10px;
       }
