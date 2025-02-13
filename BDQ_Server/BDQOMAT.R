@@ -210,7 +210,7 @@ $MAIN
 // AMT in mg in input file, MW TMC207 555.5 g/mol, DV as nmol/mL = μmol/L -->
 // (AMT/1000)/(555.5)*1000000 = AMT*1.8002 
 
-  double CLB   = TVCL*BLACKCL*AGECL*exp(BSVCL) *THETA25 ;
+  double CLB   = TVCL*BLACKCL*AGECL*exp(BSVCL)*THETA25 ;
   double VB    = TVV*exp(BSVV)                       ;
   double Q1B   = TVQ1*exp(BSVQ1)                     ;
   double VP1B  = TVVP1                               ;

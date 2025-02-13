@@ -14,36 +14,41 @@ mainTabAbout <- tabPanel(
                 card(
                     card_header("Overview", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        layout_columns(
-                          # Application Purpose
-                          card(
-                            card_header("Application Purpose", style = "font-size: 20px; background-color: #E8ECEE;"),
-                            card_body(
-                              div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
-                                  "This interactive application is aimed for interested users to visualize and explore 
+                        tags$span("This interactive application is aimed for interested users to visualize and explore 
                                    different dosing strategies of bedaquiline in an integrated pharmacokinetic, pharmacodynamic and 
-                                   long-term outcome modelling framework using patient characteristics, concomitant medications in flexible simulation settings."
-                              )
+                                   long-term outcome modelling framework using patient characteristics, concomitant medications in flexible simulation settings.",
+                                   style = "font-size: 14px; padding-left: 5px; line-height: 1.9;"),
+                        layout_columns(
+                          # Model Description
+                          card(
+                            card_header("Models Included in the Application", style = "font-size: 14px; background-color: #E8ECEE;"),
+                            card_body(
+                                tags$span(tags$strong("This application incorporates:", style = "font-size: 14px;")),
+                                tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                    tags$li("Pharmacokinetic (PK) model developed by Svensson et al. (CPT: PSP, 2016)"),
+                                    tags$li("PK-efficacy model based on two models developed by Svensson and Karlsson 
+                                    (J Antimicrob Chemother, 2017) and Tanneau et al. (Br J Clin Pharmacol, 2020)"),
+                                    tags$li("PK-safety model developed by Tanneau et al. (CPT: PSP, 2021)"),
+                                    tags$li("Long-term outcome model developed by Lin et al. (J Antimicrob Chemother, 2024)")
+                                )
                             )
                           ),
                           
                           # Navigation Structure
                           card(
-                            card_header("Navigation Structure", style = "font-size: 20px; background-color: #E8ECEE;"),
+                            card_header("Navigation Structure", style = "font-size: 14px; background-color: #E8ECEE;"),
                             card_body(
                               tags$span(tags$strong("The application consists of five main tabs:", style = "font-size: 14px;")),
-                              div(style = "font-size: 14px; padding-left: 5px; line-height: 1.5;",
-                                  tags$ul(
-                                    tags$li("Dosing"),
-                                    tags$li("Population"),
-                                    tags$li("Simulation"),
-                                    tags$li("Results"),
-                                    tags$li("About")
-                                  )
+                              tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                tags$li("Dosing - Set dosing regimens"),
+                                tags$li("Population - Set population characteristics"),
+                                tags$li("Simulation - Set simulation parameters"),
+                                tags$li("Results - Visualize and output results"),
+                                tags$li("About - User manual and source code")
                               )
                             )
                           ),
-                          col_widths = c(6, 6)
+                          col_widths = c(7, 5)
                         )
                     )
                 ),
@@ -52,22 +57,42 @@ mainTabAbout <- tabPanel(
                 card(
                     card_header("1. Dosing Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        tags$span(tags$strong("Adding Multiple Regimens:", style = "font-size: 14px;")),
-                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                            tags$li("By default, Regimen 1 is always shown. The default values for regimens are the approved bedaquiline dosing (400 mg daily for 2 weeks, followed by 200 mg thrice weekly for 22 weeks)"),
-                            tags$li("Use checkboxes to add Regimen 2 and Regimen 3. Note: Regimen 3 can only be added if Regimen 2 is active")
-                        ),
-                        tags$span(tags$strong("For Each Regimen:", style = "font-size: 14px;")),
-                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                            tags$li("Loading dose is optional. If no loading dose is added, maintainence dose will start from time 0"),
-                            tags$li(
-                                "Set loading dose and maintenance dose:",
-                                tags$ul(
-                                    tags$li("Dose amount (mg)"),
-                                    tags$li("Duration (days or weeks)"),
-                                    tags$li("Dosing frequency (twice daily, once daily, three times weekly, once weekly)")
+                        layout_columns(
+                            # Select doses (formerly "For Each Regimen")
+                            card(
+                                card_header("Select Doses", style = "font-size: 16px; background-color: #E8ECEE;"),
+                                card_body(
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                        tags$li("Loading dose is optional. If no loading dose is added, maintainence dose will start from time 0"),
+                                        tags$li(
+                                            "Set loading dose and maintenance dose:",
+                                            tags$ul(
+                                                tags$li("Dose amount (mg)"),
+                                                tags$li("Duration (days or weeks)"),
+                                                tags$li("Frequency (twice daily, once daily, three times weekly, once weekly)")
+                                            )
+                                        )
+                                    )
                                 )
-                            )
+                            ),
+                            
+                            # Adding Multiple Regimens
+                            card(
+                                card_header("Add Multiple Regimens", style = "font-size: 16px; background-color: #E8ECEE;"),
+                                card_body(
+                                    tags$ul(style = "font-size: 14px; padding-left: 20px; line-height: 1.9;",
+                                        tags$li("By default, Regimen 1 is always shown. ",
+                                                tags$br(), 
+                                                "The default values for regimens are the approved bedaquiline dosing",
+                                                tags$br(), 
+                                                "(400 mg daily for 2 weeks, followed by 200 mg thrice weekly for 22 weeks)"),
+                                        tags$li("Use checkboxes to add Regimen 2 and Regimen 3",
+                                                tags$br(), 
+                                                "Note: Regimen 3 can only be added if Regimen 2 is active")
+                                    )
+                                )
+                            ),
+                            col_widths = c(6, 6)
                         )
                     )
                 ),
@@ -77,15 +102,16 @@ mainTabAbout <- tabPanel(
                     card_header("2. Population Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         tags$span("Choose to simulate in population level or individial level. In population mode, a group of subjects will be sampled from a large virtual population, 
-                                              in which the covariate distribution was simulated using conditional distribution modelling (Smania and Johnsson, CPT: PSP, 2021). 
-                                              Numbers of subjects can be set by users in the 3. Simulation tab.", style = "font-size: 14px;")
+                                   in which the covariate distribution was simulated using conditional distribution modelling (Smania and Johnsson, CPT: PSP, 2021). 
+                                   Numbers of subjects can be set in the 3. Simulation tab.", 
+                                   style = "font-size: 14px; padding-left: 5px; line-height: 1.9;")
                         ),
                         layout_columns(
                             # Individual Mode Card
                             card(
                                 card_header("Individual Mode", style = "font-size: 16px; background-color: #E8ECEE;"),
                                 card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                         tags$li(
                                           tags$strong("Set continuous covariates (value of a typical individual is presented as default):"),
                                             tags$ul(
@@ -101,8 +127,7 @@ mainTabAbout <- tabPanel(
                                           tags$strong("Set categorical covariates (mode of the population is presented as default):"),
                                             tags$ul(
                                                 tags$li("Sex (Male/Female)"),
-                                                tags$li("Race (Non-Black/Black)"),
-                                                tags$li("Drug Resistance (MDR-TB, pre-XDR-TB, XDR-TB)")
+                                                tags$li("Race (Non-Black/Black)")
                                             )
                                         )
                                     )
@@ -113,7 +138,7 @@ mainTabAbout <- tabPanel(
                             card(
                                 card_header("Population Mode", style = "font-size: 16px; background-color: #E8ECEE;"),
                                 card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                         tags$li(
                                           tags$strong("Dataset Options:"),
                                             tags$ul(
@@ -129,34 +154,54 @@ mainTabAbout <- tabPanel(
                                             )
                                         ),
                                         tags$li(
-                                          tags$strong("If the default virtual population is used, range and proportion of population parameters can be set:"),
+                                          tags$strong("If the default virtual population is used:"),
                                             tags$ul(
-                                                tags$li("Drug resistance profile percentages"),
-                                                tags$li("Proportion of black race"),
-                                                tags$li("Population details (ranges for continuous covariates). Min/Max of each parameter in the virtual population are present as default, and can be reset to the default value")
+                                                tags$li("Ranges for continuous variables and proportions for categorical variables can be customized"),
+                                                tags$li("Min/Max or proportions of each covariate in the virtual population are present as default")
                                             )
                                         )
                                     )
                                 )
                             ),
-                            col_widths = c(6,6)
-                        ),
-                        
-                        # Concomitant Medication Card
-                        card(
-                            card_header("Concomitant Medication", style = "font-size: 16px; background-color: #E8ECEE;"),
-                            card_body(
-                                tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                                    tags$li(
-                                      tags$strong("Add concomnitant medications having drug-drug interaction effects on PK or QT prolongation for each regimen:"),
-                                        tags$ul(
-                                            tags$li("PK effects (None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine)"),
-                                            tags$li("QT effects (None, Clofazimine, Moxifloxacin, Both)")
-                                        )
+                        col_widths = c(6,6)
+                    ), 
+                    # Half-life Modifier Card
+                    card(
+                        card_header("Half-life Modifier", style = "font-size: 16px; background-color: #E8ECEE;"),
+                        card_body(
+                            tags$span(
+                                tags$strong("Half-life modifier is a parameter that can be used to adjust the half-life of mycobacterial load, 
+                                reflecting how different background regimens influence bacterial elimination."),
+                                "The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model.",
+                                tags$br(),
+                                "Half-life of mycobacterial load is longer with % of a positive value (+) and shorter with % of a negative value (-) of the modifier.",
+                                tags$br(),
+                                "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life.",
+                                tags$br(),
+                                tags$strong("The minimum values of half-life modifier is -100%"),
+                                ", since a 100% shorter half-life is not possible.",
+                                tags$br(),
+                                "Note: Half-life modifier directly influences the influences sputum culture conversion in 
+                                both the PK-efficacy model and long-term outcome model",
+                                style = "font-size: 14px; padding-left: 5px; line-height: 1.9;")
+                        )
+                    ),
+                    
+                    # Concomitant Medication Card
+                    card(
+                        card_header("Concomitant Medication", style = "font-size: 16px; background-color: #E8ECEE;"),
+                        card_body(
+                            tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                tags$li(
+                                    tags$strong("Add concomnitant medications having drug-drug interaction effects on PK or QT prolongation for each regimen:"),
+                                    tags$ul(
+                                        tags$li("PK effects (None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine)"),
+                                        tags$li("QT effects (None, Clofazimine, Moxifloxacin, Both)")
                                     )
                                 )
                             )
                         )
+                    )
                 ),
                 
                 # Simulation Section
@@ -168,30 +213,31 @@ mainTabAbout <- tabPanel(
                             card(
                                 card_header("Advanced Settings", style = "font-size: 16px; background-color: #E8ECEE;"),
                                 card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                         tags$li(
-                                            "Select PK-TTP model based on the patient's treatment history:",
+                                            "Select PK-efficacy model based on the patient's treatment history:",
                                             tags$ul(
-                                                tags$li(tags$strong("Treatment-Naive:"), " For patients with no prior TB treatment before starting bedaquiline."),
-                                                tags$li(tags$strong("Treatment-Experienced:"), " For patients with prior TB treatment before initiating bedaquiline.")
+                                                tags$li(tags$strong("Treatment-Naive:"), 
+                                                        tags$br(),
+                                                        "For patients with no prior TB treatment before initiating bedaquiline"),
+                                                tags$li(tags$strong("Treatment-Experienced:"), 
+                                                        tags$br(),
+                                                        "For patients with prior TB treatment before initiating bedaquiline")
                                             )
                                         ),
-                                        tags$li("Set numbers of MGIT culture replicates at each visit"),
-                                        tags$li("Set the value of bacterial clearance modifier in % faster/slower (Adjust this parameter to modify the speed of bacterial clearance. The following graph illustrates how the percentage change in this parameter affects the simulated Month 2 and Month 6 conversion rates based on the PK-TTP model)"),
-                                        tags$ul(
-                                            tags$li("Bacterial clearance is increased by a positive value (+) and decreased by a negative value (-) of the modifier. For example, a value of 30 indicates a 30% faster clearance, whereas -30 means a 30% slower clearance"),
-                                            tags$li("Note that bacterial clearance directly influences sputum culture conversion in both the PK-efficacy model and long-term outcome model")
+                                        tags$li("Set numbers of MGIT culture replicates at each visit.",
+                                                tags$br(),
+                                                "The default value is 1 per visit"),
                                         )
                                     )
-                                )
-                            ),
+                                ),
                             
                             # Simulation Settings Card
                             card(
                                 card_header("Simulation Settings", style = "font-size: 16px; background-color: #E8ECEE;"),
                                 card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                                        tags$li("Specify numbers of individuals per regimen for simulation. Same population will be applied for all regimens as default"),
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                        tags$li("Specify numbers of individuals per regimen for simulation. Same population will be applied for all regimens"),
                                         tags$li("Set simulation time for PK, efficacy, and safety in weeks"),
                                         tags$li("Set simulation time for long-term outcome in weeks"),
                                         tags$li("Include interindividual variability (ON/OFF)"),
@@ -209,31 +255,61 @@ mainTabAbout <- tabPanel(
                     card_header("4. Results Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         layout_columns(
-                            # Overview Card
+                            # Left Column (Overview)
                             card(
                                 card_header("Overview", style = "font-size: 16px; background-color: #E8ECEE;"),
                                 card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                                        tags$li("Pharmacokinetics visualization options: users can visualize the concentration profiles of bedaquiline and its metabolite M2 under different settings including 1) full concentration profile, 2) daily average concentraion, and 3) weekly average concentration"),
-                                        tags$li("Efficacy (% of negative culture samples in MGIT culture)"),
-                                        tags$li("Safety (QTcF interval)"),
-                                        tags$li("Long-term outcome:individual trajectory of outcomes will be shown if users choose to simulate in an individual level. If population mode is chosen (in the Population tab), outcome will be presented in the form of proportions of patients in each state")
-                                      )
-                                  )
-                                ),
-                            
-                            # Patient Characteristics Card
-                            card(
-                                card_header("Patient Characteristics", style = "font-size: 16px; background-color: #E8ECEE;"),
-                                card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.5;",
-                                        tags$li("Summary table and graphs for patient characterisics of the virtual population or individual are illustrated in this subtab"),
-                                        tags$li("Summary table of population characteristics"),
-                                        tags$li("Visualization of continuous variables distribution")
+                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                        tags$li(tags$strong("Pharmacokinetics:"),
+                                                tags$br(),
+                                                "users can visualize the concentration profiles of bedaquiline and its metabolite M2 under different settings",
+                                                tags$ul(
+                                                    tags$li("Full concentration profile"),
+                                                    tags$li("Daily average concentraion"),
+                                                    tags$li("Weekly average concentration")
+                                                )
+                                        ),
+                                        tags$li(tags$strong("Efficacy"),
+                                                "(% of negative culture samples in MGIT culture)"),
+                                        tags$li(tags$strong("Safety"),
+                                                "(QTcF interval)"),
+                                        tags$li(tags$strong("Long-term outcome:"),
+                                                tags$br(),
+                                                "individual trajectory of outcomes will be shown if users choose to simulate in an individual level.",
+                                                tags$br(),
+                                                "If population mode is chosen, outcome will be presented in the form of proportions of patients in each state")
                                     )
                                 )
                             ),
-                            col_widths = c(6,6)
+                            
+                            # Right Column (Patient Characteristics and Output Files)
+                            div(
+                                # Patient Characteristics Card
+                                card(
+                                    card_header("Patient Characteristics", style = "font-size: 16px; background-color: #E8ECEE;"),
+                                    card_body(
+                                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                            tags$li("Summary table and graphs for patient characterisics of the sampled virtual population or defined
+                                            individual are illustrated in this subtab"),
+                                            tags$li("Boxplots representing the covariate distribution the large dataset of virtual population")
+                                        )
+                                    )
+                                ),
+                                # Output Files Card
+                                card(
+                                    card_header("Output Files and Specifications", style = "font-size: 16px; background-color: #E8ECEE;"),
+                                    card_body(
+                                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                            tags$li("Pharmacokinetics data (PK_output.csv)"),
+                                            tags$li("Efficacy data - Time to positivity signal (TTP_output.csv)"),
+                                            tags$li("Safety data - QT (QT_output.csv)"),
+                                            tags$li("Long-term outcome data (longTermOutcome_output.csv)"),
+                                            tags$li("Virtual individual or population data (virtual_individual_or_population.csv)")
+                                        )
+                                    )
+                                )
+                            ),
+                            col_widths = c(6, 6)
                         )
                     )
                 ),

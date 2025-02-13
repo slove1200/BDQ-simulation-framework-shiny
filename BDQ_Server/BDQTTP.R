@@ -96,7 +96,7 @@ $MAIN //The same as $PK in NONMEM
   double ETATR   = (pow(PHI, BXPAR) - 1)/BXPAR ;  // Box-Cox transformation of the IIV in half-life (HL)
   double N0MBL   = THETA3 * 10000 * pow((MTTP/163.7), MTTPEFF) ; // Number of mycobacterial at start of treatment 
   // double N0MBL   = value ; // For validate TTP model
-  double HL      = THETA4 * (1 + BDQEFF1) * exp(ETATR) * (1.0/(1.0+HLEFF/100.0)) ; // HL mycobacterial clearance
+  double HL      = THETA4 * (1 + BDQEFF1) * exp(ETATR) * (1.0+HLEFF/100.0) ; // HL of mycobacterial load modifier
   double KD      = log(2)/HL ;
 
 
@@ -191,7 +191,6 @@ if (FLAG == 2) {
   RTTE = 0 ;
 }
 
-
 // If there was a previous event
 if (ORTTE == 1) RTTE = 0 ;
 
@@ -211,5 +210,5 @@ if (ORTTE == 0 && LASTR == 1) {
 
 
 // $CAPTURE TAST TASTW WEEKP REP TTPD FLAG DV ETATR NEWIND N0MBL N0 OMBL MBL OTAST DTAST SURV HAZ CHZ ORTTE RTTE USUR1 USUR2 P1 NEG LASTR
-$CAPTURE TASTW WEEKP MTTP REP TTPD FLAG DV BDQEFF1 ETATR USUR1 USUR2 HL N0MBL MBL SURV HAZ CHZ ORTTE RTTE P1 NEG LASTR regimen
+$CAPTURE WEEKP TTPD MTTP REP FLAG HL MBL RTTE NEG regimen
 "

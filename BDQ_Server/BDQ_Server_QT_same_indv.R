@@ -50,6 +50,7 @@ sim_QT <- function(input, sim_PKtable) {
   
   # QT simulation ########
   modQT <- mcode("BDQQT", codeQT)
+  modQT <- update(modQT, outvars = outvars(modQT)$capture)
   
   ## Interindividual variability ON/OFF
   if (input$IIV == "OFF") {

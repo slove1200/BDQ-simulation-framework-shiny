@@ -42,11 +42,30 @@ ui <- fluidPage(
     
     # CSS Styles
     tags$style(HTML("
-            /* Title Panel Styles */
-        .title-panel h2 {
-            font-size: 24px;  /* Adjust this value to make title larger or smaller */
+        /* Title Styles */
+        .title-panel {
+            background: linear-gradient(to right, #CDD8DA, #C1D4D7);
+            padding: 15px 25px;
+            margin-bottom: 35px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
+        .title-panel h2 {
+            color: #333333;
+            margin: 0;
+            font-weight: 600;
+            font-size: 28px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Main Tab Panel Styles */
+        #mainTab {
+            margin-bottom: 10px;
+        }
+
         /* Go Button Styles */
         #goButton {
             background-color: #C1D4D78D;
@@ -88,6 +107,45 @@ ui <- fluidPage(
             font-weight: bold !important;
         }
 
+        /* Radio buttons and checkboxes base style */
+        input[type='radio'],
+        input[type='checkbox'] {
+            cursor: pointer;
+        }
+
+        /* Custom styles for medication radio buttons - more specific selectors */
+        input[type='radio'][id^='IE_1'] {
+            background-color: #CBCAE3 !important;
+            border-color: #ABAAC3 !important;
+        }
+        input[type='radio'][id^='IE_1']:hover {
+            border-color: #ABAAC3 !important;
+        }
+
+        input[type='radio'][id^='IE_2'] {
+            background-color: #E1C3C8 !important;
+            border-color: #C1A3A8 !important;
+        }
+        input[type='radio'][id^='IE_2']:hover {
+            border-color: #C1A3A8 !important;
+        }
+
+        input[type='radio'][id^='IE_3'] {
+            background-color: #C1D4D7 !important;
+            border-color: #A1B4B7 !important;
+        }
+        input[type='radio'][id^='IE_3']:hover {
+            border-color: #A1B4B7 !important;
+        }
+
+        input[type='radio'][id^='IE_4'] {
+            background-color: #E7D7CB !important;
+            border-color: #C7B7AB !important;
+        }
+        input[type='radio'][id^='IE_4']:hover {
+            border-color: #C7B7AB !important;
+        }
+
         /* Radio buttons and checkboxes style */
         input[type='radio']:checked,
         input[type='checkbox']:checked {
@@ -115,12 +173,47 @@ ui <- fluidPage(
 
         .nav-pills .nav-link {
             padding: 0.25rem 1rem !important;
-            color: #333333 !important;  /* Even darker shade for subset pills */
+            color: #333333 !important;
+            margin-right: 10px !important;
         }
 
         .nav-pills .nav-link.active {
             background-color: #555555 !important;
             color: white !important;
+        }
+
+        /* Custom styles for Add Loading Dose checkboxes */
+        #LD1:checked {
+            background-color: #65658F !important;
+            border-color: #E5E5F1 !important;
+        }
+        #LD1:not(:checked):hover {
+            border-color: #E5E5F1 !important;
+        }
+        #LD1:focus {
+            box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
+        }
+
+        #LD2:checked {
+            background-color: #705E64 !important;
+            border-color: #F0E1E4 !important;
+        }
+        #LD2:not(:checked):hover {
+            border-color: #F0E1E4 !important;
+        }
+        #LD2:focus {
+            box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
+        }
+
+        #LD3:checked {
+            background-color: #606A6C !important;
+            border-color: #E0EAEB !important;
+        }
+        #LD3:not(:checked):hover {
+            border-color: #E0EAEB !important;
+        }
+        #LD3:focus {
+            box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
     ")),
     
@@ -463,7 +556,14 @@ server <- function(input, output, session) {
         output$download_simQT <- downloadHandler(
             filename = function() { "QT_output.csv" },
             content = function(file) {
-                write.csv(sim_QTtable, file, row.names = FALSE)
+                write.csv(sim_QTtable %>%
+                mutate(
+                  CACOR = round(CACOR, 2), 
+                  K     = round(K, 1), 
+                  IPRED = round(IPRED, 2)
+                ) %>%
+                rename("QTcF"  = "IPRED"),
+                         file, row.names = FALSE)
             }
         )
 
@@ -486,7 +586,18 @@ server <- function(input, output, session) {
         output$download_simMSM <- downloadHandler(
             filename = function() { "longTermOutcome_output.csv" },
             content = function(file) {
-                write.csv(sim_MSMtable, file, row.names = FALSE)
+                write.csv(sim_MSMtable %>%
+                            mutate(
+                              HL2      = round(HL2, 2),
+                              Log10MBLend = round(Log10MBLend, 2), 
+                              P_1      = round(P_1, 3),
+                              P_2      = round(P_2, 3),
+                              P_3      = round(P_3, 5),
+                              P_5      = round(P_5, 5)
+                            ) %>%
+                            rename("WEEK" = "time") %>%
+                            select(-regimen, everything(), regimen),
+                            file, row.names = FALSE)
             }
         )
       })
@@ -541,6 +652,12 @@ server <- function(input, output, session) {
 
     # Population size validation
     output$nsim_validation <- renderText({
+      # Check if nsim is missing or invalid
+      if (is.null(input$nsim) || is.na(input$nsim)) {
+        validationStates$enough_subjects <- FALSE
+        return("Please specify the number of individuals for simulation")
+      }
+      
       # Only proceed if in Population mode
       if (input$population_radio != "Population") {
         validationStates$enough_subjects <- TRUE
@@ -549,20 +666,39 @@ server <- function(input, output, session) {
       
       # Get and filter the virtual population based on data source
       filtered_data <- if (input$dataset_source == "Default") {
-        read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
-                 header = T) %>% 
-          filter(
-            SEX %in% c(0, 1),
-            AGE >= input$AGE_min & AGE <= input$AGE_max &
+        tryCatch({
+          read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                   header = T) %>% 
+            filter(
+              SEX %in% c(0, 1),
+              AGE >= input$AGE_min & AGE <= input$AGE_max &
               WT >= input$WT_min & WT <= input$WT_max &
               ALB >= input$ALB_min & ALB <= input$ALB_max &
               CACOR >= input$CACOR_min & CACOR <= input$CACOR_max &
               K >= input$K_min & K <= input$K_max &
               MTTP >= input$MTTP_min * 24 & MTTP <= input$MTTP_max * 24
-          )
+            )
+        }, error = function(e) {
+          validationStates$enough_subjects <- FALSE
+          return(data.frame())
+        })
       } else {
         # Use uploaded data
-        read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",")
+        if (is.null(input$uploaded_data)) {
+          validationStates$enough_subjects <- FALSE
+          return("Please upload a data file")
+        }
+        tryCatch({
+          read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",")
+        }, error = function(e) {
+          validationStates$enough_subjects <- FALSE
+          return(data.frame())
+        })
+      }
+      
+      if (nrow(filtered_data) == 0) {
+        validationStates$enough_subjects <- FALSE
+        return("No data available with the current filtering criteria")
       }
       
       required_n <- input$nsim
@@ -573,7 +709,7 @@ server <- function(input, output, session) {
       
       # Return warning message if needed
       if (!validationStates$enough_subjects) {
-        sprintf("The number of population (%d) is lower than the number of individuals intended simulation for each regime.", 
+        sprintf("The number of population (%d) is lower than the number of individuals intended for simulation (%d)W", 
                 available_n, required_n, available_n)
       } else {
         NULL

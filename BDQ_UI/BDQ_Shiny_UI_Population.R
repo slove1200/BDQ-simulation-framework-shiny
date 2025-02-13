@@ -5,28 +5,34 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
   # Helper to create the coMed controls
   coMedControlsPK <- function(regimen_num) {
     div(
-      radioButtons(inputId = paste0("IE_", regimen_num, "_PK"), 
-                   label = NULL,
-                   choices = c("None" = "None", 
-                               "Efavirenz" = "Efavirenz", 
-                               "Lopinavir/r" = "Lopinavir/r", 
-                               "Nevirapine" = "Nevirapine", 
-                               "Rifampicin" = "Rifampicin", 
-                               "Rifapentine" = "Rifapentine")
+      radioButtons(
+        inputId = paste0("IE_", regimen_num, "_PK"), 
+        label = NULL,
+        choices = c("None" = "None", 
+                   "Efavirenz" = "Efavirenz", 
+                   "Lopinavir/r" = "Lopinavir/r", 
+                   "Nevirapine" = "Nevirapine", 
+                   "Rifampicin" = "Rifampicin", 
+                   "Rifapentine" = "Rifapentine")
       ),
-      class = "comed-radioButtonsPK bslib-gap-spacing html-fill-item html-fill-container")
+      # Add specific class for each regimen
+      class = paste0("comed-radioButtonsPK comed-regimen-", regimen_num, " bslib-gap-spacing html-fill-item html-fill-container")
+    )
   }
 
   coMedControlsQT <- function(regimen_num) {
     div(
-      radioButtons(inputId = paste0("IE_", regimen_num, "_QT"), 
-                   label = NULL,
-                   choices = c("None" = "None",
-                               "Clofazimine" = "Clofazimine", 
-                               "Moxifloxacin" = "Moxifloxacin", 
-                               "Both" = "Both")
+      radioButtons(
+        inputId = paste0("IE_", regimen_num, "_QT"), 
+        label = NULL,
+        choices = c("None" = "None",
+                   "Clofazimine" = "Clofazimine", 
+                   "Moxifloxacin" = "Moxifloxacin", 
+                   "Both" = "Both")
       ),
-      class = "comed-radioButtonsQT bslib-gap-spacing html-fill-item html-fill-container")
+      # Add specific class for each regimen
+      class = paste0("comed-radioButtonsQT comed-regimen-", regimen_num, " bslib-gap-spacing html-fill-item html-fill-container")
+    )
   }
   
   # Optional conditionalPanel for regimens other than 1
@@ -95,6 +101,46 @@ CoMedColumn <- function(regimen_num, background_color, default_LD = FALSE, addit
 mainTabPopulation <- tabPanel(
   "Population",
   br(),
+  # Add CSS styles for radio buttons
+  tags$head(
+    tags$style(HTML("
+      /* Regimen 1 radio buttons */
+      .comed-regimen-1 input[type='radio']:checked {
+        background-color: #65658F !important;
+        border-color: #E5E5F1 !important;
+      }
+      .comed-regimen-1 input[type='radio']:not(:checked):hover {
+        border-color: #E5E5F1 !important;
+      }
+      .comed-regimen-1 input[type='radio']:focus {
+        box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
+      }
+
+      /* Regimen 2 radio buttons */
+      .comed-regimen-2 input[type='radio']:checked {
+        background-color: #705E64 !important;
+        border-color: #F0E1E4 !important;
+      }
+      .comed-regimen-2 input[type='radio']:not(:checked):hover {
+        border-color: #F0E1E4 !important;
+      }
+      .comed-regimen-2 input[type='radio']:focus {
+        box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
+      }
+
+      /* Regimen 3 radio buttons */
+      .comed-regimen-3 input[type='radio']:checked {
+        background-color: #606A6C !important;
+        border-color: #E0EAEB !important;
+      }
+      .comed-regimen-3 input[type='radio']:not(:checked):hover {
+        border-color: #E0EAEB !important;
+      }
+      .comed-regimen-3 input[type='radio']:focus {
+        box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
+      }
+    "))
+  ),
   page_fillable(
     layout_columns(
       style = "display: grid; grid-template-columns: 62.5% 37.5%; gap: 1rem;",
@@ -355,19 +401,12 @@ mainTabPopulation <- tabPanel(
                 ),
                 # Second row: Original Population view content
                 column(5,
-                  div(
-                    class = "overlay-container",
-                    # Add overlay that shows only when Import is selected
-                    conditionalPanel(
-                      condition = "input.dataset_source == 'Import'",
-                      div(class = "semi-transparent-overlay")
-                    ),
-                    card(
-                      card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
-                      card_body(
-                        numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Shorter Half-life of Mycobacteria"), value = 40, min = -500, max = 100), 
-                        imageOutput("HLEFFplot")
-                      )
+                  # Removed overlay container for Half-life modifier
+                  card(
+                    card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                    card_body(
+                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Shorter Half-life of Mycobacteria"), value = 40, min = -500, max = 100), 
+                      imageOutput("HLEFFplot")
                     )
                   )
                 ),
@@ -469,8 +508,7 @@ mainTabPopulation <- tabPanel(
         card_body(
           CoMedColumn(1, "#CBCAE38D", default_LD = TRUE, addition_RG = FALSE), 
           CoMedColumn(2, "#E1C3C88D", default_LD = FALSE, addition_RG = TRUE),
-          CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE), 
-          CoMedColumn(4, "#E7D7CB8D", default_LD = FALSE, addition_RG = TRUE)  
+          CoMedColumn(3, "#C1D4D78D", default_LD = FALSE, addition_RG = TRUE)
         )
       )
     ) # end of page_fillable
