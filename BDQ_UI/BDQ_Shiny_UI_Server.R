@@ -406,14 +406,14 @@ server <- function(input, output, session) {
             # Create a single-row dataframe with the individual's parameters
             virtual_population_df <- data.frame(
                 ID = 1,
-                AGE = as.numeric(input$AGE_ind),
-                WT = as.numeric(input$WT_ind),
-                ALB = as.numeric(input$ALB_ind),
-                CACOR = as.numeric(input$CACOR_ind),
-                K = as.numeric(input$K_ind),
-                MTTP = as.numeric(input$MTTP_ind) * 24,  # Convert to hours
-                SEX = as.numeric(input$SEX_ind),
-                RACE = as.numeric(input$RACE_ind),
+                AGE = as.numeric(input$AGE),
+                WT = as.numeric(input$WT),
+                ALB = as.numeric(input$ALB),
+                CACOR = as.numeric(input$CACOR),
+                K = as.numeric(input$K),
+                MTTP = as.numeric(input$MTTP) * 24,  # Convert to hours
+                SEX = ifelse(input$SEX == "Male", 0, 1),
+                RACE = ifelse(input$RACE == "Non-Black", 0, 1),
                 stringsAsFactors = FALSE
             ) %>% 
             # Ensure we have at least one row
