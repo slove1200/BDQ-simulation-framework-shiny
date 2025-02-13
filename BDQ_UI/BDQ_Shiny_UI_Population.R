@@ -104,14 +104,6 @@ mainTabPopulation <- tabPanel(
   # Add CSS styles for radio buttons
   tags$head(
     tags$style(HTML("
-    .shiny-image-output {
-      height: auto !important;  /* Remove fixed height */
-      max-height: none !important;  /* Remove any max-height */
-    }
-    .shiny-bound-output {
-      height: auto !important;  /* Remove fixed height */
-      max-height: none !important;  /* Remove any max-height */
-    }
 
       /* Regimen 1 radio buttons */
       .comed-regimen-1 input[type='radio']:checked {
@@ -307,7 +299,7 @@ mainTabPopulation <- tabPanel(
                            numericInput("HLEFF", 
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
                              value = -50, min = -100, max = 500), 
-                           imageOutput("HLEFFplot_indv")
+                           imageOutput("HLEFFplot_indv", height = "auto")
                          )
                        )
                 )
@@ -413,7 +405,7 @@ mainTabPopulation <- tabPanel(
                     card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
                       numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial load"), value = -50, min = -100, max = 500), 
-                      imageOutput("HLEFFplot_pop")
+                      imageOutput("HLEFFplot_pop", height = "auto")
                     )
                   )
                 ),
