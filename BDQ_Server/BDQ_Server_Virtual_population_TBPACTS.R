@@ -1,13 +1,12 @@
 Pop_generation <- function(input) {
   nsubjects <- input$nsim
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   
   # Read in dataset
   myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
-                        header = T) %>% select(-RACE, -TBTYPE, -NSIM)
+                        header = T)
   
   # Calculate exact numbers needed for each category
-  n_rows_needed <- nsubjects * num_regimens
+  n_rows_needed <- nsubjects 
   n_females <- round(n_rows_needed * (input$SEX_female/100))
   n_males <- n_rows_needed - n_females
   

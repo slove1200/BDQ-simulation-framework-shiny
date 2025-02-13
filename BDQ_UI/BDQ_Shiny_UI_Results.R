@@ -19,12 +19,78 @@ mainTabResults <- tabPanel(
         overflow: unset !important;
       }
 
+      /* Specific styles for Output tab cards */
+      #resTab-Output .card {
+        height: 500px !important;
+        margin-bottom: 20px;
+      }
+      
+      #resTab-Output .card-body {
+        height: calc(100% - 40px) !important;
+        padding: 10px;
+      }
+
+      /* Download section styles */
+      .download-section {
+        margin-bottom: 20px;
+      }
+
+      .download-header {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
     "))
   ),
   tabsetPanel(
     id = "resTab", type = "pills",
     tabPanel("Overview"),
-    tabPanel("Patient Characteristics")
+    tabPanel("Patient Characteristics"),
+    tabPanel("Output",
+      br(),
+      page_fillable(
+        layout_columns(
+          card(
+            card_header("Download Simulation Results", style = "font-size: 20px; background-color: #CDD8DA;"),
+            card_body(
+              layout_columns(
+                div(
+                  # Pharmacokinetics section
+                  div(class = "download-section",
+                      tags$div(class = "download-header", "Pharmacokinetics data"),
+                      downloadButton("download_simPK", "PK_output.csv")
+                  ),
+                  # Efficacy section
+                  div(class = "download-section",
+                      tags$div(class = "download-header", "Efficacy data (Time to positivity signal)"),
+                      downloadButton("download_simTTP", "TTP_output.csv")
+                  ),
+                  # Population characteristics section
+                  div(class = "download-section",
+                      tags$div(class = "download-header", "Virtual individual or population characteristics"),
+                      downloadButton("download_virtual_population", "virtual_individual_or_population.csv")
+                  ),
+                ), 
+                div(
+                  # Safety section
+                  div(class = "download-section",
+                      tags$div(class = "download-header", "Safety data (QT)"),
+                      downloadButton("download_simQT", "QT_output.csv")
+                  ),
+                  # Long-term outcome section
+                  div(class = "download-section",
+                      tags$div(class = "download-header", "Long-term outcome data"),
+                      downloadButton("download_simMSM", "longTermOutcome_output.csv")
+                  )
+                ), 
+                col_widths = c(6, 6)
+              )
+            )
+          ), 
+          col_widths = 12
+        )
+      )
+    )
   ),
   br(),
   conditionalPanel(
@@ -33,9 +99,8 @@ mainTabResults <- tabPanel(
       layout_columns(
         # Dosing details
         card(
-          card_header("Dosing regimens", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Dosing regimens", style = "font-size: 20px; background-color: #CDD8DA;"),
           card_body(
-            # Add a text output element to display regimen details
             uiOutput("regimen_boxes")
           )
         ),
@@ -95,20 +160,22 @@ mainTabResults <- tabPanel(
         row_heights = c(2,5,5,8)
       )
     )
-  ), # end of conditionalPanel Overview, 
+  ), # end of conditionalPanel Overview
   conditionalPanel(
     condition = "input.resTab=='Patient Characteristics'",
     page_fillable(
       layout_columns(
         card(
-          card_header("Table", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body(tableOutput("PopSummaryTable")
+          card_header("Table", style = "font-size: 20px; background-color: #CDD8DA;"),
+          card_body(
+            tableOutput("PopSummaryTable")
           )
         ),
         # Second card with custom background color and styled card header/body
         card(
-          card_header("Plot", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body(plotOutput("PopSummaryPlot")
+          card_header("Plot", style = "font-size: 20px; background-color: #CDD8DA;"),
+          card_body(
+            plotOutput("PopSummaryPlot")
           )
         ),
         col_widths = c(5,7)

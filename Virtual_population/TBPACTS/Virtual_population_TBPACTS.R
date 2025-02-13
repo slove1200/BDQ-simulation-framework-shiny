@@ -255,15 +255,16 @@ myCovSimMICE <- simCovMICE(m = 15,orgCovs = orgCovsEx,
                         replace = TRUE, 
                         prob = c(0.7, 0.2, 0.1)), 
          ID      = row_number())  %>%
-  select(ID, everything())
+  select(ID, everything()) %>%
+  select(-TBTYPE, -NSIM)
   
 
 # Output simulated virtual population
 setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")
-write.csv(myCovSimMICE, file = "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", row.names = FALSE)
+write.csv(myCovSimMICE %>% select(-RACE), file = "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", row.names = FALSE)
 
 # Output template virtual population
-template <- myCovSimMICE %>% filter(ID %in% c(seq(1, 500, by = 10))) %>% select(-NSIM) %>%
+template <- myCovSimMICE %>% filter(ID %in% c(seq(1, 500, by = 10))) %>%
   mutate(ID = row_number())
 
 setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS")

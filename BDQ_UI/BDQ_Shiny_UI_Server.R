@@ -35,7 +35,6 @@ source(paste0(UI.directory, "BDQ_Shiny_UI_Dosing.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Population.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Simulation.R"))
 source(paste0(UI.directory, "BDQ_Shiny_UI_Results.R"))
-#source(paste0(UI.directory, "BDQ_Shiny_UI_SourceCode.R"))
 
 ###################### UI DEFINITION ######################
 ui <- fluidPage(
@@ -43,6 +42,11 @@ ui <- fluidPage(
     
     # CSS Styles
     tags$style(HTML("
+            /* Title Panel Styles */
+        .title-panel h2 {
+            font-size: 24px;  /* Adjust this value to make title larger or smaller */
+        }
+        
         /* Go Button Styles */
         #goButton {
             background-color: #C1D4D78D;
@@ -74,20 +78,64 @@ ui <- fluidPage(
             transform: scale(0.98);
         }
 
-        
+        /* Main navigation tabs style */
+        #mainTab > li > a {
+            color: #333333 !important;
+        }
+
+        #mainTab > li > a.active {
+            color: #333333 !important;  
+            font-weight: bold !important;
+        }
+
+        /* Radio buttons and checkboxes style */
+        input[type='radio']:checked,
+        input[type='checkbox']:checked {
+            background-color: #809890 !important;
+            border-color: #809890 !important;
+        }
+
+        /* Radio buttons hover effect */
+        input[type='radio']:not(:disabled):not(:checked):hover,
+        input[type='checkbox']:not(:disabled):not(:checked):hover {
+            border-color: #809890 !important;
+        }
+
+        /* Focus state for form controls */
+        input[type='radio']:focus,
+        input[type='checkbox']:focus {
+            border-color: #809890 !important;
+            box-shadow: 0 0 0 0.25rem #99BAB08D !important;
+        }
+
+        /* Style for subset pills */
+        .nav-pills {
+            font-size: 14px !important;
+        }
+
+        .nav-pills .nav-link {
+            padding: 0.25rem 1rem !important;
+            color: #333333 !important;  /* Even darker shade for subset pills */
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: #555555 !important;
+            color: white !important;
+        }
     ")),
     
-    # Application Title
-    titlePanel("BEDAQUILINE DOSE REGIMEN"),
-
+    # Application Title with custom div
+    div(class = "title-panel",
+        h2("Bedaquiline Dose-PK-Efficacy/Safety-Outcome Simulation Framework")
+    ),
+    
     # Main Tab Panel
     tabsetPanel(
-        id = "mainTab",
+        id = "mainTab", selected = "About",
         tabPanel("Dosing", value = "Dosing", mainTabDosing),
         tabPanel("Population", value = "Population", mainTabPopulation),
         tabPanel("Simulation", value = "Simulation", mainTabSim),
         tabPanel("Results", value = "Results", mainTabResults),
-        #tabPanel("Source Code", value = "Source Code", mainTabCode()),
         tabPanel("About", value = "About", mainTabAbout)
     )
 )
@@ -252,15 +300,31 @@ server <- function(input, output, session) {
           create_regimen_boxes(input, stored_regimens())
         })
         
-        # Sampling virutal population 
-        incProgress(0.12, detail = "Sampling virutal population...")
-        if (input$population_radio == "Population" & input$dataset_source == "Default") {
-        virtual_population_df <- Pop_generation(input)
-        }
-        
-        if (input$population_radio == "Population" & input$dataset_source == "Import") {
-          virtual_population_df <- read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",") %>% 
-            filter(row_number() <= input$nsim)
+        # Sampling virtual population 
+        incProgress(0.12, detail = "Sampling virtual population...")
+        if (input$population_radio == "Population") {
+            if (input$dataset_source == "Default") {
+                virtual_population_df <- Pop_generation(input)
+            } else if (input$dataset_source == "Import") {
+                virtual_population_df <- read.csv(input$uploaded_data$datapath, header = TRUE, sep = ",") %>% 
+                    filter(row_number() <= input$nsim)
+            }
+        } else {  # Individual mode
+            # Create a single-row dataframe with the individual's parameters
+            virtual_population_df <- data.frame(
+                ID = 1,
+                AGE = as.numeric(input$AGE_ind),
+                WT = as.numeric(input$WT_ind),
+                ALB = as.numeric(input$ALB_ind),
+                CACOR = as.numeric(input$CACOR_ind),
+                K = as.numeric(input$K_ind),
+                MTTP = as.numeric(input$MTTP_ind) * 24,  # Convert to hours
+                SEX = as.numeric(input$SEX_ind),
+                RACE = as.numeric(input$RACE_ind),
+                stringsAsFactors = FALSE
+            ) %>% 
+            # Ensure we have at least one row
+            slice(rep(1, max(1, input$nsim)))
         }
         
         # Summary of individual or virtual population
@@ -282,7 +346,6 @@ server <- function(input, output, session) {
           PopSummary_plot
         })
         
-        
   
         # PK simulation
         incProgress(0.12, detail = "Running PK simulation...")
@@ -295,15 +358,15 @@ server <- function(input, output, session) {
         # TTP simulation
         incProgress(0.12, detail = "Running TTP simulation...")
         sim_TTPtable <- sim_TTP(input, sim_PKtable, virtual_population_df)
-        
+
         # MSM simulation
         incProgress(0.12, detail = "Running MSM simulation...")
         if (input$population_radio == "Individual") {
             sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
-          } else {
+        } else {
             sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
-          }
-  
+        }
+        
         # Generate PK plots
         incProgress(0.12, detail = "Generating PK plots...")
         TypPKplot <- TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
@@ -363,6 +426,69 @@ server <- function(input, output, session) {
         # After all simulations complete, remove the overlay
         removeUI(selector = "#loading-overlay", immediate = TRUE)
         loading(FALSE)
+
+        # Set up download handlers after data generation
+        output$download_virtual_population <- downloadHandler(
+            filename = function() { "virtual_individual_or_population.csv" },
+            content = function(file) {
+                write.csv(virtual_population_df %>% 
+                            mutate(ALB   = round(ALB, 1), 
+                                   CACOR = round(CACOR, 2), 
+                                   K     = round(K, 1), 
+                                   WT    = round(WT, 1)), 
+                         file, row.names = FALSE)
+            }
+        )
+
+        output$download_simPK <- downloadHandler(
+            filename = function() { "PK_output.csv" },
+            content = function(file) {
+                write.csv(sim_PKtable %>%
+                            mutate(
+                              IPRED      = round(exp(IPRED)*1000, 2), 
+                              IPREDM2    = round(exp(IPREDM2)*1000, 2),
+                              IPREDALB   = round(IPREDALB, 2), 
+                              IPREDWT    = round(IPREDWT,  2), 
+                              AAUCBDQ    = round(AAUCBDQ*1000,  2)
+                              ) %>%
+                            select(-AMT, -WT, -ALB, -AAUCM2, -SEX, -CACOR, -K) %>%
+                            rename("CONCBDQ" = "IPRED", 
+                                   "CONCM2"  = "IPREDM2", 
+                                   "AUCBDQ"  = "AAUCBDQ"
+                            ),
+                         file, row.names = FALSE)
+            }
+        )
+
+        output$download_simQT <- downloadHandler(
+            filename = function() { "QT_output.csv" },
+            content = function(file) {
+                write.csv(sim_QTtable, file, row.names = FALSE)
+            }
+        )
+
+        output$download_simTTP <- downloadHandler(
+            filename = function() { "TTP_output.csv" },
+            content = function(file) {
+                write.csv(sim_TTPtable %>%
+                            mutate(
+                              HL      = round(HL, 2)
+                            ) %>%
+                            select(-TIME, -MBL, -Y) %>%
+                            rename("WEEK" = "WEEKP", 
+                                   "TTPpos"  = "RTTE", 
+                                   "CULneg"  = "NEG"
+                            ),
+                         file, row.names = FALSE)
+            }
+        )
+
+        output$download_simMSM <- downloadHandler(
+            filename = function() { "longTermOutcome_output.csv" },
+            content = function(file) {
+                write.csv(sim_MSMtable, file, row.names = FALSE)
+            }
+        )
       })
     })
 
@@ -425,7 +551,6 @@ server <- function(input, output, session) {
       filtered_data <- if (input$dataset_source == "Default") {
         read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
                  header = T) %>% 
-          select(-RACE, -TBTYPE, -NSIM) %>%
           filter(
             SEX %in% c(0, 1),
             AGE >= input$AGE_min & AGE <= input$AGE_max &
@@ -448,7 +573,7 @@ server <- function(input, output, session) {
       
       # Return warning message if needed
       if (!validationStates$enough_subjects) {
-        sprintf("The number of population (%d) is lower than the number of individuals intended simulation for each regimen.", 
+        sprintf("The number of population (%d) is lower than the number of individuals intended simulation for each regime.", 
                 available_n, required_n, available_n)
       } else {
         NULL
