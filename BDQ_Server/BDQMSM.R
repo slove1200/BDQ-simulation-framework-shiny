@@ -8,7 +8,7 @@ $PROB
        active TB, converted, recurrent TB and death states
     2. 
 
-$PLUGIN nm-vars Rcpp
+$PLUGIN nm-vars Rcpp autodec
 
 $CMT @annotated
 S1      : Active TB state

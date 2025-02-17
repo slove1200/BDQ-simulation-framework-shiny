@@ -217,6 +217,11 @@ ui <- fluidPage(
         #LD3:focus {
             box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
+
+        /* Override min-height for html-fill-item */
+        .html-fill-container > .html-fill-item {
+          min-height: initial !important;
+        }
     ")),
     
     # Application Title with custom div
@@ -267,6 +272,7 @@ source(paste0(Server.directory, "BDQ_Server_Population_summary_plots.R"))
 
 # Source TTP simulation functions
 source(paste0(Server.directory, "TTPsim.R"))
+source(paste0(Server.directory, "TTP_TRTExperiencedsim.R"))
 source(paste0(Server.directory, "Server_TTP_simulation.R"))
 
 ###################### SERVER LOGIC ######################
@@ -281,6 +287,9 @@ server <- function(input, output, session) {
     output$plotTTP <- renderPlot({ NULL })
     output$plotMSM <- renderPlot({ NULL })
     output$plotTTPsim <- renderPlot({ NULL })
+
+    # Create a reactive value to store TTPsimplots results
+    TTPsim_results <- reactiveVal()
 
     ###################### RESET BUTTON OBSERVERS ######################
     # Reset buttons for each parameter
@@ -376,10 +385,35 @@ server <- function(input, output, session) {
     ###################### SIMULATION HANDLER ######################
     # Main TTP tab simulation observer
     observeEvent(input$goButton_TTP, {
-      plotTTPsim <- TTPsimplots(input)  # Call the function from the sourced file      
-      output$plotTTPsim <- renderPlot({
-        plotTTPsim
+      # Run simulation once and store results
+      results <- TTPsimplots(input)
+      TTPsim_results(results)
+      
+      # Use stored results for table
+      output$tableTTPsim <- DT::renderDataTable({
+        TTPsim_results()$TSCCdf %>% 
+          select(ID, TAST, REP, TTPD, NEG) %>%
+          DT::datatable(
+            options = list(
+              pageLength = 10,
+              scrollX = TRUE,
+              scrollY = "100%",
+              dom = 'Brtip',
+              searching = FALSE,
+              ordering = TRUE
+            ),
+            rownames = FALSE,
+            colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)"),
+            class = 'cell-border stripe'
+          )
       })
+      
+      # Only render plot if in weekly mode
+      if (input$simunit_TTP == "2") {
+        output$plotTTPsim <- renderPlot({
+          TTPsim_results()$plotTTPsim
+        })
+      }
     })
     
     # Main simulation observer

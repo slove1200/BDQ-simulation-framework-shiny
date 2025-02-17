@@ -26,7 +26,7 @@ $PROB
   - NONMEM run: 1
   - TTP model for bedaquiline
   
-$PLUGIN nm-vars
+$PLUGIN nm-vars Rcpp autodec
 
 $PARAM @covariates
 TAST = 0, 
@@ -178,8 +178,8 @@ if (EVID == 4) {
   DV           = 0 ;
   double RTTE  = 0 ;
   double ORTTE = 0 ;
-  double USUR1 = (double)rand() / (double)RAND_MAX;  // 2nd distribution (uniform)
-  double USUR2 = (double)rand() / (double)RAND_MAX;  // 3nd distribution (uniform)
+  double USUR1 = R::runif(0,1) ;  // 2nd distribution (uniform)
+  double USUR2 = R::runif(0,1) ;  // 3nd distribution (uniform)
 }
 
 // Simulate positive or negative sample

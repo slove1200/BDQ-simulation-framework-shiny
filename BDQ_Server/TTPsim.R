@@ -11,76 +11,84 @@
 #;FLAG - 1/2 Flagging records for logistic model (2) and time-to-event model (1)
 #;TYPE - 0/1 Flagging records for estimation (1) and simulation (0)
 #;LASTR - 0/1 Flag for simulations marking last possible time for MGIT positive signal (42days)
-#;AUCW - Individual bedaquiline weekly AUC  [ng*h/mL]
-#;TBTYPE  - 2/3/4 Drug sensitivity classification DS or MDR/pre-XDR/XDR 
+#;TREATMENT - 0/1 placebo or bedaquiline treatment arm
+#;CAVG - Individual weekly average concentration [µg/mL]
+#;TBTYPE  - 1/2/3/4 Drug sensitivity classification DS/MDR/pre-XDR/XDR 
 #;MTTP - Individual mean time to positivity at baseline [hours] 
 
 # TASTW (in weeks) = TAST/24/7 
 # MTTP = indiv mean time to positivity at baseline
 
-codeTTP_TrtExperienced <- "
+codeTTP_sim <- "
 
 $PROB 
   - author: Yu-Jou Lin
-  - date: Nov 18, 2024
+  - date: Jul 14, 2022
   - NONMEM run: 1
-  - TTP model for bedaquiline using C209 data, treatment experienced
+  - TTP model for bedaquiline
   
 $PLUGIN nm-vars Rcpp autodec
 
 $PARAM @covariates
 TAST = 0, 
 TASTW = 0,
-preXDR = 0, 
-XDR  = 0,
 MTTP = 163.7,
-AUCW = 150, 
 WEEKP = 0, 
-TYPE = 2, 
 LASTR = 0,
 FLAG = 1, 
-subjectID = 1, 
 REP = 1, 
 TTPD = 1, 
-regimen = 1,
 HLEFF = 0.0
 // value = 0.1
 
 
 $PARAM @annotated
 // THETA
-  THETA1    : 3.37      : kG
-  THETA2    : 0.566    : Nmax*kG
-  THETA3    : 0.0522    : MBL0
-  THETA4    : 0.897     : HL
-  THETA5    : 0.565     : Box-Cox
-  THETA6    : 2.64      : EC50
-  THETA7    : 0.306     : Joint preXDR+XDR effect
-  THETA8    : -3.65     : MTTP effect
-  THETA9    : 0.441     : Scaling of hazard*Nmax
-  THETA10   : 0.216     : pXDR effect
+  THETA1    : 1.37552   : kG
+  THETA2    : 0.476046  : Nmax
+  THETA3    : 0.213941  : MBL0
+  THETA4    : 0.811166  : HL
+  THETA5    : 0.659174  : Box-Cox
+  THETA6    : 0.5       : N50 FIX
+  THETA7    : 1         : SHAPE FIX
+  THETA8    : 0.969     : MAX FIX
+  THETA9    : -1        : BDQ effect FIX
+  THETA10   : 1.4215    : EC50
+  // THETA10   : 2.64064   : EC50 AUCW
+  THETA11   : 0.280558  : preAndXDR effect
+  THETA12   : -3.68983  : MTTP effect
+  THETA13   : 0.952229  : Scaling of hazard
 
 $OMEGA @annotated
-ETA1     : 0.574        : HL
-ETA2     : 3.70792      : IOV in MBL
+ETA1     : 0.331734     : HL
+ETA2     : 3.70792      : IOV in MBL week 1
+ETA3     : 3.70792      : IOV in MBL week 2
+ETA4     : 3.70792      : IOV in MBL week 3
+ETA5     : 3.70792      : IOV in MBL week 4
+ETA6     : 3.70792      : IOV in MBL week 5
+ETA7     : 3.70792      : IOV in MBL week 6
+ETA8     : 3.70792      : IOV in MBL week 7
+ETA9     : 3.70792      : IOV in MBL week 8
+ETA10    : 3.70792      : IOV in MBL week 10
+ETA11    : 3.70792      : IOV in MBL week 12
+ETA12    : 3.70792      : IOV in MBL week 14
+ETA13    : 3.70792      : IOV in MBL week 16
+ETA14    : 3.70792      : IOV in MBL week 18
+ETA15    : 3.70792      : IOV in MBL week 20
 
 $MAIN //The same as $PK in NONMEM
 //=========== DISEASE PROGRESSION MODEL IN PATIENTS ===========
 //--- Definition of covariates
-  double BDQEFF        = -1 * AUCW/(AUCW + THETA6 * 100) ;
-  double MIXEFF        = THETA7                          ; // Joint effect of p-XDR & XDR (because PRIOR from C208)
-  double PPX           = 0.8596491                       ; // 49/(49+8), Proportion of PreXDR in C208 NPRE/(NPRE+NXDR)=0.859
-  double XDREFF        = (MIXEFF - THETA10*PPX)/(1-PPX)	 ; // XDReff equivalent of joint effect minus effect of pXDR
-  double preXDREFF     = THETA10                         ;
-  double MTTPEFF       = THETA8                          ;
+  double MTTPEFF = THETA12 ;
+
 
 //--- Mycobacterial load over time on treatment (TAST)
   double BXPAR   = THETA5 ; 
   double PHI     = exp(ETA(1)) ; 
   double ETATR   = (pow(PHI, BXPAR) - 1)/BXPAR ;  // Box-Cox transformation of the IIV in half-life (HL)
   double N0MBL   = THETA3 * 10000 * pow((MTTP/163.7), MTTPEFF) ; // Number of mycobacterial at start of treatment 
-  // HL of mycobacterial load, assuming patients had prior TB treatment before initiating bedaquiline = 28%
-  double HL      = THETA4 * (1 + BDQEFF) * (1.0 + 0.28) * exp(ETATR) * (1.0+HLEFF/100.0) ; // HL of mycobacterial load modifier
+  // double N0MBL   = value ; // For validate TTP model
+  double HL      = THETA4 * exp(ETATR) * (1.0+HLEFF/100.0) ; // HL of mycobacterial load modifier
   double KD      = log(2)/HL ;
 
 
@@ -97,30 +105,26 @@ $MAIN //The same as $PK in NONMEM
   OTAST = TASTW ; 
   OMBL = MBL ;
   
-// --- Inter-occasion variability in sputum sampling between weeks
-// --- Possible to estimate due to triplicate sputum samples from each sampling occasion
-  double IOV = 0 ;
-  // if(WEEKP == 1) IOV = ETA(2) ;
-  
+  double N0 = MBL ;
+
+
 //=========== PROBABILITY OF BACTERIAL PRESENCE =========== (Emax model)
-  double N50 = 0.5                  ; 
-  double MAX = 0.969                ;
-  double P1  = (MAX*N0 / N50 + N0)  ; // Probability of bacterial presence, i.e. positive sample
-  double P2  = 1 - P1               ;
+  double N50 = THETA6 ; 
+  double SHP = THETA7 ;
+  double MAX = THETA8 ;
+  double P1  =  (MAX*pow(N0, SHP)) / (pow(N50, SHP) + pow(N0, SHP)) ; // Probability of bacterial presence, i.e. positive sample
+  double P2  = 1 - P1 ;
 
 
 //=========== GROWTH MODEL OF MYCOBACTERIA IN MGIT TUBE ===========
-  double KGROWTH = THETA1/1000000   ; // Scaling to avoid parameter estimation over several orders of magnitude 
-  double KGNMAX  = THETA2           ; // kg*Nmax
-  double NMAX    = KGNMAX/KGROWTH	  ;					
-  double N0      = MBL * exp(IOV)   ;
+  double KGROWTH = THETA1/1000000 ; // Scaling to avoid parameter estimation over several orders of magnitude 
+  double NMAX    = THETA2*1000000	;					
   
-  if(N0 > NMAX) N0 = NMAX           ; // Safety to avoid inoculation > Nmax
-  F1 = N0                           ; // Amount of bacteria inoculated in MGIT tube 
+  if(N0 > NMAX) N0 = NMAX ; // Safety to avoid inoculation > Nmax
+  F1 = N0 ; // Amount of bacteria inoculated in MGIT tube 
   
 //--- Scaling of hazard
-  double SHNMAX   = THETA9          ;
-  double SCALEHAZ = SHNMAX/NMAX     ;
+  double SCALEHAZ = THETA13/1000000 ;
 
 $CMT @annotated
   BUGS   : 1 logistic growth model of mycobacteria in MGIT
@@ -133,15 +137,13 @@ $ODE //$DES
   
 $TABLE //$ERROR                                                                                       
 //--- Logistic model positive/negative sample
-if(FLAG == 2 && double DV == 1) capture Y = P1      ; // Probability of positive culture
+if(FLAG == 2 && double DV == 1) double Y = P1      ; // Probability of positive culture
 if(FLAG == 2 && DV == 0) Y = 1 - P1          ; // Probability of negative culture
 
 //--- Time-to-event model for TTP
 double HAZ = A(1) * SCALEHAZ                 ; // Instantaneous hazard of positive culture
 double CHZ = A(2)                            ; // Cumulative hazard
 double SURV = exp(-CHZ)                      ; // Survival
-if(FLAG == 1 && DV == 1) Y = SURV*HAZ        ; // Probability density for MGIT positivity signal
-if(FLAG == 1 && DV == 0) Y = SURV            ; // Survival in MGIT
 
 // ---------- SIMULATION MODEL ------------------------------;
 // For new sample
@@ -162,7 +164,6 @@ if (FLAG == 2) {
   RTTE = 0 ;
 }
 
-
 // If there was a previous event
 if (ORTTE == 1) RTTE = 0 ;
 
@@ -182,5 +183,5 @@ if (ORTTE == 0 && LASTR == 1) {
 
 
 // $CAPTURE TAST TASTW WEEKP REP TTPD FLAG DV ETATR NEWIND N0MBL N0 OMBL MBL OTAST DTAST SURV HAZ CHZ ORTTE RTTE USUR1 USUR2 P1 NEG LASTR
-$CAPTURE WEEKP MTTP REP TTPD FLAG HL MBL RTTE NEG regimen
+$CAPTURE TAST MTTP REP TTPD FLAG DV USUR1 USUR2 HL N0MBL MBL SURV ORTTE RTTE P1 NEG LASTR
 "
