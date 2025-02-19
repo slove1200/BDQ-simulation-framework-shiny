@@ -12,6 +12,6 @@ MTTP     - Individual mean time to positivity at baseline [hours]
 REP      - Number of replicate sputum sample collected at the same week
 FLAG     - 1 = Records for time-to-event model, 2 = Records for logistic model
 HL       - Model-derived time-varying half-life of mycobacterial load
-TTPpos   - Positive TTP signal [days]. If Culture is negative, TTPpos will be 42 days (considered as negative culture)
+TTPpos   - 0 = No TTP signal, 1 = Positive TTP signal. If TTPpos = 1 at TTPD = 42, it is considered as negative signal
 CULneg   - 0 = Culture positive, 1 = Culture negative for each sample at each week
 regimen  - Regimens specified by the users

@@ -231,13 +231,13 @@ ui <- fluidPage(
     
     # Main Tab Panel
     tabsetPanel(
-        id = "mainTab", selected = "About",
-        tabPanel("Dosing", value = "Dosing", mainTabDosing),
-        tabPanel("Population", value = "Population", mainTabPopulation),
-        tabPanel("Simulation", value = "Simulation", mainTabSim),
-        tabPanel("Results", value = "Results", mainTabResults),
-        tabPanel("About", value = "About", mainTabAbout), 
-        tabPanel("TTP Simulation", value = "TTPsim", mainTabTTPSim)
+      id = "mainTab", selected = "About",
+      tabPanel("Dosing", value = "Dosing", mainTabDosing),
+      tabPanel("Population", value = "Population", mainTabPopulation),
+      tabPanel("Simulation", value = "Simulation", mainTabSim),
+      tabPanel("Results", value = "Results", mainTabResults),
+      tabPanel("About", value = "About", mainTabAbout), 
+      tabPanel("Extra: TTP Simulation", value = "TTPsim", mainTabTTPSim)
     )
 )
 
@@ -616,13 +616,20 @@ server <- function(input, output, session) {
                 # Write CSV file
                 write.csv(sim_PKtable %>%
                             mutate(
-                                IPRED      = round(exp(IPRED)*1000, 2), 
-                                IPREDM2    = round(exp(IPREDM2)*1000, 2),
-                                IPREDALB   = round(IPREDALB, 2), 
-                                IPREDWT    = round(IPREDWT,  2), 
-                                AAUCBDQ    = round(AAUCBDQ*1000,  2)
+                              IPRED      = round(exp(IPRED)*1000, 2), 
+                              IPREDM2    = round(exp(IPREDM2)*1000, 2),
+                              IPREDALB   = round(IPREDALB, 2), 
+                              IPREDWT    = round(IPREDWT,  2), 
+                              AAUCBDQ    = round(AAUCBDQ*1000, 2), 
+                              AAUCM2     = round(AAUCM2*1000, 2)
                             ) %>%
-                            select(-AMT, -WT, -ALB, -AAUCM2, -SEX, -CACOR, -K), 
+                            rename(
+                              "CONCBDQ"  = "IPRED", 
+                              "CONCM2"   = "IPREDM2",
+                              "AUCBDQ"   = "AAUCBDQ", 
+                              "AUCM2"    = "AAUCM2"
+                            ) %>%
+                            select(-AMT, -WT, -ALB, -SEX, -CACOR, -K), 
                          temp_files[1], 
                          row.names = FALSE)
                 

@@ -10,7 +10,7 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
   
   # Convert def_window to match time unit if needed
   if (time_unit == "2") { # if weeks
-    def_window <- ceiling(def_window / 7) # convert days to weeks
+    def_window_wk <- ceiling(def_window / 7) # convert days to weeks
   }
   
   # Process data to compute TSCC for each patient
@@ -18,51 +18,57 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
   
   # Helper function to check for sustained conversion
   check_sustained <- function(TAST, TTPD, REP, def_window) {
-    # First, summarize by timepoint to check if all replicates are negative
     df <- data.frame(TAST = TAST, TTPD = TTPD, REP = REP) %>%
       group_by(TAST) %>%
       summarise(
-        is_negative = all(TTPD == 42),  # TRUE only if all replicates are negative
+        is_negative = all(TTPD == 42),
         .groups = "drop"
       )
     
     n <- nrow(df)
     is_negative <- df$is_negative
     sustained <- rep(FALSE, n)
+    max_time <- max(df$TAST)
+    weeks_needed <- def_window_wk
     
-    for (i in 1:(n-1)) {  # Only check up to second-to-last point
-        if (!is_negative[i]) next # Skip if current point not negative
-        
-        current_time <- df$TAST[i]
-        
-        # Find next timepoint that's at least def_window away
-        future_indices <- which(df$TAST >= (current_time + def_window/7))  # convert days to weeks
-        if (length(future_indices) == 0) next  # No future points far enough
-        
-        next_time_index <- min(future_indices)
-        
-        # Check if next qualifying timepoint is negative
-        if (is_negative[next_time_index]) {
-            # Check if all points between are negative (if any exist)
-            between_indices <- which(df$TAST > current_time & df$TAST < df$TAST[next_time_index])
-            if (length(between_indices) > 0) {
-                if (!all(is_negative[between_indices])) next  # Skip if any positives between
-            }
-            sustained[i] <- TRUE
-        }
+    for (i in 1:n) {
+      if (!is_negative[i]) next
+      
+      current_time <- df$TAST[i]
+      target_time <- current_time + weeks_needed
+      
+      # CRITICAL CHANGE: First check if we have enough follow-up time
+      if (target_time > max_time) {
+        next
+      }
+      
+      # Find if we have any timepoints at or after target_time
+      future_indices <- which(df$TAST >= target_time)
+      if (length(future_indices) == 0) {
+        next
+      }
+      
+      # Check all intermediate points
+      all_future_indices <- which(df$TAST > current_time)
+      if (!all(is_negative[all_future_indices])) {
+        next
+      }
+      
+      sustained[i] <- TRUE
     }
     
-    # Expand results back to match original data length
     return(rep(sustained, each = max(REP)))
   }
   
   # Calculate TSCC for each patient
+  if (time_unit == "2") {
   df_tscc <- TSCCdf %>%
     arrange(ID, TAST, REP) %>%
     group_by(ID) %>%
     mutate(sustained = check_sustained(TAST, TTPD, REP, def_window)) %>%
     summarise(TSCC = if (any(sustained)) min(TAST[sustained]) else NA_real_,
               .groups = "drop")
+  }
   
   # For time_unit = "1", return only TSCCdf
   if (time_unit == "1") {

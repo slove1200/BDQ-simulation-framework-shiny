@@ -14,4 +14,5 @@ CONCM2   - Bedaquiline's main metabolite M2 concentration [ng/mL]
 IPREDALB - Model-predicted time-varying albumin concentration [g/dL]
 IPREDWT  - Model-predicted time-varying weight [kg]
 AUCBDQ   - Cumulative AUC of bedaquiline [ng/mL*h]
+AUCM2    - Cumulative AUC of M2 [ng/mL*h]
 regimen  - Regimens specified by the users

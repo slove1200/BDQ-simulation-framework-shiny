@@ -25,7 +25,7 @@ The definitions of Converted and Recurrent TB states were based on sputum cultur
 # Column definitions:
 ID          - Subject ID number
 WEEK        - Week of the visits
-STATE       - Outcome state
+STATE       - Outcome state (1 = Active infection, 2 = Converted, 3 = Recurrent TB, 5 = Death)
 HL2         - Model-derived time-varying half-life of mycobacterial load until week 2 (LOCF after week 2) from the PK-efficacy model
 MTTP        - Individual mean time to positivity at baseline [hours] 
 WT          - Baseline weight [kg]
