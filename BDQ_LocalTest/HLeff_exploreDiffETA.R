@@ -235,7 +235,7 @@ run_simulation <- function(HLEFF_value) {
   
   dfTTP <- TTPdf_fin %>% full_join(dfCAVG %>% rename("TASTW" = "WEEKP"), by = c("ID", "TASTW"))
   
-  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot)
+  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot3)
   
   set.seed(3468)
   
@@ -258,84 +258,87 @@ run_simulation <- function(HLEFF_value) {
 }
 
 # Run the simulation for all HLEFF values and store results
-outTSCC_results <- lapply(HLEFF_values, run_simulation)
+outTSCC_results3 <- lapply(HLEFF_values, run_simulation)
 
 # Combine all results into one dataframe
-final_results <- bind_rows(outTSCC_results)
+final_results3 <- bind_rows(outTSCC_results)
 
 
-summary_HLeff <- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
+summary_HLeff3 <- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
   mutate(HLeffNum = rep(HLEFF_values, each = 2)) %>%
   group_by(TAST, HLeffNum) %>%
   mutate(time_label = factor(TAST,
                              levels = c(8, 24),
                              labels = c("Month 2", "Month 6")))
 
+
+summary_HLeff_all <- rbind(
+  summary_HLeff %>% mutate(ETA = "Original"), 
+  summary_HLeff2 %>% mutate(ETA = "50% ETA"), 
+  summary_HLeff3 %>% mutate(ETA = "No ETA")
+)
+
+summary_HLeff_all$GRP_label <- factor(
+  interaction(summary_HLeff_all$time_label, summary_HLeff_all$ETA),
+  levels = c(
+    "Month 2.Original", "Month 2.50% ETA", "Month 2.No ETA",
+    "Month 6.Original", "Month 6.50% ETA", "Month 6.No ETA"
+  ),
+  labels = c(
+    "Month 2: Original ETA", "Month 2: 50% ETA", "Month 2: No ETA",
+    "Month 6: Original ETA", "Month 6: 50% ETA", "Month 6: No ETA"
+  )
+)
+
+
 # plot
-p1 <- ggplot() +
-  geom_line(data = summary_HLeff, 
-            aes(x = HLeffNum, y = (1-prop_without_scc) * 100, 
-                color = time_label,
-                group = TAST),
-            size = 1.2) +
-  # Add reference lines and their labels
-  geom_text(data = data.frame(time_label = "Month 2", 
-                              y = 58, 
-                              x = 0),  
-            aes(x = x, y = y),
-            label = "Month 2: 57.6%",
-            color = "darkred",
-            hjust = -0.1,  # adjust horizontal position
-            vjust = 0,  # adjust vertical position
-            size = 7) +
-  geom_text(data = data.frame(time_label = "Month 6", 
-                              y = 88, 
-                              x = 0),  
-            aes(x = x, y = y),
-            label = "Month 6: 89.0%",
-            color = "darkblue",
-            hjust = -0.1,  # adjust horizontal position
-            vjust = -0.5,  # adjust vertical position
-            size = 7) +
-  geom_vline(xintercept = 0, 
-             color = "#666666", 
-             size = 1, 
-             linetype = "dashed") +
+ggplot() +
+  geom_line(data = summary_HLeff_all, 
+            aes(x = HLeffNum, y = (1 - prop_without_scc) * 100, 
+                color = GRP_label,  
+                group = GRP_label),  
+            size = 1.5) +
+  
+  # # Add reference text for Month 2
+  # geom_text(data = data.frame(time_label = "Month 2", y = 58, x = 0),  
+  #           aes(x = x, y = y), label = "Month 2: 57.6%",
+  #           color = "darkred", hjust = -0.1, vjust = 0, size = 7) +
+  # 
+  # # Add reference text for Month 6
+  # geom_text(data = data.frame(time_label = "Month 6", y = 75, x = 0),  
+  #           aes(x = x, y = y), label = "Month 6: 89.0%",
+  #           color = "darkblue", hjust = -0.1, vjust = -0.5, size = 7) +
+  
+  # Add vertical reference line
+  geom_vline(xintercept = 0, color = "#666666", size = 1, linetype = "dashed") +
+  
   theme_bw() +
   labs(x = "Half-life of mycobacterial load % longer", 
        y = "Conversion rate (%)", 
-       color = NULL) +
+       color = "Time Label & ETA") +
+  
   ggtitle("Conversion rate over relative % of half-life changes") +
   theme(
     plot.title = element_text(size = 20, hjust = 0.5),
     axis.title = element_text(size = 18),
     axis.text = element_text(size = 15),
-    # legend.text = element_text(size = 14),
-    # strip.text = element_text(size = 18),
-    legend.position = "none"
-    # legend.position = c(.10, .10),
-    # legend.box.just = "left",
-    # legend.margin = margin(3, 3, 3, 3), 
-    # legend.key = element_rect(color = "transparent", fill = "transparent"), 
-    # legend.key.height = unit(1, "cm")
+    legend.title = element_blank(), 
+    legend.text = element_text(size = 11), 
+    legend.position = c(.15, .20),
+    legend.box.just = "left",
+    legend.margin = margin(3, 3, 3, 3), 
+    legend.key = element_rect(color = "transparent", fill = "transparent"), 
+    legend.key.height = unit(0.8, "cm")
   ) +
-  scale_color_manual(values = c("Month 2" = "#c1121f",  # lighter red
-                                "Month 6" = "#023e8a")) +  # lighter blue
+  # Define colors for each ETA within time labels
+  scale_color_manual(values = c(
+    "Month 2: Original ETA" = "darkred",  # Darkest red
+    "Month 2: 50% ETA" = "#C1121F",  # Dark red
+    "Month 2: No ETA" = "#FF9999",  # Light red
+    "Month 6: Original ETA" = "darkblue",  # Darkest blue
+    "Month 6: 50% ETA" = "#00AAFF",  # Dark blue
+    "Month 6: No ETA" = "#99CCFF"  # Light blue
+  )) +
   scale_x_continuous(breaks = seq(-50, 100, by = 10), limits = c(-50, 100), expand = c(0, 3)) +
-  scale_y_continuous(
-    limits = c(5, 100),
-    breaks = seq(10, 100, by = 10)
-  )
-  
-p1
+  scale_y_continuous(limits = c(5, 100), breaks = seq(10, 100, by = 10))
 
-# 
-# setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_LocalTest")
-# write.csv(summary_HLeff, "summary_HLeff.csv", row.names = F)
-
-png.filename <- paste0('HLEFF_halfLife_TSCC.png')
-png(units = 'mm',res=1000,filename = png.filename,width = 200,height = 150)
-
-p1
-dev.off()
-  
