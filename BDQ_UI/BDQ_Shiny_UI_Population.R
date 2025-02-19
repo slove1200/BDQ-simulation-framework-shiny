@@ -277,6 +277,16 @@ mainTabPopulation <- tabPanel(
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "Baseline Time-to-positivity in MGIT Culture (days)"), 
                              value = 6.8, min = 0.1, max = 42, step = 0.1)
                          )
+                       ), 
+                       card(
+                         style = "overflow: visible;",
+                         card_header("Treatment History", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                         card_body(
+                           style = "overflow: visible;",
+                           selectInput("STUDY", 
+                             label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Individual Patient"), 
+                             choices = c("Treatment-naïve", "Treatment-experienced"))
+                         )
                        )
                 ),
                 column(6,
@@ -298,7 +308,7 @@ mainTabPopulation <- tabPanel(
                          card_body(
                            numericInput("HLEFF", 
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
-                             value = -50, min = -100, max = 500), 
+                             value = -40, min = -100, max = 200), 
                            imageOutput("HLEFFplot_indv", height = "auto")
                          )
                        )
@@ -400,11 +410,20 @@ mainTabPopulation <- tabPanel(
                 ),
                 # Second row: Original Population view content
                 column(5,
+                  card(
+                    card_header("Treatment History", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                    card_body(
+                      style = "overflow: visible;",
+                      selectInput("STUDY", 
+                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Patient Population"), 
+                        choices = c("Treatment-naïve", "Treatment-experienced"))
+                    )
+                  ),
                   # Removed overlay container for Half-life modifier
                   card(
                     card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
-                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial load"), value = -50, min = -100, max = 500), 
+                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial Load"), value = -40, min = -100, max = 500), 
                       imageOutput("HLEFFplot_pop", height = "auto")
                     )
                   )
@@ -431,7 +450,7 @@ mainTabPopulation <- tabPanel(
                         ),
                         # Age row
                         fluidRow(
-                          column(4, "Age (years)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Age (years)", style = "font-size: 12px; font-weight: bold; padding-top: 7px;"),
                           column(3, numericInput("AGE_min", NULL, value = 17, min = 0, max = 100)),
                           column(3, numericInput("AGE_max", NULL, value = 69, min = 0, max = 100)),
                           column(2, actionButton("reset_AGE", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -439,7 +458,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Weight row
                         fluidRow(
-                          column(4, "Weight (kg)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Baseline Weight (kg)", style = "font-size: 12px; font-weight: bold;"),
                           column(3, numericInput("WT_min", NULL, value = 29, min = 0, max = 140)),
                           column(3, numericInput("WT_max", NULL, value = 112, min = 0, max = 140)),
                           column(2, actionButton("reset_WT", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -447,7 +466,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Albumin row
                         fluidRow(
-                          column(4, "Albumin (g/dL)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Baseline Albumin (g/dL)", style = "font-size: 12px; font-weight: bold;"),
                           column(3, numericInput("ALB_min", NULL, value = 1.9, min = 0, max = 300)),
                           column(3, numericInput("ALB_max", NULL, value = 5.0, min = 0, max = 300)),
                           column(2, actionButton("reset_ALB", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -455,7 +474,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Calcium row
                         fluidRow(
-                          column(4, "Calcium (mmol/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Baseline Calcium (mmol/L)", style = "font-size: 12px; font-weight: bold;"),
                           column(3, numericInput("CACOR_min", NULL, value = 2.00, min = 0, max = 20)),
                           column(3, numericInput("CACOR_max", NULL, value = 3.08, min = 0, max = 20)),
                           column(2, actionButton("reset_CACOR", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -463,7 +482,7 @@ mainTabPopulation <- tabPanel(
                         
                         # Potassium row
                         fluidRow(
-                          column(4, "Potassium (mmol/L)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Baseline Potassium (mmol/L)", style = "font-size: 12px; font-weight: bold;"),
                           column(3, numericInput("K_min", NULL, value = 3.20, min = 0, max = 20)),
                           column(3, numericInput("K_max", NULL, value = 6.26, min = 0, max = 20)),
                           column(2, actionButton("reset_K", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -471,7 +490,7 @@ mainTabPopulation <- tabPanel(
                         
                         # MGIT TTP row
                         fluidRow(
-                          column(4, "MGIT TTP (days)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Baseline TTP (days)", style = "font-size: 12px; font-weight: bold;"),
                           column(3, numericInput("MTTP_min", NULL, value = 1.3, min = 0, max = 42)),
                           column(3, numericInput("MTTP_max", NULL, value = 42, min = 0, max = 42)),
                           column(2, actionButton("reset_MTTP", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
@@ -479,14 +498,14 @@ mainTabPopulation <- tabPanel(
                         
                         # Sex row (special case with only one input)
                         fluidRow(
-                          column(4, "Sex (% Female)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Sex (% Female)", style = "font-size: 12px; font-weight: bold; padding-top: 7px;"),
                           column(6, numericInput("SEX_female", NULL, value = 50, min = 0, max = 100)),
                           column(2, actionButton("reset_SEX", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
                         ),
 
                         # Race row
                         fluidRow(
-                          column(4, "Race (% Black)", style = "font-size: 13px; font-weight: bold; padding-top: 7px;"),
+                          column(4, "Race (% Black)", style = "font-size: 12px; font-weight: bold; padding-top: 7px;"),
                           column(6, numericInput("popRACE", NULL, value = 40, min = 0, max = 100)),
                           column(2, actionButton("reset_RACE", "Reset", class = "btn-sm"), style = "padding-left: 0px;")
                         )

@@ -57,29 +57,29 @@ mainTabResults <- tabPanel(
                 div(
                   # Pharmacokinetics section
                   div(class = "download-section",
-                      tags$div(class = "download-header", "Pharmacokinetics data"),
-                      downloadButton("download_simPK", "Download PK data")
+                      tags$div(class = "download-header", "Pharmacokinetics Data"),
+                      downloadButton("download_simPK", "Download PK Data")
                   ),
                   # Efficacy section
                   div(class = "download-section",
-                      tags$div(class = "download-header", "Efficacy data (Time to positivity signal)"),
-                      downloadButton("download_simTTP", "Download TTP data")
+                      tags$div(class = "download-header", "Efficacy Data (Time to Positivity Signal)"),
+                      downloadButton("download_simTTP", "Download TTP Data")
                   ),
                   # Population characteristics section
                   div(class = "download-section",
-                      tags$div(class = "download-header", "Virtual individual or population characteristics"),
+                      tags$div(class = "download-header", "Virtual Individual or Population Characteristics"),
                       downloadButton("download_virtual_population", "Download Individual/Population Data")
                   ),
                 ), 
                 div(
                   # Safety section
                   div(class = "download-section",
-                      tags$div(class = "download-header", "Safety data (QT)"),
+                      tags$div(class = "download-header", "Safety Data (QT)"),
                       downloadButton("download_simQT", "Download QT Data")
                   ),
                   # Long-term outcome section
                   div(class = "download-section",
-                      tags$div(class = "download-header", "Long-term outcome data"),
+                      tags$div(class = "download-header", "Long-term Outcome Data"),
                       downloadButton("download_simMSM", "Download Long-term Outcome Data")
                   )
                 ), 
@@ -99,7 +99,7 @@ mainTabResults <- tabPanel(
       layout_columns(
         # Dosing details
         card(
-          card_header("Dosing regimens", style = "font-size: 20px; background-color: #CDD8DA;"),
+          card_header("Dosing Regimens", style = "font-size: 20px; background-color: #CDD8DA;"),
           card_body(
             uiOutput("regimen_boxes")
           )
@@ -137,7 +137,7 @@ mainTabResults <- tabPanel(
         ),
         # Second card with custom background color and styled card header/body
         card(
-          card_header("Efficacy (Time to positivity signal)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Efficacy (Time to Positivity Signal)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_TTPtable"),
                     plotOutput("plotTTP")
           )
@@ -151,7 +151,7 @@ mainTabResults <- tabPanel(
         ),
         # Fourth card with custom background color and styled card header/body
         card(
-          card_header("Long-term outcome", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
+          card_header("Long-term Outcome", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_MSMtable"),
                     plotOutput("plotMSM")
           )

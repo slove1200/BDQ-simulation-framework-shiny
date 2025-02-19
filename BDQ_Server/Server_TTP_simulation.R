@@ -182,7 +182,7 @@ TTPsimplots <- function(input) {
                TAST/7  # divide by 7 for all other cases
              }) %>%
     mutate(CMT = ifelse(AMT == 1, 1, 0)) %>%
-    arrange(ID, TAST, REP, desc(FLAG), TTPD) %>%
+    arrange(ID, TAST, REP, TTPD) %>%
     mutate(TIME = seq_along(ID) - 1, 
            MTTP  = input$MTTP_TTP*24,   
            HLEFF = input$HLEFF_TTP)

@@ -292,7 +292,7 @@ summary_HLeff_all$GRP_label <- factor(
 
 
 # plot
-ggplot() +
+p2 <- ggplot() +
   geom_line(data = summary_HLeff_all, 
             aes(x = HLeffNum, y = (1 - prop_without_scc) * 100, 
                 color = GRP_label,  
@@ -324,7 +324,7 @@ ggplot() +
     axis.text = element_text(size = 15),
     legend.title = element_blank(), 
     legend.text = element_text(size = 11), 
-    legend.position = c(.15, .20),
+    legend.position = c(.15, .22),
     legend.box.just = "left",
     legend.margin = margin(3, 3, 3, 3), 
     legend.key = element_rect(color = "transparent", fill = "transparent"), 
@@ -342,3 +342,8 @@ ggplot() +
   scale_x_continuous(breaks = seq(-50, 100, by = 10), limits = c(-50, 100), expand = c(0, 3)) +
   scale_y_continuous(limits = c(5, 100), breaks = seq(10, 100, by = 10))
 
+png.filename <- paste0('HLEFF_halfLife_TSCC_diffETA.png')
+png(units = 'mm',res=1000,filename = png.filename,width = 200,height = 150)
+
+p2
+dev.off()

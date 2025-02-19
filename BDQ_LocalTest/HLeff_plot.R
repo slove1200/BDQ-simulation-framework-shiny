@@ -235,7 +235,7 @@ run_simulation <- function(HLEFF_value) {
   
   dfTTP <- TTPdf_fin %>% full_join(dfCAVG %>% rename("TASTW" = "WEEKP"), by = c("ID", "TASTW"))
   
-  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot)
+  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot2)
   
   set.seed(3468)
   
@@ -264,7 +264,7 @@ outTSCC_results <- lapply(HLEFF_values, run_simulation)
 final_results <- bind_rows(outTSCC_results)
 
 
-summary_HLeff <- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
+summary_HLeff<- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
   mutate(HLeffNum = rep(HLEFF_values, each = 2)) %>%
   group_by(TAST, HLeffNum) %>%
   mutate(time_label = factor(TAST,

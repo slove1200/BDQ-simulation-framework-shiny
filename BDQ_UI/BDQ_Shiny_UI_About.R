@@ -208,44 +208,13 @@ mainTabAbout <- tabPanel(
                 card(
                     card_header("3. Simulation Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        layout_columns(
-                            # Advanced Settings Card
-                            card(
-                                card_header("Advanced Settings", style = "font-size: 16px; background-color: #E8ECEE;"),
-                                card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                                        tags$li(
-                                            "Select PK-efficacy model based on the patient's treatment history:",
-                                            tags$ul(
-                                                tags$li(tags$strong("Treatment-Naive:"), 
-                                                        tags$br(),
-                                                        "For patients with no prior TB treatment before initiating bedaquiline"),
-                                                tags$li(tags$strong("Treatment-Experienced:"), 
-                                                        tags$br(),
-                                                        "For patients with prior TB treatment before initiating bedaquiline")
-                                            )
-                                        ),
-                                        tags$li("Set numbers of MGIT culture replicates at each visit.",
-                                                tags$br(),
-                                                "The default value is 1 per visit"),
-                                        )
-                                    )
-                                ),
-                            
-                            # Simulation Settings Card
-                            card(
-                                card_header("Simulation Settings", style = "font-size: 16px; background-color: #E8ECEE;"),
-                                card_body(
-                                    tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                                        tags$li("Specify numbers of individuals per regimen for simulation. Same population will be applied for all regimens"),
-                                        tags$li("Set simulation time for PK, efficacy, and safety in weeks"),
-                                        tags$li("Set simulation time for long-term outcome in weeks"),
-                                        tags$li("Include interindividual variability (ON/OFF)"),
-                                        tags$li("Click \"Start simulation\" to begin")
-                                    )
-                                )
-                            ),
-                            col_widths = c(6,6)
+                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                            tags$li("Set numbers of MGIT culture replicates per sampling timepoint. The default value is 1 per sampling timepoint, maximum of 3"),
+                            tags$li("Specify numbers of individuals per regimen for simulation. Same population will be applied for all regimens"),
+                            tags$li("Set simulation time for PK, efficacy, and safety in weeks"),
+                            tags$li("Set simulation time for long-term outcome in weeks"),
+                            tags$li("Include interindividual variability (ON/OFF)"),
+                            tags$li("Click \"Start simulation\" to begin")
                         )
                     )
                 ),
