@@ -3,7 +3,7 @@ input$REP <- 1
 input$STUDY <- "Treatment-naïve" # or Treatment-experienced
 input$XDR <- "MDR-TB"
 input$MTTP <- 6.8
-input$HLEFF <- 0 # bacterial clearance % faster (suggest ranging from -50 to 150)
+input$HLEFF <- -90 # bacterial clearance % faster (suggest ranging from -50 to 100)
 
 # User input
 num_REPs <- input$REP
@@ -118,7 +118,7 @@ dfTTP <- TTPdf_fin %>% full_join(dfCAVG)
 # TTP simulation ########
 ## Simulation settings
 # 2. "simtime" and "simunit"
-
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQTTP.R")
 if (input$STUDY == "Treatment-naïve") {
   modTTP <- mcode("BDQTTP", codeTTP)
 } else {
@@ -265,7 +265,7 @@ TTPcov <- HLMBL2 %>% group_by(ID) %>%
   mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1/(1+(input$HLEFF/100))), HL2), # median of HL
          time = WEEKP*168)  %>% # hours
   filter(WEEKP %in% c(0, 1, 2, 3)) %>%
-  select(ID, MTTP, XDR, time, HL2, MBLend, dur)
+  select(ID, MTTP, time, HL2, MBLend, dur)
 
 
 #### population MSM ####
@@ -296,7 +296,7 @@ data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov, by = c("ID"
 
 # MSM simulation ########
 # Simulation settings
-
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQMSM.R")
 modMSM <- mcode("BDQMSM", BDQMSM)
 modMSM <- update(modMSM, outvars = outvars(modMSM)$capture)
 

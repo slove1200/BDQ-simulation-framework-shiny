@@ -1,4 +1,5 @@
 library(purrr)
+library(survival)
 
 # 1. Get PK output from LocalTest_PKSimulation.R ####
 # Using 500 individuals from a virtual population with IIV under the approved BDQ regimen 
@@ -92,8 +93,8 @@ dfCAVG <- full_join(dfCAVG, Pop_generation(input) %>% select(-STUDYID, -USUBJID)
 
 
 # Define the HLEFF values to iterate over
-HLEFF_values <- c(-50, -40, -30, -20, -10, 0, 
-                  10, 20, 30, 40, 50, 80, 100)
+HLEFF_values <- c(-80, -70, -60, -50, -40, -30, -20, -10, 0, 
+                  10, 20, 30, 40, 50, 80, 100, 120, 150)
 
 # Calculate TSCC function
 calculate_metrics <- function(output, time_unit = "2", def_window) {
@@ -235,7 +236,7 @@ run_simulation <- function(HLEFF_value) {
   
   dfTTP <- TTPdf_fin %>% full_join(dfCAVG %>% rename("TASTW" = "WEEKP"), by = c("ID", "TASTW"))
   
-  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot2)
+  modTTP <- mcode("BDQTTP", codeTTP_HLeffPlot)
   
   set.seed(3468)
   
@@ -258,6 +259,7 @@ run_simulation <- function(HLEFF_value) {
 }
 
 # Run the simulation for all HLEFF values and store results
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_LocalTest/BDQTTP_HLeff.R")
 outTSCC_results <- lapply(HLEFF_values, run_simulation)
 
 # Combine all results into one dataframe
@@ -321,7 +323,7 @@ p1 <- ggplot() +
   ) +
   scale_color_manual(values = c("Month 2" = "#c1121f",  # lighter red
                                 "Month 6" = "#023e8a")) +  # lighter blue
-  scale_x_continuous(breaks = seq(-50, 100, by = 10), limits = c(-50, 100), expand = c(0, 3)) +
+  scale_x_continuous(breaks = seq(-80, 150, by = 20), limits = c(-80, 150), expand = c(0, 3)) +
   scale_y_continuous(
     limits = c(5, 100),
     breaks = seq(10, 100, by = 10)
@@ -333,7 +335,7 @@ p1
 # setwd("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_LocalTest")
 # write.csv(summary_HLeff, "summary_HLeff.csv", row.names = F)
 
-png.filename <- paste0('HLEFF_halfLife_TSCC.png')
+png.filename <- paste0('HLEFF_halfLife_TSCC2.png')
 png(units = 'mm',res=1000,filename = png.filename,width = 200,height = 150)
 
 p1

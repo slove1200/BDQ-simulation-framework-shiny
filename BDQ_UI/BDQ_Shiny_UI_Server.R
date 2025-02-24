@@ -945,7 +945,7 @@ server <- function(input, output, session) {
     # Render the PNG image
     output$HLEFFplot_indv <- renderImage({
       # Path to the PNG file
-      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC.png")
+      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC2.png")
       
       # Return a list with the image path and optional width/height
       list(
@@ -960,7 +960,7 @@ server <- function(input, output, session) {
     # Render the PNG image
     output$HLEFFplot_pop <- renderImage({
       # Path to the PNG file
-      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC.png")
+      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC2.png")
       
       # Return a list with the image path and optional width/height
       list(
