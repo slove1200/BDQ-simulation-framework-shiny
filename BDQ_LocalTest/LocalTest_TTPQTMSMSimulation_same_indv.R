@@ -3,7 +3,7 @@ input$REP <- 1
 input$STUDY <- "Treatment-naïve" # or Treatment-experienced
 input$XDR <- "MDR-TB"
 input$MTTP <- 6.8
-input$HLEFF <- -90 # bacterial clearance % faster (suggest ranging from -50 to 100)
+input$HLEFF <- -40 # bacterial clearance % faster (suggest ranging from -50 to 100)
 
 # User input
 num_REPs <- input$REP
@@ -222,7 +222,7 @@ if (input$IIV == "OFF") {
 
 
 ######## MSM ####
-input$simtimeMSM <- 72
+input$simtimeMSM <- 96
 
 sim_timeMSM <- input$simtimeMSM
 
@@ -265,6 +265,7 @@ TTPcov <- HLMBL2 %>% group_by(ID) %>%
   mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1/(1+(input$HLEFF/100))), HL2), # median of HL
          time = WEEKP*168)  %>% # hours
   filter(WEEKP %in% c(0, 1, 2, 3)) %>%
+  mutate(MBLend = ifelse(MBLend == 0, 1e-300, MBLend)) %>% # set up a lower limit of MBLend to prevent log(0)
   select(ID, MTTP, time, HL2, MBLend, dur)
 
 
@@ -498,3 +499,102 @@ ggplot(data = check %>% filter(State == "P_2" & time == 24 & regimen == 1), aes(
   geom_vline(xintercept = 0.882, color = "red") +
   geom_vline(xintercept = 0.360, color = "red", linetype = "dashed") +
   geom_vline(xintercept = 0.898, color = "red", linetype = "dashed")
+
+# Graph for TTP ####
+dfForPlotTTP <- outTTP %>% 
+  filter(FLAG == 2 & NEG == 1) %>% 
+  group_by(WEEKP, regimen) %>% 
+  summarise(prop = 1-(n()/nrow(outTTP %>% filter(regimen == 1 & FLAG == 2 & WEEKP == 1))))
+## proportion = num of positive sample/total samples in each WEEKP
+
+# Create the dummy row you want to add (WEEKP = 0, regimen = c(1:n), prop = 1)
+dummy_row <- data.frame(
+  WEEKP   = 0,
+  regimen = c(1:max(outTTP$regimen)),
+  prop    = 1
+)
+
+dfForPlotTTP <- rbind(dfForPlotTTP, dummy_row) %>% arrange(WEEKP)
+
+
+plot <- ggplot(dfForPlotTTP, aes(x = WEEKP, y = prop*100, 
+                                 color = as.factor(regimen))) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3, shape = 1) +
+  xlab("Time after start of treatment (weeks)") +
+  ylab("Proportion of positive samples (%)") +
+  ggtitle("Probability of positive samples") +
+  theme_bw() +
+  scale_y_continuous(breaks = s
+                     
+                     eq(0, 100, by = 20)) +
+  scale_x_continuous(breaks = seq(0, 24, by = 4), limits = c(0, 20.5)) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  theme(
+    plot.title = element_text(size = 18),       # Main title
+    axis.title = element_text(size = 16),       # Axis titles
+    axis.text = element_text(size = 14),        # Axis text
+    legend.title = element_text(size = 16),     # Legend title
+    legend.text = element_text(size = 14),      # Legend text
+    strip.text = element_text(size = 16), 
+    legend.position = "bottom", 
+    legend.spacing.x = unit(0.5, 'cm')          # Add space between legend labels
+  ) + 
+  guides(color = guide_legend("Regimen"))
+
+plot
+
+
+# Graph for QT ####
+dfForPlotQT <- outQT %>%
+  ungroup() %>%
+  group_by(time, regimen) %>%
+  summarize(
+    lower = quantile(IPRED, probs = 0.05),
+    median = quantile(IPRED, probs = 0.5),
+    upper = quantile(IPRED, probs = 0.95)
+  )
+
+# Set dynamic ylim BDQ
+if (input$nsim == 1 || input$IIV == "OFF") { # individual
+  maxQT <- max(outQT$IPRED)
+  ymaxlimitsQT <- maxQT
+  
+  minQT <- min(outQT$IPRED)
+  yminlimitsQT <- minQT
+  
+} else {
+  q90QT <- quantile(outQT$IPRED, probs = 0.90)
+  max05QT <- max(outQT$IPRED)*0.05
+  ymaxlimitsQT <- q90QT + max05QT
+  
+  q10QT <- quantile(outQT$IPRED, probs = 0.10)
+  min05QT <- min(outQT$IPRED)*0.05
+  yminlimitsQT <- q10QT - min05QT
+}
+
+plot2 <- ggplot(dfForPlotQT, aes(x = time / 168, y = median, 
+                                 color = as.factor(regimen), 
+                                 fill = as.factor(regimen))) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.3, colour = NA) +
+  geom_line(size = 1.2) +
+  theme_bw() +
+  labs(x = "Time (weeks)", y = ("QTc (ms)")) +
+  ggtitle("QTc (ms) vs Time (weeks)") +
+  coord_cartesian(ylim = c(yminlimitsQT, ymaxlimitsQT)) +
+  scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
+  theme(
+    plot.title = element_text(size = 18),       # Main title
+    axis.title = element_text(size = 16),       # Axis titles
+    axis.text = element_text(size = 14),        # Axis text
+    legend.title = element_text(size = 16),     # Legend title
+    legend.text = element_text(size = 14),      # Legend text
+    strip.text = element_text(size = 16), 
+    legend.position = "bottom", 
+    legend.spacing.x = unit(0.5, 'cm')          # Add space between legend labels
+  ) + 
+  guides(color = guide_legend("Regimen"),
+         fill  = guide_legend("Regimen"))
+
+plot2

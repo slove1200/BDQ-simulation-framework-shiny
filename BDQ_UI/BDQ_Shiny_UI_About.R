@@ -120,7 +120,7 @@ mainTabAbout <- tabPanel(
                                                 tags$li("Baseline Albumin Concentration (g/dL)"),
                                                 tags$li("Baseline Corrected Calcium Level (mmol/L). Calculated from the equation: Corrected Ca (mmol/L) = Measured Ca (mmol/L) + 0.8 × (4 − Albumin (g/dL))"),
                                                 tags$li("Baseline Potassium Level (mmol/L)"),
-                                                tags$li("Baseline Time-to-Positivity in MGIT Culture (days)")
+                                                tags$li("Baseline Time-to-positivity in MGIT Culture (days)")
                                             )
                                         ),
                                         tags$li(
@@ -165,6 +165,23 @@ mainTabAbout <- tabPanel(
                             ),
                         col_widths = c(6,6)
                     ), 
+
+                    # Treatment History Card
+                    card(
+                        card_header("Treatment History", style = "font-size: 16px; background-color: #E8ECEE;"),
+                        card_body(
+                            tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                tags$li(
+                                    tags$strong("Choose the type of population/individual based on their treatment history:"),
+                                    tags$ul(
+                                        tags$li(tags$strong("Treatment-naïve: "), "For patients with no prior TB treatment before initiating bedaquiline"),
+                                        tags$li(tags$strong("Treatment-experienced: "), "For patients with prior TB treatment before initiating bedaquiline")
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
                     # Half-life Modifier Card
                     card(
                         card_header("Half-life Modifier", style = "font-size: 16px; background-color: #E8ECEE;"),
@@ -172,18 +189,21 @@ mainTabAbout <- tabPanel(
                             tags$span(
                                 tags$strong("Half-life modifier is a parameter that can be used to adjust the half-life of mycobacterial load, 
                                 reflecting how different background regimens influence bacterial elimination."),
-                                "The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model.",
-                                tags$br(),
-                                "Half-life of mycobacterial load is longer with % of a positive value (+) and shorter with % of a negative value (-) of the modifier.",
-                                tags$br(),
-                                "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life.",
-                                tags$br(),
-                                tags$strong("The minimum values of half-life modifier is -100%"),
-                                ", since a 100% shorter half-life is not possible.",
-                                tags$br(),
-                                "Note: Half-life modifier directly influences the influences sputum culture conversion in 
-                                both the PK-efficacy model and long-term outcome model",
-                                style = "font-size: 14px; padding-left: 5px; line-height: 1.9;")
+                                tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                                    tags$li(tags$strong("The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model")),
+                                    tags$ul(
+                                        tags$li(
+                                          "Half-life of mycobacterial load is longer with % of a positive value (+) and shorter with % of a negative value (-) of the modifier.",
+                                          tags$br(), 
+                                          "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life"),
+                                        tags$li(tags$strong("The minimum values of half-life modifier is -100%"), ", since a > 100% shorter half-life is not possible")
+                                    ),
+                                    tags$li("The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in patients under the bedaquiline approved dosing regimen"),
+                                    tags$li("Note: Half-life modifier directly influences the influences sputum culture conversion in 
+                                    both the PK-efficacy model and long-term outcome model"),
+                                ),
+                            style = "font-size: 14px; padding-left: 5px; line-height: 1.9;"
+                            )
                         )
                     ),
                     
@@ -193,7 +213,7 @@ mainTabAbout <- tabPanel(
                         card_body(
                             tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                 tags$li(
-                                    tags$strong("Add concomnitant medications having drug-drug interaction effects on PK or QT prolongation for each regimen:"),
+                                    tags$strong("Add concomitant medications having drug-drug interaction effects on PK or QT prolongation for each regimen:"),
                                     tags$ul(
                                         tags$li("PK effects (None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine)"),
                                         tags$li("QT effects (None, Clofazimine, Moxifloxacin, Both)")
@@ -209,10 +229,9 @@ mainTabAbout <- tabPanel(
                     card_header("3. Simulation Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
+                            tags$li("Specify numbers of individuals per regimen for simulation. The same population will be applied for all regimens"),
                             tags$li("Set numbers of MGIT culture replicates per sampling timepoint. The default value is 1 per sampling timepoint, maximum of 3"),
-                            tags$li("Specify numbers of individuals per regimen for simulation. Same population will be applied for all regimens"),
-                            tags$li("Set simulation time for PK, efficacy, and safety in weeks"),
-                            tags$li("Set simulation time for long-term outcome in weeks"),
+                            tags$li("Set simulation time for PK/efficacy/safety and long-term outcome in weeks. Simulation time should not less than the dosing duration"),
                             tags$li("Include interindividual variability (ON/OFF)"),
                             tags$li("Click \"Start simulation\" to begin")
                         )
@@ -302,7 +321,8 @@ mainTabAbout <- tabPanel(
                                     tags$li("BDQ_Shiny_UI_Population.R"),
                                     tags$li("BDQ_Shiny_UI_Simulation.R"),
                                     tags$li("BDQ_Shiny_UI_Results.R"),
-                                    tags$li("BDQ_Shiny_UI_About.R")
+                                    tags$li("BDQ_Shiny_UI_About.R"), 
+                                    tags$li("BDQ_Shiny_UI_TTPsim.R")
                                 )
                             ),
                             tags$li("Server Components:", 
@@ -310,13 +330,15 @@ mainTabAbout <- tabPanel(
                                     tags$li("Model Files (BDQOMAT.R, BDQTTP.R, etc.)"),
                                     tags$li("Server Functions (BDQ_Server_*.R)"),
                                     tags$li("Plotting Functions"),
-                                    tags$li("Summary Functions")
+                                    tags$li("Summary Functions"),
+                                    tags$li("Extra TTP Simulation Function")
                                 )
                             ), 
-                            tags$li("Dataset Components:", 
+                            tags$li("Dataset/File Components:", 
                                     tags$ul(
                                       tags$li("Virtual Population Template.csv File"),
-                                      tags$li("Simulated Virtual Population.csv File")
+                                      tags$li("Simulated Virtual Population.csv File"), 
+                                      tags$li("Specification of Dataset Output.txt Files")
                                     )
                             )
                         )
@@ -325,7 +347,7 @@ mainTabAbout <- tabPanel(
                 card(
                     card_header("Instructions", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        tags$span(tags$strong("Download all necessary source code files to run the BDQ Shiny app locally.", 
+                        tags$span(tags$strong("Download all necessary source code files to run the Shiny app locally.", 
                                  style = "font-size: 14px;")),
                         div(style = "font-size: 14px; padding-left: 5px; line-height: 1.9;",
                             tags$div(style = "margin-left: 0;", tags$strong("Step 1: "), "Download the zip file containing all source code and files needed"),

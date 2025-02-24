@@ -1,0 +1,13 @@
+############### Data specification ###############
+# Project: BDQ Shiny App - Extra TTP simulation
+# Dataset: TTP_simulation_extra_output.csv
+# Author: Yu-Jou Lin
+# Uppsala University Pharmacometrics Group
+
+# Column definitions:
+ID       - Subject ID number
+TAST     - Time after start of treatment in the specified unit defined by the users (days or weeks)
+REP      - Number of replicate sputum samples collected per sampling timepoint
+TTPD     - Time in MGIT tube for each sample [days]. >42 days are considered as negative culture
+culNEG   - 0 = Culture positive, 1 = Culture negative for each sample
+TSCC     - 0 = Not time to sputum culture conversion, 1 = Time to sputum culture conversion

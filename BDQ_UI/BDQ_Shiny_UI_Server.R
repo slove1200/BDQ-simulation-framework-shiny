@@ -218,10 +218,6 @@ ui <- fluidPage(
             box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
 
-        /* Override min-height for html-fill-item */
-        .html-fill-container > .html-fill-item {
-          min-height: initial !important;
-        }
     ")),
     
     # Application Title with custom div
@@ -398,7 +394,7 @@ server <- function(input, output, session) {
               pageLength = 10,
               scrollX = TRUE,
               scrollY = "100%",
-              dom = 'Brtip',
+              dom = 'rtp',
               searching = FALSE,
               ordering = TRUE
             ),
@@ -414,6 +410,42 @@ server <- function(input, output, session) {
           TTPsim_results()$plotTTPsim
         })
       }
+      
+    # Add download handler for TTP simulation data
+    output$download_TTPsim <- downloadHandler(
+      filename = function() {
+        "TTP_simulation_extra_data_package.zip"
+      },
+      content = function(file) {
+        temp_dir <- tempdir()
+        temp_files <- c(
+          file.path(temp_dir, "TTP_simulation_extra_output.csv"),
+          file.path(temp_dir, "TTP_simulation_extra_specification.txt")
+        )
+        
+        # Write CSV file
+        write.csv(
+          TTPsim_results()$TSCCdf %>%
+            select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
+            rename(
+              "culNEG" = "NEG"
+            ),
+          temp_files[1],
+          row.names = FALSE
+        )
+        
+        # Copy specification file
+        file.copy(
+          from = file.path(Server.directory, "TTP_simulation_extra_specification.txt"),
+          to = temp_files[2]
+        )
+        
+        # Create zip file
+        zip(file, files = temp_files, flags = "-j")
+        unlink(temp_files)
+      },
+      contentType = "application/zip"
+    )
     })
     
     # Main simulation observer
@@ -968,6 +1000,21 @@ server <- function(input, output, session) {
         contentType = 'image/png',
         alt = "Plot image",
         width = "100%" # Optional: Adjust as needed
+      )
+    }, deleteFile = FALSE)  # Set to FALSE if the file should not be deleted after rendering
+
+    ###################### Render HL effect plot for TTP simulation #######
+    # Render the PNG image
+    output$HLEFFplot_TTPsim <- renderImage({
+      # Path to the PNG file
+      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC_PCB.png")
+      
+      # Return a list with the image path and optional width/height
+      list(
+        src = filePath,
+        contentType = 'image/png',
+        alt = "Plot image",
+        width = "100%"# Optional: Adjust as needed
       )
     }, deleteFile = FALSE)  # Set to FALSE if the file should not be deleted after rendering
 
