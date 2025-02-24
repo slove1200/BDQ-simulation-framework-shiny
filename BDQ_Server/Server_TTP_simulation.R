@@ -124,9 +124,14 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
     attr(median_TSCC, "time_unit") <- "weeks"
   }
   
+  # merge individual TSCC into the main table
+  TSCCdf_mrg <- TSCCdf %>% 
+    left_join(df_tscc, by = "ID") %>%
+    mutate(TSCC = coalesce(ifelse(TAST == TSCC, 1, 0), 0))
+  
   # Return the full results
   return(list(
-    TSCCdf = TSCCdf,
+    TSCCdf = TSCCdf_mrg,
     proportion_no_scc = proportion_no_scc,
     median_TSCC = median_TSCC,
     conversion_times = df_tscc

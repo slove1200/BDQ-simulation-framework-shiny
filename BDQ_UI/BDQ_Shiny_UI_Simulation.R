@@ -11,13 +11,13 @@ mainTabSim <- tabPanel(
       card(
         card_header("Simulation Setting", style = "font-size: 20px; background-color: #CDD8DA;"),
         card_body(
-          numericInput("REP", 
-            label = tags$span(style="font-size: 13px; font-weight: bold;", "Numbers of MGIT Culture Replicates per Sampling Timepoint"), 
-            value = 1, min = 1, max = 3, 
-            width = "100%"),
           numericInput("nsim", 
             label = tags$span(style="font-size: 13px; font-weight: bold;", "Number of Simulated Individuals per Regimen"), 
             value = 1, min = 1, max = 300, 
+            width = "100%"),
+          numericInput("REP", 
+            label = tags$span(style="font-size: 13px; font-weight: bold;", "Number of MGIT Culture Replicates per Sampling Timepoint"), 
+            value = 1, min = 1, max = 3, 
             width = "100%"),
           textOutput("nsim_validation"),
           tags$style("#nsim_validation{color: red; margin-top: -15px; margin-bottom: -15px; font-style: italic;}"),

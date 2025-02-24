@@ -392,7 +392,7 @@ server <- function(input, output, session) {
       # Use stored results for table
       output$tableTTPsim <- DT::renderDataTable({
         TTPsim_results()$TSCCdf %>% 
-          select(ID, TAST, REP, TTPD, NEG) %>%
+          select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
           DT::datatable(
             options = list(
               pageLength = 10,
@@ -403,7 +403,7 @@ server <- function(input, output, session) {
               ordering = TRUE
             ),
             rownames = FALSE,
-            colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)"),
+            colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)", "Time to Sputum Culture Conversion (1)"),
             class = 'cell-border stripe'
           )
       })
