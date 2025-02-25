@@ -1,7 +1,6 @@
 # TTP ####
 input$REP <- 1
 input$STUDY <- "Treatment-naïve" # or Treatment-experienced
-input$XDR <- "MDR-TB"
 input$MTTP <- 6.8
 input$HLEFF <- -40 # bacterial clearance % faster (suggest ranging from -50 to 100)
 
@@ -9,26 +8,30 @@ input$HLEFF <- -40 # bacterial clearance % faster (suggest ranging from -50 to 1
 num_REPs <- input$REP
 
 # Retrieve information from simulated PK profiles
-Cavg_weekly <- out %>% filter(AMT == 0)
+Cavg_weekly <- out %>%
+  filter(AMT == 0 & time %% 168 == 0) %>%
+  mutate(WEEK = time / 168)
 
-####### Use the substituted new data frame d1
-Cavg_weekly <- Cavg_weekly %>% filter(time %% 168 == 0)
-Cavg_weekly$WEEK <- Cavg_weekly$time / 168
-Cavg_weekly <- subset(Cavg_weekly, select = c(ID, time, regimen, WEEK, AAUCBDQ))
+# Subset relevant columns
+Cavg_weekly <- Cavg_weekly %>% select(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2)
 
 # Calculate weekly AUC
 Cavg_weekly$AUCWBDQ <- 0
+Cavg_weekly$AUCWM2 <- 0
 
-i <- 2
-while (i <= length(Cavg_weekly$ID)) {
-  Cavg_weekly$AUCWBDQ[i] <- Cavg_weekly$AAUCBDQ[i] - Cavg_weekly$AAUCBDQ[i - 1]
-  
-  i <- i + 1
-}
+# Calculate daily AUC using the `lag` function for vectorized operations
+Cavg_weekly <- Cavg_weekly %>%
+  mutate(
+    AUCWBDQ = AAUCBDQ - lag(AAUCBDQ, default = 0),
+    AUCWM2  = AAUCM2 - lag(AAUCM2, default = 0)
+  )
 
-Cavg_weekly <- Cavg_weekly %>% mutate(
-  AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ)
-)
+# Ensure AUC values are zero for `time == 0` as required
+Cavg_weekly <- Cavg_weekly %>%
+  mutate(
+    AUCWBDQ = ifelse(time == 0, 0, AUCWBDQ),
+    AUCWM2  = ifelse(time == 0, 0, AUCWM2)
+  )
 
 ###### summarise by
 Cavg_weekly <- Cavg_weekly %>%
@@ -72,35 +75,19 @@ TTPdf_fin <- rbind(TTPdf, TTPdf2) %>%
 # if UI input is to simulate in an individual-level
 if (input$population_radio == "Individual") {
   
-  # 1. Drug Resistance
-  if (input$XDR == "MDR-TB") {
-    TTPdf_fin$preAndXDR <- 0
-    TTPdf_fin$preXDR <- 0
-    TTPdf_fin$XDR <- 0
-  } else if (input$XDR == "pre-XDR-TB") {
-    TTPdf_fin$preAndXDR <- 1
-    TTPdf_fin$preXDR <- 1
-    TTPdf_fin$XDR <- 0
-  } else {
-    TTPdf_fin$preAndXDR <- 1
-    TTPdf_fin$preXDR <- 1
-    TTPdf_fin$XDR <- 1
-  }
-  
-  # 2. Mean time-to-posistivity (MTTP)
+  # 1. Mean time-to-posistivity (MTTP)
   # input$MTTP unit in days, PK-efficacy model unit in hours
   TTPdf_fin$MTTP <- input$MTTP*24
 } else {
-  virtual_population_df <- Pop_generation(input)
   # Dynamically bind rows based on `num_regimens`
   virtual_population_df <- map_dfr(1:num_regimens, ~ {
-      virtual_population_df %>%
-        filter(ID %in% 1:nsamples) %>%
-        mutate(regimen  = .x) # Optional: Add a column to indicate duplication
-    }) %>% ungroup() %>%
+    Pop_generation(input) %>%
+      filter(ID %in% 1:nsamples) %>%
+      mutate(regimen  = .x) # Optional: Add a column to indicate duplication
+  }) %>% ungroup() %>%
     mutate(ID = row_number())
   
-  TTPdf_fin <- full_join(TTPdf_fin, virtual_population_df, by = c("ID", "regimen"))
+  TTPdf_fin <- left_join(TTPdf_fin, virtual_population_df, by = c("ID", "regimen"))
   
 }
 
@@ -117,17 +104,19 @@ dfTTP <- TTPdf_fin %>% full_join(dfCAVG)
 
 # TTP simulation ########
 ## Simulation settings
-# 2. "simtime" and "simunit"
 source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQTTP.R")
 if (input$STUDY == "Treatment-naïve") {
   modTTP <- mcode("BDQTTP", codeTTP)
+  modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
 } else {
   modTTP <- mcode("BDQTTP_TrtExperienced", codeTTP_TrtExperienced)
+  modTTP <- update(codeTTP_TrtExperienced, outvars = outvars(codeTTP_TrtExperienced)$capture)
 }
 
 ## Interindividual variability ON/OFF
 if (input$IIV == "OFF") {
   set.seed(3468)
+  
   outTTP <- modTTP %>%
     zero_re() %>%
     data_set(dfTTP) %>%
@@ -202,27 +191,43 @@ for (i in 1:num_regimens) {
 }
 
 # QT simulation ########
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQQT.R")
 modQT <- mcode("BDQQT", codeQT)
-set.seed(3468)
+modQT <- update(modQT, outvars = outvars(modQT)$capture)
 
 ## Interindividual variability ON/OFF
 if (input$IIV == "OFF") {
+  set.seed(3468)
+  
   outQT <- modQT %>%
     zero_re() %>%
     data_set(dfQT) %>%
     mrgsim(end = sim_time * 168, delta = 1) %>%
     as.data.frame()
 } else {
-  outQT <- modQT %>%
-    zero_re(sigma) %>%
-    data_set(dfQT) %>%
-    mrgsim(end = sim_time * 168, delta = 1) %>%
-    as.data.frame()
+  # Filter and run simulation separately
+  outQT <- map_dfr(1:num_regimens, ~ {
+    start_idx <- (.x - 1) * nsamples + 1
+    end_idx <- .x * nsamples
+    
+    # Filter the dataset for the current regimen
+    filtered_dfQT <- dfQT %>%
+      filter(ID %in% start_idx:end_idx)
+    
+    # Set random seed and run the simulation for the current dataset
+    set.seed(3468)
+    modQT %>%
+      zero_re(sigma) %>%
+      data_set(filtered_dfQT) %>%
+      mrgsim(end = sim_time * 168, delta = 1) %>%
+      as.data.frame()
+  })
 }
 
 
 ######## MSM ####
 input$simtimeMSM <- 96
+nsubjects <- input$nsim
 
 sim_timeMSM <- input$simtimeMSM
 
@@ -261,19 +266,19 @@ new_rows2 <- HLMBL %>% group_by(ID) %>%
 HLMBL2 <- bind_rows(HLMBL, new_rows, new_rows2) %>% arrange(ID, WEEKP)
 
 TTPcov <- HLMBL2 %>% group_by(ID) %>%
-  mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1/(1+(input$HLEFF/100))), lag(HL))) %>%
-  mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1/(1+(input$HLEFF/100))), HL2), # median of HL
+  mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1+(input$HLEFF/100)), lag(HL))) %>%
+  mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1+(input$HLEFF/100)), HL2), # median of HL
          time = WEEKP*168)  %>% # hours
   filter(WEEKP %in% c(0, 1, 2, 3)) %>%
   mutate(MBLend = ifelse(MBLend == 0, 1e-300, MBLend)) %>% # set up a lower limit of MBLend to prevent log(0)
   select(ID, MTTP, time, HL2, MBLend, dur)
 
 
-#### population MSM ####
+####
 # Set up event
-ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(nsamples*num_regimens))
+ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = seq(nsubjects*num_regimens))
 ev1 <- ev(time = 0, amt = c(0,1,1,1,1,1), cmt = c(0,1,2,3,4,5), evid = c(2,4,1,1,1,1),
-          ID = seq(nsamples*num_regimens), addl = sim_timeMSM, ii = 168, rate = 0, realize = T)
+          ID = seq(nsubjects*num_regimens), addl = sim_timeMSM, ii = 168, rate = 0, realize = T)
 data.dose <- seq(ev0, ev1)
 data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %>%
   mutate(evid = ifelse(time != 0 & cmt == 1, 4, ifelse(evid == 2, 0, evid)))
@@ -286,14 +291,9 @@ data.dose <- data.table::setDT(as.data.frame(data.dose)) %>% arrange(ID, time) %
 dfCov <- out %>% filter(time == 0)
 dfCov <- dfCov %>% select(ID, regimen, WT, SEX)
 
-idata <- data.table::data.table(ID=seq(nsamples*num_regimens)) %>% left_join(dfCov, by = "ID")
+idata <- data.table::data.table(ID=seq(nsubjects*num_regimens)) %>% left_join(dfCov, by = "ID")
 data.all <- merge(data.dose, idata, by = "ID") %>% left_join(TTPcov, by = c("ID", "time")) %>%
   group_by(ID) %>% zoo::na.locf()
-
-# dftentimes <- map_df(1:10, ~ {
-#   data.all %>%
-#     mutate(ID = ID + input$nsim * (.x - 1))  # Adjust ID for each copy
-# })
 
 # MSM simulation ########
 # Simulation settings
@@ -305,7 +305,7 @@ set.seed(3468)
 
 outMSM <- modMSM %>%
   data_set(data.all) %>%
-  mrgsim(end = sim_timeMSM*168) %>%
+  mrgsim(end = sim_timeMSM*168, delta = 168) %>%
   as.data.frame %>%
   filter(EVID == 0) %>%
   mutate(time = time/24/7) %>%
@@ -318,7 +318,7 @@ dfForPlotMSM <- outMSM %>% group_by(regimen, time, STATE) %>% summarise(prop = n
   complete(regimen, time, STATE, fill = list(prop = 0))
 ## proportion = num of positive sample/total samples in each WEEKP
 
-num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
+num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
 
 # Custom labeller function to change facet titles
 state_labels <- as_labeller(function(STATE) {
@@ -350,6 +350,8 @@ ggplot(dfForPlotMSM %>% filter(time %in% c(0,4,8,16,24,48,72,96,120)),
     legend.spacing.x = unit(0.5, 'cm')          # Add space between legend labels
   ) +
   guides(color = guide_legend("Regimen"))
+
+
 
 ## Individual MSM ####
 ev0 <- ev(time = 0, amt = 1, cmt = 1, ID = 1:(nsamples*num_regimens))
@@ -598,3 +600,76 @@ plot2 <- ggplot(dfForPlotQT, aes(x = time / 168, y = median,
          fill  = guide_legend("Regimen"))
 
 plot2
+
+# check PK dataset ####
+out_shiny <- read.csv("PK_output.csv", header = T)
+check_shiny <- out_shiny %>% group_by(ID) %>% slice(1L)
+
+# check MSM dataset ####
+outMSM_shiny <- read.csv("longTermOutcome_output.csv", header = T)
+
+dfForPlotMSM_shiny <- outMSM_shiny %>% group_by(regimen, WEEK, STATE) %>% summarise(prop = n()/input$nsim, .groups = "drop") %>%
+  # Ensure all combinations of time and STATE are included, even if they have no observations
+  complete(regimen, WEEK, STATE, fill = list(prop = 0)) %>% rename("time" = "WEEK")
+## proportion = num of positive sample/total samples in each WEEKP
+
+
+all(dfForPlotMSM == dfForPlotMSM_shiny)
+
+# check TTP dataset ####
+dfForPlotTTP <- outTTP %>% 
+  filter(FLAG == 2 & NEG == 1) %>% 
+  group_by(WEEKP, regimen) %>% 
+  summarise(prop = 1-(n()/nrow(outTTP %>% filter(regimen == 1 & FLAG == 2 & WEEKP == 1))))
+## proportion = num of positive sample/total samples in each WEEKP
+
+# Create the dummy row you want to add (WEEKP = 0, regimen = c(1:n), prop = 1)
+dummy_row <- data.frame(
+  WEEKP   = 0,
+  regimen = c(1:max(outTTP$regimen)),
+  prop    = 1
+)
+
+dfForPlotTTP <- rbind(dfForPlotTTP, dummy_row) %>% arrange(WEEKP)
+
+outTTP_shiny <- read.csv("TTP_output.csv", header = T)
+
+dfForPlotTTP_shiny <- outTTP_shiny %>% 
+  filter(FLAG == 2 & CULneg == 1) %>% 
+  group_by(WEEK, regimen) %>% 
+  summarise(prop = 1-(n()/nrow(outTTP_shiny %>% filter(regimen == 1 & FLAG == 2 & WEEK == 1))))
+## proportion = num of positive sample/total samples in each WEEKP
+
+# Create the dummy row you want to add (WEEKP = 0, regimen = c(1:n), prop = 1)
+dummy_row <- data.frame(
+  WEEK   = 0,
+  regimen = c(1:max(outTTP_shiny$regimen)),
+  prop    = 1
+)
+
+dfForPlotTTP_shiny <- rbind(dfForPlotTTP_shiny, dummy_row) %>%
+  rename("WEEKP" = "WEEK") %>% arrange(WEEKP)
+
+all(dfForPlotTTP == dfForPlotTTP_shiny)
+
+# check QT dataset ####
+
+dfForPlotQT <- outQT %>%
+  ungroup() %>%
+  group_by(time, regimen) %>%
+  summarize(
+    lower = quantile(IPRED, probs = 0.05),
+    median = quantile(IPRED, probs = 0.5),
+    upper = quantile(IPRED, probs = 0.95)
+  )
+
+
+outQT_shiny <- read.csv("QT_output.csv", header = T)
+dfForPlotQT_shiny <- outQT_shiny %>%
+  ungroup() %>%
+  group_by(time, regimen) %>%
+  summarize(
+    lower = quantile(QTcF, probs = 0.05),
+    median = quantile(QTcF, probs = 0.5),
+    upper = quantile(QTcF, probs = 0.95)
+  )

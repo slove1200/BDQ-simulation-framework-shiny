@@ -24,8 +24,6 @@ mainTabTTPSim <- tabPanel(
     /* Make DataTable container height automatic */
     .html-fill-container > .html-fill-item.datatables {
       flex-basis: auto !important;
-      height: auto !important;
-      min-height: 0 !important;
     }
 
   "))),

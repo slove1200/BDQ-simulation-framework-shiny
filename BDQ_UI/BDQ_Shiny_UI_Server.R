@@ -486,7 +486,7 @@ server <- function(input, output, session) {
       # After all simulations complete, remove the overlay
       removeUI(selector = "#loading-overlay", immediate = TRUE)
       loading(FALSE)
-      
+
       })
     })
     
@@ -578,7 +578,7 @@ server <- function(input, output, session) {
 
         # MSM simulation
         incProgress(0.12, detail = "Running MSM simulation...")
-        if (input$population_radio == "Individual") {
+        if (input$population_radio == "Individual" | input$nsim == 1) {
             sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
         } else {
             sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
@@ -960,7 +960,7 @@ server <- function(input, output, session) {
       
       # Return warning message if needed
       if (!validationStates$enough_subjects) {
-        sprintf("The number of population (%d) is lower than the number of individuals intended for simulation (%d)W", 
+        sprintf("The number of population (%d) is lower than the number of individuals intended for simulation (%d)", 
                 available_n, required_n, available_n)
       } else {
         NULL
@@ -1005,7 +1005,7 @@ server <- function(input, output, session) {
         output$simtime_validation <- renderText({
             if (!validationStates$enough_time) {
                 paste0("Warning: Simulation time (", input$simtime, 
-                      " weeks) is less than the maximum dosing duration (", 
+                      " weeks) is less than the dosing duration (", 
                       round(max_dur, 1), " weeks).")
             } else {
                 NULL
@@ -1015,7 +1015,7 @@ server <- function(input, output, session) {
         output$simtimeMSM_validation <- renderText({
             if (!validationStates$enough_timeMSM) {
                 paste0("Warning: Long-term outcome simulation time (", input$simtimeMSM, 
-                      " weeks) is less than the maximum dosing duration (", 
+                      " weeks) is less than the dosing duration (", 
                       round(max_dur, 1), " weeks).")
             } else {
                 NULL

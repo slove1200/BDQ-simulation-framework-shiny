@@ -40,6 +40,8 @@ Pop_generation <- function(input) {
     ) %>%
     slice_head(n = n_males)
   
+  set.seed(3468)
+  
   # Combine the datasets
   df_virtualPop <- bind_rows(females_data, males_data) %>%
     # Create sequential ID
