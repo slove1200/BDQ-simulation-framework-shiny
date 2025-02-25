@@ -10,7 +10,7 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
   
   # Convert def_window to match time unit if needed
   if (time_unit == "2") { # if weeks
-    def_window_wk <- ceiling(def_window / 7) # convert days to weeks
+    def_window <- ceiling(def_window / 7) # convert days to weeks
   }
   
   # Process data to compute TSCC for each patient
@@ -29,13 +29,13 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
     is_negative <- df$is_negative
     sustained <- rep(FALSE, n)
     max_time <- max(df$TAST)
-    weeks_needed <- def_window_wk
+    time_needed <- def_window
     
     for (i in 1:n) {
       if (!is_negative[i]) next
       
       current_time <- df$TAST[i]
-      target_time <- current_time + weeks_needed
+      target_time <- current_time + time_needed
       
       # CRITICAL CHANGE: First check if we have enough follow-up time
       if (target_time > max_time) {
@@ -61,74 +61,73 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
   }
   
   # Calculate TSCC for each patient
-  if (time_unit == "2") {
   df_tscc <- TSCCdf %>%
     arrange(ID, TAST, REP) %>%
     group_by(ID) %>%
     mutate(sustained = check_sustained(TAST, TTPD, REP, def_window)) %>%
     summarise(TSCC = if (any(sustained)) min(TAST[sustained]) else NA_real_,
               .groups = "drop")
-  }
-  
-  # For time_unit = "1", return only TSCCdf
-  if (time_unit == "1") {
-    return(list(
-      TSCCdf = TSCCdf,
-      proportion_no_scc = NA,
-      median_TSCC = NA,
-      conversion_times = NA
-    ))
-  }
   
   # Calculate proportion_no_scc for time_unit = "2"
-  
-  # Get total number of patients and max follow-up time
-  total_patients <- nrow(df_tscc)
-  max_time <- max(output$TAST)
-  
-  # Create sequence of timepoints
-  timepoints <- seq(0, max_time, by = 1)
-  
-  # Vectorized calculation of proportion without SCC
-  get_prop_not_converted <- function(t, tscc_values) {
-    not_converted <- sum(is.na(tscc_values) | tscc_values > t)
-    return(not_converted / length(tscc_values))
-  }
-  
-  # Apply calculation to all timepoints
-  props <- vapply(timepoints, get_prop_not_converted, numeric(1), df_tscc$TSCC)
-  
-  # Create proportion_no_scc dataframe
-  proportion_no_scc <- data.frame(
-    TAST = timepoints,
-    prop_without_scc = props,
-    n_without_scc = props * total_patients
-  )
-  attr(proportion_no_scc, "time_unit") <- "weeks"
-  
-  # Calculate median_TSCC
-  if (all(is.na(df_tscc$TSCC))) {
-    warning("All TSCC values are NA. No events to analyze.")
-    median_TSCC <- NULL
-  } else {
-    # Create survival object and fit model
-    surv_obj <- Surv(time = df_tscc$TSCC, event = !is.na(df_tscc$TSCC))
-    km_fit <- survfit(surv_obj ~ 1)
-    
-    # Get median survival time
-    if (length(which(km_fit$surv <= 0.5)) > 0) {
-      median_TSCC <- km_fit$time[min(which(km_fit$surv <= 0.5))]
-    } else {
-      median_TSCC <- NA_real_
+  if (time_unit == "2") {
+    # Get total number of patients and max follow-up time
+    total_patients <- nrow(df_tscc)
+    max_time <- max(output$TAST)
+
+    # Create sequence of timepoints
+    timepoints <- seq(0, max_time, by = 1)
+
+    # Vectorized calculation of proportion without SCC
+    get_prop_not_converted <- function(t, tscc_values) {
+      not_converted <- sum(is.na(tscc_values) | tscc_values > t)
+      return(not_converted / length(tscc_values))
     }
-    attr(median_TSCC, "time_unit") <- "weeks"
-  }
+
+    # Apply calculation to all timepoints
+    props <- vapply(timepoints, get_prop_not_converted, numeric(1), df_tscc$TSCC)
+
+    # Create proportion_no_scc dataframe
+    proportion_no_scc <- data.frame(
+      TAST = timepoints,
+      prop_without_scc = props,
+      n_without_scc = props * total_patients
+    )
+    attr(proportion_no_scc, "time_unit") <- "weeks"
+
+    # Calculate median_TSCC
+    if (all(is.na(df_tscc$TSCC))) {
+      warning("All TSCC values are NA. No events to analyze.")
+      median_TSCC <- NULL
+    } else {
+      # Create survival object and fit model
+      surv_obj <- Surv(time = df_tscc$TSCC, event = !is.na(df_tscc$TSCC))
+      km_fit <- survfit(surv_obj ~ 1)
+
+      # Get median survival time
+      if (length(which(km_fit$surv <= 0.5)) > 0) {
+        median_TSCC <- km_fit$time[min(which(km_fit$surv <= 0.5))]
+      } else {
+        median_TSCC <- NA_real_
+      }
+      attr(median_TSCC, "time_unit") <- "weeks"
+    }
+  }  
   
   # merge individual TSCC into the main table
   TSCCdf_mrg <- TSCCdf %>% 
     left_join(df_tscc, by = "ID") %>%
     mutate(TSCC = coalesce(ifelse(TAST == TSCC, 1, 0), 0))
   
+  # Return the full results if simulate in days
+  if (time_unit == "1") {
+  return(list(
+    TSCCdf = TSCCdf_mrg,
+    proportion_no_scc = NA,
+    median_TSCC = NA,
+    conversion_times = df_tscc
+    ))
+  }
+
   # Return the full results
   return(list(
     TSCCdf = TSCCdf_mrg,
@@ -145,7 +144,7 @@ plot_combined_results <- function(combined_data) {
     geom_line(size = 1.2, color = "#D73027") +
     geom_point(size = 3, shape = 1, color = "#D73027") +
     labs(
-      x = paste0("Time after start of treatment (", ifelse(input$simunit_TTP == "2", "weeks", "days"), ")"),
+      x = paste0("Time after start of treatment (weeks)"),
       y = "Proportion of Patients Without SCC (%)"
     ) +
     # scale_x_continuous(breaks = seq(0, 24, by = 4)) +

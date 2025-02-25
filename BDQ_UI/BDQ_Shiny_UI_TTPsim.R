@@ -5,24 +5,29 @@ mainTabTTPSim <- tabPanel(
   title = "Extra: TTP Simulation",
   value = "TTPsim",
   tags$head(tags$style(HTML("
+    /* Other existing styles */
     #tableTTPsim {
       font-size: 12px !important;  /* Reduce font size */
     }
     #tableTTPsim th, #tableTTPsim td {
-      padding: 4px 8px !important;  /* Reduce cell padding */
+      padding: 7px 10px !important;  /* Reduce cell padding */
     }
-    .dataTables_wrapper {
-      font-size: 12px !important;  /* Reduce size of wrapper elements */
+    
+    .dataTables_info {
+      display: none !important;
     }
+
     .dataTables_info, .dataTables_paginate {
       font-size: 10px !important;  /* Reduce size of footer elements */
     }
+
     /* Make DataTable container height automatic */
     .html-fill-container > .html-fill-item.datatables {
       flex-basis: auto !important;
       height: auto !important;
       min-height: 0 !important;
     }
+
   "))),
   tabsetPanel(
     id = "TTPsimTab", type = "pills",
@@ -144,9 +149,9 @@ mainTabTTPSim <- tabPanel(
                      value = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24", 
                      width = "100%"), 
             selectInput("simunit_TTP",  
-                       label = tags$span(style="font-size: 13px; font-weight: bold;", "Culture Sampling Time Unit"), 
-                       choices = c("week" = "2", "day" = "1"), selected = "week", 
-                       width = "100%"), 
+                     label = tags$span(style="font-size: 13px; font-weight: bold;", "Culture Sampling Time Unit"), 
+                     c("week" = "2", "day" = "1"), selected = "week", 
+                     width = "100%"), 
             numericInput("REP_TTP", 
                         label = tags$span(style="font-size: 13px; font-weight: bold;", "Number of Culture Replicates per Sampling Timepoint"), 
                         value = 1, min = 1, max = 3, 
@@ -155,7 +160,12 @@ mainTabTTPSim <- tabPanel(
                         label = tags$span(style="font-size: 13px; font-weight: bold;", "Definition of Sputum Culture Conversion in Days"), 
                         value = 28, min = 1, max = 45, 
                         width = "100%"),
-            actionButton("goButton_TTP", "Start simulation")
+            actionButton("goButton_TTP", "Start simulation"),
+            # Add progress bar
+            tags$div(
+              style = "margin-top: 10px;",
+              uiOutput("progressBox_TTP")
+            )
           )
         ),
         layout_columns(

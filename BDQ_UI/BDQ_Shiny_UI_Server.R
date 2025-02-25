@@ -218,6 +218,10 @@ ui <- fluidPage(
             box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
 
+        /* Override min-height for html-fill-item */
+        .html-fill-container > .html-fill-item {
+          min-height: initial !important;
+        }
     ")),
     
     # Application Title with custom div
@@ -358,6 +362,10 @@ server <- function(input, output, session) {
                 align-items: center !important;
             }
 
+            .progress-bar {
+                transition: width 0.4s ease-in-out !important;  /* Adjust timing here */
+            }
+
             /* Notification Styles */
             .shiny-notification {
                 position: fixed !important;
@@ -381,71 +389,105 @@ server <- function(input, output, session) {
     ###################### SIMULATION HANDLER ######################
     # Main TTP tab simulation observer
     observeEvent(input$goButton_TTP, {
-      # Run simulation once and store results
-      results <- TTPsimplots(input)
-      TTPsim_results(results)
+
+      # Show loading overlay
+      loading(TRUE)
       
-      # Use stored results for table
-      output$tableTTPsim <- DT::renderDataTable({
-        TTPsim_results()$TSCCdf %>% 
-          select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
-          DT::datatable(
-            options = list(
-              pageLength = 10,
-              scrollX = TRUE,
-              scrollY = "100%",
-              dom = 'rtp',
-              searching = FALSE,
-              ordering = TRUE
-            ),
-            rownames = FALSE,
-            colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)", "Time to Sputum Culture Conversion (1)"),
-            class = 'cell-border stripe'
-          )
-      })
-      
-      # Only render plot if in weekly mode
-      if (input$simunit_TTP == "2") {
-        output$plotTTPsim <- renderPlot({
-          TTPsim_results()$plotTTPsim
-        })
-      }
-      
-    # Add download handler for TTP simulation data
-    output$download_TTPsim <- downloadHandler(
-      filename = function() {
-        "TTP_simulation_extra_data_package.zip"
-      },
-      content = function(file) {
-        temp_dir <- tempdir()
-        temp_files <- c(
-          file.path(temp_dir, "TTP_simulation_extra_output.csv"),
-          file.path(temp_dir, "TTP_simulation_extra_specification.txt")
-        )
+      # Insert loading overlay
+      insertUI(
+        selector = "body",
+        where = "beforeEnd",
+        ui = div(
+          id = "loading-overlay"
+        ),
+        immediate = TRUE
+      )
+
+
+      withProgress(message = 'Processing TTP Simulation', value = 0, {
+        # Run simulation once and store results
+        incProgress(0.5, detail = "Running TTP simulation...")
+        results <- TTPsimplots(input)
+        TTPsim_results(results)
         
-        # Write CSV file
-        write.csv(
-          TTPsim_results()$TSCCdf %>%
+        # Use stored results for table
+        incProgress(0.2, detail = "Creating data table...")
+        output$tableTTPsim <- DT::renderDataTable({
+          TTPsim_results()$TSCCdf %>% 
             select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
-            rename(
-              "culNEG" = "NEG"
-            ),
-          temp_files[1],
-          row.names = FALSE
-        )
+            DT::datatable(
+              options = list(
+                pageLength = 10,
+                scrollX = TRUE,
+                scrollY = "100%",
+                dom = 'rtp',
+                searching = FALSE,
+                ordering = TRUE
+              ),
+              rownames = FALSE,
+              colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)", "Time to Sputum Culture Conversion (1)"),
+              class = 'cell-border stripe'
+            )
+        })
         
-        # Copy specification file
-        file.copy(
-          from = file.path(Server.directory, "TTP_simulation_extra_specification.txt"),
-          to = temp_files[2]
-        )
+        incProgress(0.2, detail = "Generating plots...")
+        # Only render plot if in weekly mode
+        if (input$simunit_TTP == "2") {
+          output$plotTTPsim <- renderPlot({
+            TTPsim_results()$plotTTPsim
+          })
+        }
         
-        # Create zip file
-        zip(file, files = temp_files, flags = "-j")
-        unlink(temp_files)
-      },
-      contentType = "application/zip"
-    )
+        incProgress(0.1, detail = "Completing simulation...")
+
+                # Show a centered success message
+        showNotification(
+          "Simulation completed!", 
+          type = "message", 
+          duration = 3
+        )
+
+        # Add download handler for TTP simulation data
+        output$download_TTPsim <- downloadHandler(
+          filename = function() {
+            "TTP_simulation_extra_data_package.zip"
+          },
+          content = function(file) {
+            temp_dir <- tempdir()
+            temp_files <- c(
+              file.path(temp_dir, "TTP_simulation_extra_output.csv"),
+              file.path(temp_dir, "TTP_simulation_extra_specification.txt")
+            )
+            
+            # Write CSV file
+            write.csv(
+              TTPsim_results()$TSCCdf %>%
+                select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
+                rename(
+                  "culNEG" = "NEG"
+                ),
+              temp_files[1],
+              row.names = FALSE
+            )
+            
+            # Copy specification file
+            file.copy(
+              from = file.path(Server.directory, "TTP_simulation_extra_specification.txt"),
+              to = temp_files[2]
+            )
+            
+            # Create zip file
+            zip(file, files = temp_files, flags = "-j")
+            unlink(temp_files)
+          },
+          contentType = "application/zip"
+        )
+
+      # After all simulations complete, remove the overlay
+      removeUI(selector = "#loading-overlay", immediate = TRUE)
+      loading(FALSE)
+      
+      })
     })
     
     # Main simulation observer
@@ -638,44 +680,46 @@ server <- function(input, output, session) {
                 "PK_data_package.zip"
             },
             content = function(file) {
-                # Create a temporary directory
-                temp_dir <- tempdir()
-                temp_files <- c(
-                    file.path(temp_dir, "PK_output.csv"),
-                    file.path(temp_dir, "PK_specification.txt")
-                )
-                
-                # Write CSV file
-                write.csv(sim_PKtable %>%
-                            mutate(
-                              IPRED      = round(exp(IPRED)*1000, 2), 
-                              IPREDM2    = round(exp(IPREDM2)*1000, 2),
-                              IPREDALB   = round(IPREDALB, 2), 
-                              IPREDWT    = round(IPREDWT,  2), 
-                              AAUCBDQ    = round(AAUCBDQ*1000, 2), 
-                              AAUCM2     = round(AAUCM2*1000, 2)
-                            ) %>%
-                            rename(
-                              "CONCBDQ"  = "IPRED", 
-                              "CONCM2"   = "IPREDM2",
-                              "AUCBDQ"   = "AAUCBDQ", 
-                              "AUCM2"    = "AAUCM2"
-                            ) %>%
-                            select(-AMT, -WT, -ALB, -SEX, -CACOR, -K), 
-                         temp_files[1], 
-                         row.names = FALSE)
-                
-                # Copy specification file
-                file.copy(
-                    from = file.path(Server.directory, "PK_specification.txt"),
-                    to = temp_files[2]
-                )
-                
-                # Create zip file
-                zip(file, files = temp_files, flags = "-j")  # -j flag removes path information
-                
-                # Clean up temporary files
-                unlink(temp_files)
+                withProgress(message = 'Creating PK data package', value = 0, {
+                    incProgress(0.2, detail = "Creating temporary files...")
+                    temp_dir <- tempdir()
+                    temp_files <- c(
+                        file.path(temp_dir, "PK_output.csv"),
+                        file.path(temp_dir, "PK_specification.txt")
+                    )
+                    
+                    incProgress(0.3, detail = "Writing data files...")
+                    write.csv(sim_PKtable %>%
+                                mutate(
+                                  IPRED      = round(exp(IPRED)*1000, 2), 
+                                  IPREDM2    = round(exp(IPREDM2)*1000, 2),
+                                  IPREDALB   = round(IPREDALB, 2), 
+                                  IPREDWT    = round(IPREDWT,  2), 
+                                  AAUCBDQ    = round(AAUCBDQ*1000, 2), 
+                                  AAUCM2     = round(AAUCM2*1000, 2)
+                                ) %>%
+                                rename(
+                                  "CONCBDQ"  = "IPRED", 
+                                  "CONCM2"   = "IPREDM2",
+                                  "AUCBDQ"   = "AAUCBDQ", 
+                                  "AUCM2"    = "AAUCM2"
+                                ) %>%
+                                select(-AMT, -WT, -ALB, -SEX, -CACOR, -K), 
+                             temp_files[1], 
+                             row.names = FALSE)
+                    
+                    incProgress(0.2, detail = "Copying specification file...")
+                    file.copy(
+                        from = file.path(Server.directory, "PK_specification.txt"),
+                        to = temp_files[2]
+                    )
+                    
+                    incProgress(0.2, detail = "Creating zip file...")
+                    zip(file, files = temp_files, flags = "-j")
+                    
+                    incProgress(0.1, detail = "Cleaning up...")
+                    unlink(temp_files)
+                })
             },
             contentType = "application/zip"
         )
@@ -685,29 +729,37 @@ server <- function(input, output, session) {
                 "QT_data_package.zip"
             },
             content = function(file) {
-                temp_dir <- tempdir()
-                temp_files <- c(
-                    file.path(temp_dir, "QT_output.csv"),
-                    file.path(temp_dir, "QT_specification.txt")
-                )
-                
-                write.csv(sim_QTtable %>%
-                            mutate(
-                                CACOR = round(CACOR, 2), 
-                                K     = round(K, 1), 
-                                IPRED = round(IPRED, 2)
-                            ) %>%
-                            rename("QTcF"  = "IPRED"),
-                         temp_files[1], 
-                         row.names = FALSE)
-                
-                file.copy(
-                    from = file.path(Server.directory, "QT_specification.txt"),
-                    to = temp_files[2]
-                )
-                
-                zip(file, files = temp_files, flags = "-j")
-                unlink(temp_files)
+                withProgress(message = 'Creating QT data package', value = 0, {
+                    incProgress(0.2, detail = "Creating temporary files...")
+                    temp_dir <- tempdir()
+                    temp_files <- c(
+                        file.path(temp_dir, "QT_output.csv"),
+                        file.path(temp_dir, "QT_specification.txt")
+                    )
+                    
+                    incProgress(0.3, detail = "Writing data files...")
+                    write.csv(sim_QTtable %>%
+                                mutate(
+                                    CACOR = round(CACOR, 2), 
+                                    K     = round(K, 1), 
+                                    IPRED = round(IPRED, 2)
+                                ) %>%
+                                rename("QTcF"  = "IPRED"),
+                             temp_files[1], 
+                             row.names = FALSE)
+                    
+                    incProgress(0.2, detail = "Copying specification file...")
+                    file.copy(
+                        from = file.path(Server.directory, "QT_specification.txt"),
+                        to = temp_files[2]
+                    )
+                    
+                    incProgress(0.2, detail = "Creating zip file...")
+                    zip(file, files = temp_files, flags = "-j")
+                    
+                    incProgress(0.1, detail = "Cleaning up...")
+                    unlink(temp_files)
+                })
             },
             contentType = "application/zip"
         )
@@ -717,31 +769,39 @@ server <- function(input, output, session) {
                 "TTP_data_package.zip"
             },
             content = function(file) {
-                temp_dir <- tempdir()
-                temp_files <- c(
-                    file.path(temp_dir, "TTP_output.csv"),
-                    file.path(temp_dir, "TTP_specification.txt")
-                )
-                
-                write.csv(sim_TTPtable %>%
-                            mutate(
-                                HL      = round(HL, 2)
-                            ) %>%
-                            select(-TIME, -MBL, -Y) %>%
-                            rename("WEEK" = "WEEKP", 
-                                   "TTPpos"  = "RTTE", 
-                                   "CULneg"  = "NEG"
-                            ),
-                         temp_files[1], 
-                         row.names = FALSE)
-                
-                file.copy(
-                    from = file.path(Server.directory, "TTP_specification.txt"),
-                    to = temp_files[2]
-                )
-                
-                zip(file, files = temp_files, flags = "-j")
-                unlink(temp_files)
+                withProgress(message = 'Creating TTP data package', value = 0, {
+                    incProgress(0.2, detail = "Creating temporary files...")
+                    temp_dir <- tempdir()
+                    temp_files <- c(
+                        file.path(temp_dir, "TTP_output.csv"),
+                        file.path(temp_dir, "TTP_specification.txt")
+                    )
+                    
+                    incProgress(0.3, detail = "Writing data files...")
+                    write.csv(sim_TTPtable %>%
+                                mutate(
+                                    HL      = round(HL, 2)
+                                ) %>%
+                                select(-TIME, -MBL, -Y) %>%
+                                rename("WEEK" = "WEEKP", 
+                                       "TTPpos"  = "RTTE", 
+                                       "CULneg"  = "NEG"
+                                ),
+                             temp_files[1], 
+                             row.names = FALSE)
+                    
+                    incProgress(0.2, detail = "Copying specification file...")
+                    file.copy(
+                        from = file.path(Server.directory, "TTP_specification.txt"),
+                        to = temp_files[2]
+                    )
+                    
+                    incProgress(0.2, detail = "Creating zip file...")
+                    zip(file, files = temp_files, flags = "-j")
+                    
+                    incProgress(0.1, detail = "Cleaning up...")
+                    unlink(temp_files)
+                })
             },
             contentType = "application/zip"
         )
@@ -751,35 +811,43 @@ server <- function(input, output, session) {
                 "MSM_data_package.zip"
             },
             content = function(file) {
-                temp_dir <- tempdir()
-                temp_files <- c(
-                    file.path(temp_dir, "longTermOutcome_output.csv"),
-                    file.path(temp_dir, "longTermOutcome_specification.txt")
-                )
-                
-                write.csv(sim_MSMtable %>%
-                            mutate(
-                                HL2      = round(HL2, 2),
-                                Log10MBLend = round(Log10MBLend, 2), 
-                                P_1      = round(P_1, 3),
-                                P_2      = round(P_2, 3),
-                                P_3      = round(P_3, 5),
-                                P_5      = round(P_5, 5)
-                            ) %>%
-                            rename("WEEK" = "time") %>%
-                            select(-regimen, everything(), regimen) %>%
-                            group_by(ID, WEEK) %>%
-                            slice(1L),
-                         temp_files[1], 
-                         row.names = FALSE)
-                
-                file.copy(
-                    from = file.path(Server.directory, "longTermOutcome_specification.txt"),
-                    to = temp_files[2]
-                )
-                
-                zip(file, files = temp_files, flags = "-j")
-                unlink(temp_files)
+                withProgress(message = 'Creating MSM data package', value = 0, {
+                    incProgress(0.2, detail = "Creating temporary files...")
+                    temp_dir <- tempdir()
+                    temp_files <- c(
+                        file.path(temp_dir, "longTermOutcome_output.csv"),
+                        file.path(temp_dir, "longTermOutcome_specification.txt")
+                    )
+                    
+                    incProgress(0.3, detail = "Writing data files...")
+                    write.csv(sim_MSMtable %>%
+                                mutate(
+                                    HL2      = round(HL2, 2),
+                                    Log10MBLend = round(Log10MBLend, 2), 
+                                    P_1      = round(P_1, 3),
+                                    P_2      = round(P_2, 3),
+                                    P_3      = round(P_3, 5),
+                                    P_5      = round(P_5, 5)
+                                ) %>%
+                                rename("WEEK" = "time") %>%
+                                select(-regimen, everything(), regimen) %>%
+                                group_by(ID, WEEK) %>%
+                                slice(1L),
+                             temp_files[1], 
+                             row.names = FALSE)
+                    
+                    incProgress(0.2, detail = "Copying specification file...")
+                    file.copy(
+                        from = file.path(Server.directory, "longTermOutcome_specification.txt"),
+                        to = temp_files[2]
+                    )
+                    
+                    incProgress(0.2, detail = "Creating zip file...")
+                    zip(file, files = temp_files, flags = "-j")
+                    
+                    incProgress(0.1, detail = "Cleaning up...")
+                    unlink(temp_files)
+                })
             },
             contentType = "application/zip"
         )
@@ -1033,20 +1101,27 @@ server <- function(input, output, session) {
             # Create a temporary directory
             temp_dir <- tempdir()
             
-            # List of files to include in the zip - R and CSV files
+            # Define valid PNG file patterns (add more patterns as needed)
+            png_patterns <- "^HLEFF.*\\.png$"
+            
+            # List of files to include in the zip
             files_to_zip <- c(
-                # UI Components
-                list.files(UI.directory, pattern = "\\.(R|csv)$", full.names = TRUE),
+                # UI Components - R, CSV, TXT files
+                list.files(UI.directory, pattern = "\\.(R|csv|txt)$", full.names = TRUE),
+                # UI Components - specific PNG files
+                list.files(UI.directory, pattern = png_patterns, full.names = TRUE),
                 
-                # Server Components
-                list.files(Server.directory, pattern = "\\.(R|csv)$", full.names = TRUE)
+                # Server Components - R, CSV, TXT files
+                list.files(Server.directory, pattern = "\\.(R|csv|txt)$", full.names = TRUE),
+                # Server Components - specific PNG files
+                list.files(Server.directory, pattern = png_patterns, full.names = TRUE)
             )
             
             # Create directories in temp folder
             dir.create(file.path(temp_dir, "BDQ_UI"), recursive = TRUE, showWarnings = FALSE)
             dir.create(file.path(temp_dir, "BDQ_Server"), recursive = TRUE, showWarnings = FALSE)
             
-            # Copy only existing R and CSV files
+            # Copy files
             for(f in files_to_zip) {
                 if(file.exists(f)) {  # Only copy if file exists
                     if(grepl("BDQ_UI", f)) {
@@ -1057,8 +1132,11 @@ server <- function(input, output, session) {
                 }
             }
             
-            # Create zip file
-            zip::zipr(file, files = list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv)$"))
+            # Create zip file - use same patterns for final zip creation
+            zip::zipr(file, files = c(
+                list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv|txt)$"),
+                list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = png_patterns)
+            ))
         }
     )
 }
