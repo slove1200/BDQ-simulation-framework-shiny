@@ -272,7 +272,7 @@ source(paste0(Server.directory, "BDQ_Server_Population_summary_plots.R"))
 
 # Source TTP simulation functions
 source(paste0(Server.directory, "TTPsim.R"))
-source(paste0(Server.directory, "TTP_TRTExperiencedsim.R"))
+source(paste0(Server.directory, "TTP_TrtExperiencedsim.R"))
 source(paste0(Server.directory, "Server_TTP_simulation.R"))
 
 ###################### SERVER LOGIC ######################
