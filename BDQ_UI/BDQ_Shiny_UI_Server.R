@@ -140,14 +140,6 @@ ui <- fluidPage(
             border-color: #A1B4B7 !important;
         }
 
-        input[type='radio'][id^='IE_4'] {
-            background-color: #E7D7CB !important;
-            border-color: #C7B7AB !important;
-        }
-        input[type='radio'][id^='IE_4']:hover {
-            border-color: #C7B7AB !important;
-        }
-
         /* Radio buttons and checkboxes style */
         input[type='radio']:checked,
         input[type='checkbox']:checked {
@@ -196,6 +188,17 @@ ui <- fluidPage(
             box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
         }
 
+        #MD2_1:checked {
+            background-color: #65658F !important;
+            border-color: #E5E5F1 !important;
+        }
+        #MD2_1:not(:checked):hover {
+            border-color: #E5E5F1 !important;
+        }
+        #MD2_1:focus {
+            box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
+        }
+
         #LD2:checked {
             background-color: #705E64 !important;
             border-color: #F0E1E4 !important;
@@ -207,6 +210,17 @@ ui <- fluidPage(
             box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
         }
 
+        #MD2_2:checked {
+            background-color: #705E64 !important;
+            border-color: #F0E1E4 !important;
+        }
+        #MD2_2:not(:checked):hover {
+            border-color: #F0E1E4 !important;
+        }
+        #MD2_2:focus {
+            box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
+        }
+
         #LD3:checked {
             background-color: #606A6C !important;
             border-color: #E0EAEB !important;
@@ -215,6 +229,17 @@ ui <- fluidPage(
             border-color: #E0EAEB !important;
         }
         #LD3:focus {
+            box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
+        }
+
+        #MD2_3:checked {
+            background-color: #606A6C !important;
+            border-color: #E0EAEB !important;
+        }
+        #MD2_3:not(:checked):hover {
+            border-color: #E0EAEB !important;
+        }
+        #MD2_3:focus {
             box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
 
@@ -232,10 +257,10 @@ ui <- fluidPage(
     # Main Tab Panel
     tabsetPanel(
       id = "mainTab", selected = "About",
-      tabPanel("Dosing", value = "Dosing", mainTabDosing),
-      tabPanel("Population", value = "Population", mainTabPopulation),
-      tabPanel("Simulation", value = "Simulation", mainTabSim),
-      tabPanel("Results", value = "Results", mainTabResults),
+      tabPanel("1. Dosing", value = "Dosing", mainTabDosing),
+      tabPanel("2. Population", value = "Population", mainTabPopulation),
+      tabPanel("3. Simulation", value = "Simulation", mainTabSim),
+      tabPanel("4. Results", value = "Results", mainTabResults),
       tabPanel("About", value = "About", mainTabAbout), 
       tabPanel("Extra: TTP Simulation", value = "TTPsim", mainTabTTPSim)
     )
@@ -981,17 +1006,20 @@ server <- function(input, output, session) {
         
         max_dur <- {
             durations <- (if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0) + 
-                        (input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7))
+                        (input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7)) +
+                        (if(input$MD2_1) input$m2dur_1 * ifelse(input$m2unit_1 == "2", 1, 1/7) else 0)
             
             if(input$RG2) {
                 reg2_dur <- (if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0) + 
-                           (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7))
+                           (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)) +
+                           (if(input$MD2_2) input$m2dur_2 * ifelse(input$m2unit_2 == "2", 1, 1/7) else 0)
                 durations <- c(durations, reg2_dur)
             }
             
             if(input$RG3) {
                 reg3_dur <- (if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0) + 
-                           (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7))
+                           (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)) +
+                           (if(input$MD2_3) input$m2dur_3 * ifelse(input$m2unit_3 == "2", 1, 1/7) else 0)
                 durations <- c(durations, reg3_dur)
             }
             

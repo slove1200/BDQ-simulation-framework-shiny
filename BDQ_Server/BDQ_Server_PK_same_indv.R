@@ -37,8 +37,11 @@ createEventDataset <- function(nsamples, dose, timeModifier) {
     time = dosingtime + timeModifier)))
 }
 
-# Function to handle dosing details (both loading and maintenance)
-processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, mdose, mdur, munit, mfreq, nsamples) {
+# Function to handle dosing details (loading, maintenance 1 and maintenance 2)
+processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, 
+                         mdose, mdur, munit, mfreq,
+                         maintenance_dose2 = FALSE, m2dose, m2dur, m2unit, m2freq,
+                         nsamples) {
   # Handle Loading Dose if enabled
   if (load_dose) {
     lunit <- convertTimeUnit(lunit)
@@ -46,16 +49,31 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, mdose, mdur, mun
     dfLoad <- createEventDataset(nsamples, ldose, 0)
   }
   
-  # Handle Maintenance Dose
+  # Handle First Maintenance Dose
   munit <- convertTimeUnit(munit)
   maintenance_interval <- defineEventVariable(mdur, munit, mfreq)
   
+  # Initialize base dosing schedule
   if (load_dose) {
     dfMaintenance <- createEventDataset(nsamples, mdose, ldur * lunit)
     dfPK <- rbind(dfLoad, dfMaintenance)
   } else {
     dfMaintenance <- createEventDataset(nsamples, mdose, 0)
     dfPK <- dfMaintenance
+  }
+  
+  # Handle Second Maintenance Dose if enabled
+  if (maintenance_dose2) {
+    m2unit <- convertTimeUnit(m2unit)
+    maintenance_2_interval <- defineEventVariable(m2dur, m2unit, m2freq)
+    
+    if (load_dose) {
+      dfMaintenance2 <- createEventDataset(nsamples, m2dose, ldur * lunit + mdur * munit)
+      dfPK <- rbind(dfPK, dfMaintenance2)
+    } else {
+      dfMaintenance2 <- createEventDataset(nsamples, m2dose, mdur * munit)
+      dfPK <- rbind(dfPK, dfMaintenance2)
+    }
   }
   
   dfPK$THETA25 <- 1    # IE BDQ
@@ -130,7 +148,12 @@ sim_PK <- function(input, virtual_population_df) {
       mdose = input[[paste0("mdose_", i)]],
       mdur  = input[[paste0("mdur_", i)]],
       munit = input[[paste0("munit_", i)]],
-      mfreq = input[[paste0("mfreq_", i)]]
+      mfreq = input[[paste0("mfreq_", i)]],
+      MD2    = input[[paste0("MD2_", i)]], 
+      m2dose = input[[paste0("m2dose_", i)]],
+      m2dur  = input[[paste0("m2dur_", i)]],
+      m2unit = input[[paste0("m2unit_", i)]],
+      m2freq = input[[paste0("m2freq_", i)]]
     )
     
     # Now you can use 'common_inputs' for processing each regimen
@@ -159,6 +182,11 @@ sim_PK <- function(input, virtual_population_df) {
         regimens[[i]]$mdur, 
         regimens[[i]]$munit, 
         regimens[[i]]$mfreq, 
+        regimens[[i]]$MD2,
+        regimens[[i]]$m2dose,
+        regimens[[i]]$m2dur,
+        regimens[[i]]$m2unit,
+        regimens[[i]]$m2freq,
         nsamples
       )
       dfPK$regimen <- i

@@ -8,7 +8,7 @@ doseControls <- function(regimen_num) {
         h6("Loading dose", style = "font-weight: bold;"),
         tags$div(
           style = "margin-top: 1rem;",
-          numericInput(paste0("ldose_", regimen_num), label = "Loading dose of BDQ (mg)", value = 400, min = 100, max = 20000)
+          numericInput(paste0("ldose_", regimen_num), label = "Loading dose of bedaquiline (mg)", value = 400, min = 100, max = 20000)
         ),
         tags$div(
           style = "margin-top: 1rem;",
@@ -27,7 +27,7 @@ doseControls <- function(regimen_num) {
       h6("Maintenance dose", style = "font-weight: bold;"),
       tags$div(
         style = "margin-top: 1rem;",
-        numericInput(paste0("mdose_", regimen_num), label = "Maintenance dose of BDQ (mg)", value = 200, min = 100, max = 20000)
+        numericInput(paste0("mdose_", regimen_num), label = "Maintenance dose of bedaquiline (mg)", value = 200, min = 100, max = 20000)
       ),
       tags$div(
         style = "margin-top: 1rem;",
@@ -40,12 +40,36 @@ doseControls <- function(regimen_num) {
       tags$div(
         style = "margin-top: 1rem;",
         selectInput(paste0("mfreq_", regimen_num), label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Three times weekly")
+      ), 
+      br(),
+      br(),
+      checkboxInput(paste0("MD2_", regimen_num), "Add maintenance dose 2", value = FALSE),
+      br(),
+      conditionalPanel(
+        condition = paste0("input.MD2_", regimen_num, " == true"),
+        h6("Maintenance dose 2", style = "font-weight: bold;"),
+        tags$div(
+          style = "margin-top: 1rem;",
+          numericInput(paste0("m2dose_", regimen_num), label = "Maintenance dose 2 of bedaquiline (mg)", value = 200, min = 100, max = 20000)
+        ),
+        tags$div(
+          style = "margin-top: 1rem;",
+          numericInput(paste0("m2dur_", regimen_num), label = "Maintenance dose 2 duration", value = 16, min = 1, max = 20000)
+        ),
+        tags$div(
+          style = "margin-top: 1rem;",
+          selectInput(paste0("m2unit_", regimen_num), label = "Unit", c("week" = "2", "day" = "1"), selected = "week")
+        ),
+        tags$div(
+          style = "margin-top: 1rem;",
+          selectInput(paste0("m2freq_", regimen_num), label = "Maintenance dose 2 frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+        )
       )
     )
 }
 
 # Function to create a regimen card
-regimenCard <- function(regimen_num, background_color, default_LD = FALSE, addition_RG = TRUE) {
+regimenCard <- function(regimen_num, background_color, default_LD = FALSE, default_MD2 = FALSE, addition_RG = TRUE) {
   card_content <- card(
     card_header(
       paste("Regimen", regimen_num),
@@ -103,9 +127,9 @@ mainTabDosing <- tabPanel(
         )
       ),
       # Regimen Cards
-      regimenCard(1, "#CBCAE3", default_LD = TRUE, addition_RG = FALSE),
-      regimenCard(2, "#E1C3C8", default_LD = FALSE, addition_RG = TRUE),
-      regimenCard(3, "#C1D4D7", default_LD = FALSE, addition_RG = TRUE)
+      regimenCard(1, "#CBCAE3", default_LD = TRUE, default_MD2 = FALSE, addition_RG = FALSE),
+      regimenCard(2, "#E1C3C8", default_LD = FALSE, default_MD2 = FALSE, addition_RG = TRUE),
+      regimenCard(3, "#C1D4D7", default_LD = FALSE, default_MD2 = FALSE, addition_RG = TRUE)
     )
   )
 )

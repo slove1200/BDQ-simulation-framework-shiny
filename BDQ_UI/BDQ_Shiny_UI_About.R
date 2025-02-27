@@ -64,6 +64,9 @@ mainTabAbout <- tabPanel(
                                 card_body(
                                     tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                         tags$li("Loading dose is optional. If no loading dose is added, maintainence dose will start from time 0"),
+                                        tags$li("Maintenance dose 2 is optional, it is not added to the regimen by default.",
+                                                tags$br(), 
+                                                "If it's added, the maintencance dose 2 will be added to the regimen after the first maintenance dose"),
                                         tags$li(
                                             "Set loading dose and maintenance dose:",
                                             tags$ul(
@@ -88,7 +91,7 @@ mainTabAbout <- tabPanel(
                                                 "(400 mg daily for 2 weeks, followed by 200 mg thrice weekly for 22 weeks)"),
                                         tags$li("Use checkboxes to add Regimen 2 and Regimen 3",
                                                 tags$br(), 
-                                                "Note: Regimen 3 can only be added if Regimen 2 is active")
+                                                tags$strong("Note:"), " Regimen 3 can only be added if Regimen 2 is active")
                                     )
                                 )
                             ),
@@ -199,7 +202,7 @@ mainTabAbout <- tabPanel(
                                         tags$li(tags$strong("The minimum values of half-life modifier is -100%"), ", since a > 100% shorter half-life is not possible")
                                     ),
                                     tags$li("The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in patients under the bedaquiline approved dosing regimen"),
-                                    tags$li("Note: Half-life modifier directly influences the influences sputum culture conversion in 
+                                    tags$li(tags$strong("Note:"), " Half-life modifier directly influences the influences sputum culture conversion in 
                                     both the PK-efficacy model and long-term outcome model"),
                                 ),
                             style = "font-size: 14px; padding-left: 5px; line-height: 1.9;"

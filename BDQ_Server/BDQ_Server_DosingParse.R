@@ -21,30 +21,35 @@ bsicon_themes <- list(
 )
 
 # Get regimen strings from your parsing function
-# Get regimen strings from your parsing function
-regimen_strings <- function(input, stored_regimens) {  # Add stored_regimens parameter
+regimen_strings <- function(input, stored_regimens) {
   validate(need(input, "Waiting for input..."))
   
-  num_regimens <- sum(stored_regimens)  # Use stored_regimens instead
+  num_regimens <- sum(stored_regimens)
   regimen_strings <- list()
   
   for (i in 1:num_regimens) {
     tryCatch({
       common_inputs <- list(
-        LD    = input[[paste0("LD", i)]],
-        ldose = input[[paste0("ldose_", i)]],
-        ldur  = input[[paste0("ldur_", i)]],
-        lunit = input[[paste0("lunit_", i)]],
-        lfreq = input[[paste0("lfreq_", i)]],
-        mdose = input[[paste0("mdose_", i)]],
-        mdur  = input[[paste0("mdur_", i)]],
-        munit = input[[paste0("munit_", i)]],
-        mfreq = input[[paste0("mfreq_", i)]]
+        LD     = input[[paste0("LD", i)]],
+        ldose  = input[[paste0("ldose_", i)]],
+        ldur   = input[[paste0("ldur_", i)]],
+        lunit  = input[[paste0("lunit_", i)]],
+        lfreq  = input[[paste0("lfreq_", i)]],
+        mdose  = input[[paste0("mdose_", i)]],
+        mdur   = input[[paste0("mdur_", i)]],
+        munit  = input[[paste0("munit_", i)]],
+        mfreq  = input[[paste0("mfreq_", i)]],
+        MD2    = input[[paste0("MD2_", i)]],
+        m2dose = input[[paste0("m2dose_", i)]],
+        m2dur  = input[[paste0("m2dur_", i)]],
+        m2unit = input[[paste0("m2unit_", i)]],
+        m2freq = input[[paste0("m2freq_", i)]]
       )
       
       # Generate individual regimen string
       if (!is.null(common_inputs$LD) && common_inputs$LD) {
-        regimen_strings[[i]] <- str_glue(
+        # Start with loading dose
+        regimen_str <- str_glue(
           "{ldose} mg {tolower(lfreq)} for {ldur} {ifelse(lunit == 1, 'days', 'weeks')}, followed by {mdose} mg {tolower(mfreq)} for {mdur} {ifelse(munit == 1, 'days', 'weeks')}",
           ldose = common_inputs$ldose,
           ldur = common_inputs$ldur,
@@ -56,7 +61,8 @@ regimen_strings <- function(input, stored_regimens) {  # Add stored_regimens par
           mfreq = common_inputs$mfreq
         )
       } else {
-        regimen_strings[[i]] <- str_glue(
+        # Start with maintenance dose
+        regimen_str <- str_glue(
           "{mdose} mg {tolower(mfreq)} for {mdur} {ifelse(munit == 1, 'days', 'weeks')}",
           mdose = common_inputs$mdose,
           mdur = common_inputs$mdur,
@@ -64,6 +70,21 @@ regimen_strings <- function(input, stored_regimens) {  # Add stored_regimens par
           mfreq = common_inputs$mfreq
         )
       }
+      
+      # Add maintenance dose 2 if enabled
+      if (!is.null(common_inputs$MD2) && common_inputs$MD2) {
+        regimen_str <- str_glue(
+          "{regimen_str}, followed by {m2dose} mg {tolower(m2freq)} for {m2dur} {ifelse(m2unit == 1, 'days', 'weeks')}",
+          regimen_str = regimen_str,
+          m2dose = common_inputs$m2dose,
+          m2dur = common_inputs$m2dur,
+          m2unit = common_inputs$m2unit,
+          m2freq = common_inputs$m2freq
+        )
+      }
+      
+      regimen_strings[[i]] <- regimen_str
+      
     }, error = function(e) {
       regimen_strings[[i]] <- "Incomplete data"
     })
