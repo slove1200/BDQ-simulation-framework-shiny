@@ -7,7 +7,7 @@ The application incorporates several established models:
 - Pharmacokinetic (PK) model developed by [Svensson et al. (*CPT: PSP*, 2016)](https://doi.org/10.1002/psp4.12147)
 - PK-efficacy models developed by [Svensson and Karlsson (*J Antimicrob Chemother*, 2017)](https://doi.org/10.1093/jac/dkx317) and Tanneau et al. [(*Br J Clin Pharmacol*, 2020)](https://doi.org/10.1111/bcp.14199)
 - PK-safety model developed by [Tanneau et al. (*CPT: PSP*, 2021)](https://doi.org/10.1002/psp4.12722)
-- Long-term outcome model developed by [Lin et al. (*J Antimicrob Chemother*, 2024)](https://doi.org/0.1093/jac/dkae256)
+- Long-term outcome model developed by [Lin et al. (*J Antimicrob Chemother*, 2024)](https://doi.org/10.1093/jac/dkae256)
 
 For the effect of concomitant medications on PK and QT level, the parameters from the publications listed are incorporated:
 
