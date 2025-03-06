@@ -439,7 +439,8 @@ server <- function(input, output, session) {
         incProgress(0.2, detail = "Creating data table...")
         output$tableTTPsim <- DT::renderDataTable({
           TTPsim_results()$TSCCdf %>% 
-            select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
+            select(ID, MTTP, TAST, REP, TTPD, NEG, TSCC) %>%
+            mutate(MTTP = round(MTTP/24, 2)) %>%
             DT::datatable(
               options = list(
                 pageLength = 10,
@@ -450,7 +451,7 @@ server <- function(input, output, session) {
                 ordering = TRUE
               ),
               rownames = FALSE,
-              colnames = c("ID", "Time", "Replicates", "Time to Positivity in Days", "Culture Negative (1)", "Time to Sputum Culture Conversion (1)"),
+              colnames = c("ID", "Baseline TTP in Days", "Time", "Replicates", "TTP Signal in Days", "Culture Negative (1)", "Time to Sputum Culture Conversion (1)"),
               class = 'cell-border stripe'
             )
         })
@@ -487,8 +488,10 @@ server <- function(input, output, session) {
             # Write CSV file
             write.csv(
               TTPsim_results()$TSCCdf %>%
-                select(ID, TAST, REP, TTPD, NEG, TSCC) %>%
+              mutate(MTTP = round(MTTP/24, 2)) %>%
+                select(ID, MTTP, TAST, REP, TTPD, NEG, TSCC) %>%
                 rename(
+                  "basTTP" = "MTTP",
                   "culNEG" = "NEG"
                 ),
               temp_files[1],

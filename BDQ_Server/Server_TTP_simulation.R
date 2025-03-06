@@ -188,9 +188,21 @@ TTPsimplots <- function(input) {
     mutate(CMT = ifelse(AMT == 1, 1, 0)) %>%
     arrange(ID, TAST, REP, TTPD) %>%
     mutate(TIME = seq_along(ID) - 1, 
-           MTTP  = input$MTTP_TTP*24,   
            HLEFF = input$HLEFF_TTP)
   
+  # Read in dataset to sample MTTP from
+  myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                        header = T) %>% select(ID, MTTP)
+
+  myCovSimMICE_custom <- myCovSimMICE %>% filter(MTTP >= input$MTTP_TTP_min*24 & MTTP <= input$MTTP_TTP_max*24)
+
+  if (input$TTP_distribution_choice == "Default") {
+    indvBaselineTTP <- myCovSimMICE %>% filter(ID <= input$nsim_TTP)
+  } else {
+    indvBaselineTTP <- myCovSimMICE_custom %>% filter(ID <= input$nsim_TTP)
+  }
+
+  TTPdf_fin <- TTPdf_fin %>% left_join(indvBaselineTTP, by = "ID")
   
   if (input$STUDY_TTP == "Treatment-naïve") {
     modTTPsim <- mcode("BDQTTP_sim", codeTTP_sim)

@@ -6,6 +6,7 @@
 
 # Column definitions:
 ID       - Subject ID number
+basTTP   - Baseline time-to-positivity in days
 TAST     - Time after start of treatment in the specified unit defined by the users (days or weeks)
 REP      - Number of replicate sputum samples collected per sampling timepoint
 TTPD     - Time in MGIT tube for each sample [days]. >42 days are considered as negative culture

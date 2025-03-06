@@ -25,6 +25,23 @@ mainTabTTPSim <- tabPanel(
     .html-fill-container > .html-fill-item.datatables {
       flex-basis: auto !important;
     }
+    
+    /* Target only TTP_distribution_choice radio buttons */
+    #TTP_distribution_choice .radio-inline input[type='radio'] {
+      width: 12px !important;
+      height: 12px !important;
+      vertical-align: middle !important;
+    }
+    
+    #TTP_distribution_choice .radio-inline {
+      margin-right: 15px !important;
+      font-size: 12px !important;
+    }
+    
+    #TTP_distribution_choice .shiny-options-group {
+      display: flex !important;
+      align-items: center !important;
+    }
 
   "))),
   tabsetPanel(
@@ -59,7 +76,13 @@ mainTabTTPSim <- tabPanel(
                         tags$li(tags$strong("Treatment-experienced: "), "For individuals with prior TB treatment")
                       ) 
                     ),
-                    tags$li("Baseline Time-to-positivity signal for individual subjects in days"),
+                    tags$li("Baseline Time-to-positivity signal for individual subjects in days:", 
+                      tags$br(), 
+                      tags$ul(
+                        tags$li(tags$strong("Use default distribution: "), "Uses the distribution from a representative TB virtual population with meidan 5.0 days, minimum 1.25 days and maximum 42 days"),
+                        tags$li(tags$strong("Define custom range: "), "Allows you to specify minimum and maximum values of the distribution")
+                      )
+                    ),
                     tags$li(
                       tags$strong("Half-life of Mycobacterial Load Modifier:"), 
                       tags$ul(
@@ -132,10 +155,45 @@ mainTabTTPSim <- tabPanel(
                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Population"), 
                        choices = c("Treatment-naïve", "Treatment-experienced"), 
                        width = "100%"),
-            numericInput("MTTP_TTP", 
-                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Baseline Time-to-positivity in MGIT Culture (days)"), 
-                        value = 6.8, min = 0.1, max = 42, step = 0.1, 
+            # Baseline Time-to-positivity options
+            radioButtons("TTP_distribution_choice", 
+                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Baseline Time-to-positivity (TTP) Distribution"),
+                        choiceNames = list(
+                          tags$span(style="font-size: 12px;", "Use default distribution"),
+                          tags$span(style="font-size: 12px;", "Define custom range")
+                        ),
+                        choiceValues = list("Default", "Custom"),
+                        selected = "Default",
+                        inline = TRUE,
                         width = "100%"),
+            # Conditional panel for default distribution
+            conditionalPanel(
+              condition = "input.TTP_distribution_choice == 'Default'",
+              tags$div(
+                tags$p(style = "font-size: 12px; color: #666;", 
+                      "Using the distribution from a representative TB virtual population with median 5.0 days, minimum 1.25 days and maximum 42 days")
+              )
+            ),
+            # Conditional panel for custom range
+            conditionalPanel(
+              condition = "input.TTP_distribution_choice == 'Custom'",
+              tags$div(
+                fluidRow(
+                  column(width = 6,
+                    numericInput("MTTP_TTP_min", 
+                                label = tags$span(style="font-size: 12px; font-weight: bold;", "Minimum Baseline TTP (days)"), 
+                                value = 1.25, min = 1.25, max = 41.9, step = 0.1, 
+                                width = "100%")
+                  ),
+                  column(width = 6,
+                    numericInput("MTTP_TTP_max", 
+                                label = tags$span(style="font-size: 12px; font-weight: bold;", "Maximum Baseline TTP (days)"), 
+                                value = 42, min = 1.26, max = 42, step = 0.1, 
+                                width = "100%")
+                  )
+                )
+              )
+            ),
             numericInput("HLEFF_TTP", 
                         label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
                         value = -40, min = -100, max = 500, 
