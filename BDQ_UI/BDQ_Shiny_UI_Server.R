@@ -926,7 +926,8 @@ server <- function(input, output, session) {
     validationStates <- reactiveValues(
         enough_subjects = TRUE,
         enough_time = TRUE,
-        enough_timeMSM = TRUE
+        enough_timeMSM = TRUE,
+        valid_REP = TRUE
     )
 
     # Population size validation
@@ -993,6 +994,31 @@ server <- function(input, output, session) {
       } else {
         NULL
       }
+    })
+
+    # REP validation
+    output$REP_validation <- renderText({
+      # Check if REP is missing or invalid
+      if (is.null(input$REP) || is.na(input$REP)) {
+        validationStates$valid_REP <- FALSE
+        return("Please specify the number of MGIT culture replicates")
+      }
+      
+      # Check if REP is within valid range
+      if (input$REP < 1 || input$REP > 3) {
+        validationStates$valid_REP <- FALSE
+        return("Number of MGIT culture replicates must be between 1 and 3")
+      }
+      
+      # If we reach here, REP is valid
+      validationStates$valid_REP <- TRUE
+      return(NULL)
+    })
+
+    # Trigger REP validation when REP input changes
+    observe({
+      # This will trigger the REP_validation renderText
+      input$REP
     })
 
     # Simulation time validation
@@ -1065,7 +1091,8 @@ server <- function(input, output, session) {
     observe({
         if (validationStates$enough_subjects && 
             validationStates$enough_time && 
-            validationStates$enough_timeMSM) {
+            validationStates$enough_timeMSM &&
+            validationStates$valid_REP) {
             shinyjs::enable("goButton")
         } else {
             shinyjs::disable("goButton")
