@@ -177,69 +177,39 @@ ui <- fluidPage(
         }
 
         /* Custom styles for Add Loading Dose checkboxes */
-        #LD1:checked {
+        /* Regimen 1 checkboxes */
+        #LD1:checked, #MD2_1:checked, #interrupt_1:checked, #restart_LD1:checked, #restart_MD2_1:checked {
             background-color: #65658F !important;
             border-color: #E5E5F1 !important;
         }
-        #LD1:not(:checked):hover {
+        #LD1:not(:checked):hover, #MD2_1:not(:checked):hover, #interrupt_1:not(:checked):hover, #restart_LD1:not(:checked):hover, #restart_MD2_1:not(:checked):hover {
             border-color: #E5E5F1 !important;
         }
-        #LD1:focus {
+        #LD1:focus, #MD2_1:focus, #interrupt_1:focus, #restart_LD1:focus, #restart_MD2_1:focus {
             box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
         }
 
-        #MD2_1:checked {
-            background-color: #65658F !important;
-            border-color: #E5E5F1 !important;
-        }
-        #MD2_1:not(:checked):hover {
-            border-color: #E5E5F1 !important;
-        }
-        #MD2_1:focus {
-            box-shadow: 0 0 0 0.25rem rgba(101, 101, 143, 0.25) !important;
-        }
-
-        #LD2:checked {
+        /* Regimen 2 checkboxes */
+        #LD2:checked, #MD2_2:checked, #interrupt_2:checked, #restart_LD2:checked, #restart_MD2_2:checked {
             background-color: #705E64 !important;
             border-color: #F0E1E4 !important;
         }
-        #LD2:not(:checked):hover {
+        #LD2:not(:checked):hover, #MD2_2:not(:checked):hover, #interrupt_2:not(:checked):hover, #restart_LD2:not(:checked):hover, #restart_MD2_2:not(:checked):hover {
             border-color: #F0E1E4 !important;
         }
-        #LD2:focus {
+        #LD2:focus, #MD2_2:focus, #interrupt_2:focus, #restart_LD2:focus, #restart_MD2_2:focus {
             box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
         }
 
-        #MD2_2:checked {
-            background-color: #705E64 !important;
-            border-color: #F0E1E4 !important;
-        }
-        #MD2_2:not(:checked):hover {
-            border-color: #F0E1E4 !important;
-        }
-        #MD2_2:focus {
-            box-shadow: 0 0 0 0.25rem rgba(112, 94, 100, 0.25) !important;
-        }
-
-        #LD3:checked {
+        /* Regimen 3 checkboxes */
+        #LD3:checked, #MD2_3:checked, #interrupt_3:checked, #restart_LD3:checked, #restart_MD2_3:checked {
             background-color: #606A6C !important;
             border-color: #E0EAEB !important;
         }
-        #LD3:not(:checked):hover {
+        #LD3:not(:checked):hover, #MD2_3:not(:checked):hover, #interrupt_3:not(:checked):hover, #restart_LD3:not(:checked):hover, #restart_MD2_3:not(:checked):hover {
             border-color: #E0EAEB !important;
         }
-        #LD3:focus {
-            box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
-        }
-
-        #MD2_3:checked {
-            background-color: #606A6C !important;
-            border-color: #E0EAEB !important;
-        }
-        #MD2_3:not(:checked):hover {
-            border-color: #E0EAEB !important;
-        }
-        #MD2_3:focus {
+        #LD3:focus, #MD2_3:focus, #interrupt_3:focus, #restart_LD3:focus, #restart_MD2_3:focus {
             box-shadow: 0 0 0 0.25rem rgba(96, 106, 108, 0.25) !important;
         }
 
@@ -352,7 +322,7 @@ server <- function(input, output, session) {
       updateNumericInput(session, "SEX_female", value = 33)
   })
 
-    ###################### LOADING OVERLAY STYLES ######################
+    ##########36############ LOADING OVERLAY STYLES ######################
     # Add custom CSS for loading overlay and notifications
     insertUI(
         selector = "head",

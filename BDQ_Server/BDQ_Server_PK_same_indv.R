@@ -41,12 +41,21 @@ createEventDataset <- function(nsamples, dose, timeModifier) {
 processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, 
                          mdose, mdur, munit, mfreq,
                          maintenance_dose2 = FALSE, m2dose, m2dur, m2unit, m2freq,
-                         nsamples) {
+                         nsamples,
+                         interruption = FALSE, offbdqdur = NULL, offbdqunit = NULL,
+                         restart_LD = FALSE, restart_ldose = NULL, restart_ldur = NULL, restart_lunit = NULL, restart_lfreq = NULL,
+                         restart_mdose = NULL, restart_mdur = NULL, restart_munit = NULL, restart_mfreq = NULL,
+                         restart_MD2 = FALSE, restart_m2dose = NULL, restart_m2dur = NULL, restart_m2unit = NULL, restart_m2freq = NULL) {
+  
+  # Initialize variables to track total time
+  total_time <- 0
+  
   # Handle Loading Dose if enabled
   if (load_dose) {
     lunit <- convertTimeUnit(lunit)
     loading_interval <- defineEventVariable(ldur, lunit, lfreq)
     dfLoad <- createEventDataset(nsamples, ldose, 0)
+    total_time <- ldur * lunit
   }
   
   # Handle First Maintenance Dose
@@ -55,11 +64,13 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq,
   
   # Initialize base dosing schedule
   if (load_dose) {
-    dfMaintenance <- createEventDataset(nsamples, mdose, ldur * lunit)
+    dfMaintenance <- createEventDataset(nsamples, mdose, total_time)
     dfPK <- rbind(dfLoad, dfMaintenance)
+    total_time <- total_time + mdur * munit
   } else {
     dfMaintenance <- createEventDataset(nsamples, mdose, 0)
     dfPK <- dfMaintenance
+    total_time <- mdur * munit
   }
   
   # Handle Second Maintenance Dose if enabled
@@ -67,13 +78,57 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq,
     m2unit <- convertTimeUnit(m2unit)
     maintenance_2_interval <- defineEventVariable(m2dur, m2unit, m2freq)
     
-    if (load_dose) {
-      dfMaintenance2 <- createEventDataset(nsamples, m2dose, ldur * lunit + mdur * munit)
-      dfPK <- rbind(dfPK, dfMaintenance2)
-    } else {
-      dfMaintenance2 <- createEventDataset(nsamples, m2dose, mdur * munit)
-      dfPK <- rbind(dfPK, dfMaintenance2)
+    dfMaintenance2 <- createEventDataset(nsamples, m2dose, total_time)
+    dfPK <- rbind(dfPK, dfMaintenance2)
+    total_time <- total_time + m2dur * m2unit
+  }
+  
+  # Handle Interruption and Restart if enabled
+  if (interruption) {
+    # Calculate interruption time
+    offbdqunit_converted <- convertTimeUnit(offbdqunit)
+    interruption_time <- offbdqdur * offbdqunit_converted
+    
+    # Add interruption time to total time
+    restart_time <- total_time + interruption_time
+    
+    # Handle Restart Loading Dose if enabled
+    if (restart_LD) {
+      restart_lunit_converted <- convertTimeUnit(restart_lunit)
+      restart_loading_interval <- defineEventVariable(restart_ldur, restart_lunit_converted, restart_lfreq)
+      dfRestartLoad <- createEventDataset(nsamples, restart_ldose, restart_time)
+      restart_time <- restart_time + restart_ldur * restart_lunit_converted
     }
+    
+    # Handle Restart Maintenance Dose
+    restart_munit_converted <- convertTimeUnit(restart_munit)
+    restart_maintenance_interval <- defineEventVariable(restart_mdur, restart_munit_converted, restart_mfreq)
+    
+    if (restart_LD) {
+      dfRestartMaintenance <- createEventDataset(nsamples, restart_mdose, restart_time)
+      if (exists("dfRestartLoad")) {
+        dfRestart <- rbind(dfRestartLoad, dfRestartMaintenance)
+      } else {
+        dfRestart <- dfRestartMaintenance
+      }
+      restart_time <- restart_time + restart_mdur * restart_munit_converted
+    } else {
+      dfRestartMaintenance <- createEventDataset(nsamples, restart_mdose, restart_time)
+      dfRestart <- dfRestartMaintenance
+      restart_time <- restart_time + restart_mdur * restart_munit_converted
+    }
+    
+    # Handle Restart Second Maintenance Dose if enabled
+    if (restart_MD2) {
+      restart_m2unit_converted <- convertTimeUnit(restart_m2unit)
+      restart_maintenance_2_interval <- defineEventVariable(restart_m2dur, restart_m2unit_converted, restart_m2freq)
+      
+      dfRestartMaintenance2 <- createEventDataset(nsamples, restart_m2dose, restart_time)
+      dfRestart <- rbind(dfRestart, dfRestartMaintenance2)
+    }
+    
+    # Combine original dosing with restart dosing
+    dfPK <- rbind(dfPK, dfRestart)
   }
   
   dfPK$THETA25 <- 1    # IE BDQ
@@ -156,10 +211,32 @@ sim_PK <- function(input, virtual_population_df) {
       m2freq = input[[paste0("m2freq_", i)]]
     )
     
+    # Add interruption inputs
+    interruption_inputs <- list(
+      interrupt = input[[paste0("interrupt_", i)]],
+      offbdqdur = input[[paste0("offbdqdur_", i)]],
+      offbdqunit = input[[paste0("offbdqunit_", i)]],
+      restart_LD = input[[paste0("restart_LD", i)]],
+      restart_ldose = input[[paste0("restart_ldose_", i)]],
+      restart_ldur = input[[paste0("restart_ldur_", i)]],
+      restart_lunit = input[[paste0("restart_lunit_", i)]],
+      restart_lfreq = input[[paste0("restart_lfreq_", i)]],
+      restart_mdose = input[[paste0("restart_mdose_", i)]],
+      restart_mdur = input[[paste0("restart_mdur_", i)]],
+      restart_munit = input[[paste0("restart_munit_", i)]],
+      restart_mfreq = input[[paste0("restart_mfreq_", i)]],
+      restart_MD2 = input[[paste0("restart_MD2_", i)]],
+      restart_m2dose = input[[paste0("restart_m2dose_", i)]],
+      restart_m2dur = input[[paste0("restart_m2dur_", i)]],
+      restart_m2unit = input[[paste0("restart_m2unit_", i)]],
+      restart_m2freq = input[[paste0("restart_m2freq_", i)]]
+    )
+    
     # Now you can use 'common_inputs' for processing each regimen
     # For example:
     regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
                        common_inputs, 
+                       interruption_inputs,
                        IE_PK = input[[paste0("IE_", i, "_PK")]])
     
     # Process the rest of the regimen as needed...
@@ -187,7 +264,24 @@ sim_PK <- function(input, virtual_population_df) {
         regimens[[i]]$m2dur,
         regimens[[i]]$m2unit,
         regimens[[i]]$m2freq,
-        nsamples
+        nsamples,
+        regimens[[i]]$interrupt,
+        regimens[[i]]$offbdqdur,
+        regimens[[i]]$offbdqunit,
+        regimens[[i]]$restart_LD,
+        regimens[[i]]$restart_ldose,
+        regimens[[i]]$restart_ldur,
+        regimens[[i]]$restart_lunit,
+        regimens[[i]]$restart_lfreq,
+        regimens[[i]]$restart_mdose,
+        regimens[[i]]$restart_mdur,
+        regimens[[i]]$restart_munit,
+        regimens[[i]]$restart_mfreq,
+        regimens[[i]]$restart_MD2,
+        regimens[[i]]$restart_m2dose,
+        regimens[[i]]$restart_m2dur,
+        regimens[[i]]$restart_m2unit,
+        regimens[[i]]$restart_m2freq
       )
       dfPK$regimen <- i
       dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen

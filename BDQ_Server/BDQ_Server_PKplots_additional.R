@@ -37,11 +37,17 @@ PKDavg_plots <- function(input, sim_PKtable) {
   # Set dynamic ylim BDQ
   if (input$nsim == 1 || input$IIV == "OFF") { # individual
     maxBDQ <- max(Cavg_daily$AUCDBDQ)/24*1000
-    ylimitsBDQ <- maxBDQ
+    ylimitsBDQ <- maxBDQ 
   } else {
-    q97BDQ <- quantile(Cavg_daily$AUCDBDQ/24*1000, probs = 0.97)
-    max15BDQ <- max(Cavg_daily$AUCDBDQ)/24*1000*0.15
-    ylimitsBDQ <- q97BDQ + max15BDQ
+    # Use the actual maximum of the upper ribbon values plus a buffer
+    maxRibbonBDQ <- max(dfForPlot_CavgD$upper_CavgDBDQ, na.rm = TRUE)
+    ylimitsBDQ <- maxRibbonBDQ 
+  }
+
+  if (input$simtime > 48) {
+    xbreaks <- seq(0, input$simtime, by = 8)
+  } else {
+    xbreaks <- seq(0, input$simtime, by = 4)
   }
   
   a1 <- ggplot(dfForPlot_CavgD, aes(x = time / 168, y = median_CavgDBDQ, 
@@ -69,13 +75,13 @@ PKDavg_plots <- function(input, sim_PKtable) {
   # Set dynamic ylim M2
   if (input$nsim == 1 || input$IIV == "OFF") { # individual
     maxM2 <- max(Cavg_daily$AUCDM2)/24*1000
-    ylimitsM2 <- maxM2
+    ylimitsM2 <- maxM2 
   } else {
-    q97M2 <- quantile(Cavg_daily$AUCDM2/24*1000, probs = 0.97)
-    max15M2 <- max(Cavg_daily$AUCDM2)/24*1000*0.15
-    ylimitsM2 <- q97M2 + max15M2
+    # Use the actual maximum of the upper ribbon values plus a buffer
+    maxRibbonM2 <- max(dfForPlot_CavgD$upper_CavgDM2, na.rm = TRUE)
+    ylimitsM2 <- maxRibbonM2 
   }
-  
+
   a2 <- ggplot(dfForPlot_CavgD, aes(x = time / 168, y = median_CavgDM2, 
                                 color = as.factor(regimen), 
                                 fill = as.factor(regimen))) +
@@ -84,7 +90,8 @@ PKDavg_plots <- function(input, sim_PKtable) {
     theme_bw() +
     labs(x = "Time (weeks)", y = c("Daily Average M2 concentration (ng/mL)")) +
     ggtitle("Daily Average M2 Concentration (ng/mL) vs Time") +
-    coord_cartesian(ylim = c(0, ylimitsM2)) +
+    coord_cartesian(ylim = c(0, ylimitsM2), xlim = c(0, input$simtime)) +
+    scale_x_continuous(breaks = xbreaks) +
     scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
@@ -148,11 +155,17 @@ PKWavg_plots <- function(input, sim_PKtable) {
   # Set dynamic ylim BDQ
   if (input$nsim == 1 || input$IIV == "OFF") { # individual
     maxBDQ <- max(Cavg_weekly$AUCWBDQ)/168*1000
-    ylimitsBDQ <- maxBDQ
+    ylimitsBDQ <- maxBDQ * 1.03
   } else {
-    q97BDQ <- quantile(Cavg_weekly$AUCWBDQ/168*1000, probs = 0.97)
-    max15BDQ <- max(Cavg_weekly$AUCWBDQ)/168*1000*0.15
-    ylimitsBDQ <- q97BDQ + max15BDQ
+    # Use the actual maximum of the upper ribbon values plus a buffer
+    maxRibbonBDQ <- max(dfForPlot_CavgW$upper_CavgWBDQ, na.rm = TRUE)
+    ylimitsBDQ <- maxRibbonBDQ * 1.03
+  }
+
+  if (input$simtime > 48) {
+    xbreaks <- seq(0, input$simtime, by = 8)
+  } else {
+    xbreaks <- seq(0, input$simtime, by = 4)
   }
   
   a1 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWBDQ, 
@@ -163,7 +176,8 @@ PKWavg_plots <- function(input, sim_PKtable) {
     theme_bw() +
     labs(x = "Time (weeks)", y = c("Weekly Average BDQ concentration (ng/mL)")) +
     ggtitle("Weekly Average BDQ Concentration (ng/mL) vs Time") +
-    coord_cartesian(ylim = c(0, ylimitsBDQ)) +
+    coord_cartesian(ylim = c(0, ylimitsBDQ), xlim = c(0, input$simtime)) +
+    scale_x_continuous(breaks = xbreaks) +
     scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
@@ -180,11 +194,11 @@ PKWavg_plots <- function(input, sim_PKtable) {
   # Set dynamic ylim M2
   if (input$nsim == 1 || input$IIV == "OFF") { # individual
     maxM2 <- max(Cavg_weekly$AUCWM2)/168*1000
-    ylimitsM2 <- maxM2
+    ylimitsM2 <- maxM2 * 1.03
   } else {
-    q97M2 <- quantile(Cavg_weekly$AUCWM2/168*1000, probs = 0.97)
-    max15M2 <- max(Cavg_weekly$AUCWM2)/168*1000*0.15
-    ylimitsM2 <- q97M2 + max15M2
+    # Use the actual maximum of the upper ribbon values plus a buffer
+    maxRibbonM2 <- max(dfForPlot_CavgW$upper_CavgWM2, na.rm = TRUE)
+    ylimitsM2 <- maxRibbonM2 * 1.03
   }
   
   a2 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWM2, 
@@ -195,7 +209,8 @@ PKWavg_plots <- function(input, sim_PKtable) {
     theme_bw() +
     labs(x = "Time (weeks)", y = c("Weekly Average M2 concentration (ng/mL)")) +
     ggtitle("Weekly Average M2 Concentration (ng/mL) vs Time") +
-    coord_cartesian(ylim = c(0, ylimitsM2)) +
+    coord_cartesian(ylim = c(0, ylimitsM2), xlim = c(0, input$simtime)) +
+    scale_x_continuous(breaks = xbreaks) +
     scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
     theme(
