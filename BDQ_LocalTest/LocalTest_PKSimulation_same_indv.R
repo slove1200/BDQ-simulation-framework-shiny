@@ -60,12 +60,20 @@ createEventDataset <- function(nsamples, dose, timeModifier) {
 processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, 
                          mdose, mdur, munit, mfreq,
                          maintenance_dose2 = FALSE, m2dose, m2dur, m2unit, m2freq,
-                         nsamples) {
+                         interruption = FALSE, offbdqdur, offbdqunit,
+                         restart_LD = FALSE, restart_ldose, restart_ldur, restart_lunit, restart_lfreq,
+                         restart_mdose, restart_mdur, restart_munit, restart_mfreq,
+                         restart_MD2 = FALSE, restart_m2dose, restart_m2dur, restart_m2unit, restart_m2freq, nsamples) {
+  
+  # Initialize variables to track total time
+  total_time <- 0
+  
   # Handle Loading Dose if enabled
   if (load_dose) {
     lunit <- convertTimeUnit(lunit)
     loading_interval <- defineEventVariable(ldur, lunit, lfreq)
     dfLoad <- createEventDataset(nsamples, ldose, 0)
+    total_time <- ldur * lunit
   }
   
   # Handle First Maintenance Dose
@@ -74,11 +82,13 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq,
   
   # Initialize base dosing schedule
   if (load_dose) {
-    dfMaintenance <- createEventDataset(nsamples, mdose, ldur * lunit)
+    dfMaintenance <- createEventDataset(nsamples, mdose, total_time)
     dfPK <- rbind(dfLoad, dfMaintenance)
+    total_time <- total_time + mdur * munit
   } else {
     dfMaintenance <- createEventDataset(nsamples, mdose, 0)
     dfPK <- dfMaintenance
+    total_time <- mdur * munit
   }
   
   # Handle Second Maintenance Dose if enabled
@@ -86,13 +96,57 @@ processDosing <- function(load_dose, ldose, ldur, lunit, lfreq,
     m2unit <- convertTimeUnit(m2unit)
     maintenance_2_interval <- defineEventVariable(m2dur, m2unit, m2freq)
     
-    if (load_dose) {
-      dfMaintenance2 <- createEventDataset(nsamples, m2dose, ldur * lunit + mdur * munit)
-      dfPK <- rbind(dfPK, dfMaintenance2)
-    } else {
-      dfMaintenance2 <- createEventDataset(nsamples, m2dose, mdur * munit)
-      dfPK <- rbind(dfPK, dfMaintenance2)
+    dfMaintenance2 <- createEventDataset(nsamples, m2dose, total_time)
+    dfPK <- rbind(dfPK, dfMaintenance2)
+    total_time <- total_time + m2dur * m2unit
+  }
+  
+  # Handle Interruption and Restart if enabled
+  if (interruption) {
+    # Calculate interruption time
+    offbdqunit_converted <- convertTimeUnit(offbdqunit)
+    interruption_time <- offbdqdur * offbdqunit_converted
+    
+    # Add interruption time to total time
+    restart_time <- total_time + interruption_time
+    
+    # Handle Restart Loading Dose if enabled
+    if (restart_LD) {
+      restart_lunit_converted <- convertTimeUnit(restart_lunit)
+      restart_loading_interval <- defineEventVariable(restart_ldur, restart_lunit_converted, restart_lfreq)
+      dfRestartLoad <- createEventDataset(nsamples, restart_ldose, restart_time)
+      restart_time <- restart_time + restart_ldur * restart_lunit_converted
     }
+    
+    # Handle Restart Maintenance Dose
+    restart_munit_converted <- convertTimeUnit(restart_munit)
+    restart_maintenance_interval <- defineEventVariable(restart_mdur, restart_munit_converted, restart_mfreq)
+    
+    if (restart_LD) {
+      dfRestartMaintenance <- createEventDataset(nsamples, restart_mdose, restart_time)
+      if (exists("dfRestartLoad")) {
+        dfRestart <- rbind(dfRestartLoad, dfRestartMaintenance)
+      } else {
+        dfRestart <- dfRestartMaintenance
+      }
+      restart_time <- restart_time + restart_mdur * restart_munit_converted
+    } else {
+      dfRestartMaintenance <- createEventDataset(nsamples, restart_mdose, restart_time)
+      dfRestart <- dfRestartMaintenance
+      restart_time <- restart_time + restart_mdur * restart_munit_converted
+    }
+    
+    # Handle Restart Second Maintenance Dose if enabled
+    if (restart_MD2) {
+      restart_m2unit_converted <- convertTimeUnit(restart_m2unit)
+      restart_maintenance_2_interval <- defineEventVariable(restart_m2dur, restart_m2unit_converted, restart_m2freq)
+      
+      dfRestartMaintenance2 <- createEventDataset(nsamples, restart_m2dose, restart_time)
+      dfRestart <- rbind(dfRestart, dfRestartMaintenance2)
+    }
+    
+    # Combine original dosing with restart dosing
+    dfPK <- rbind(dfPK, dfRestart)
   }
   
   dfPK$THETA25 <- 1    # IE BDQ
@@ -182,7 +236,7 @@ Pop_generation <- function(input) {
 #### input ####
 input <- c()
 input$nsim    <- 1  # Number of simulated individuals
-input$simtime <- 24   # Time of simulation imputed (transformed in hours during simulation)
+input$simtime <- 72   # Time of simulation imputed (transformed in hours during simulation)
 
 # Regimen 1
 input$LD1         <- TRUE
@@ -201,6 +255,25 @@ input$m2unit_1    <- 2 # Second maintenance dose unit: "1" day, "2" week
 input$m2freq_1    <- "Three times weekly" # Second maintenance dose frequency
 input$IE_1_HIV    <- "None"
 input$IE_1_TB     <- "None"
+input$interrupt_1 <- TRUE
+input$offbdqdur_1  <- 8
+input$offbdqunit_1 <- 2
+input$restart_LD1 <- TRUE
+input$restart_ldose_1 <- 500
+input$restart_ldur_1 <- 3
+input$restart_lunit_1 <- 1
+input$restart_lfreq_1 <- "Once daily"
+input$restart_mdose_1 <- 200
+input$restart_mdur_1 <- 8
+input$restart_munit_1 <- 2
+input$restart_mfreq_1 <- "Once daily"
+input$restart_MD2_1 <- FALSE
+input$restart_m2dose_1 <- 0
+input$restart_m2dur_1 <- 0
+input$restart_m2unit_1 <- 1
+input$restart_m2freq_1 <- "Once daily"
+input$IE_1_HIV    <- "None"
+input$IE_1_TB     <- "None"
 
 # Regimen 2
 input$LD2         <- TRUE
@@ -217,6 +290,23 @@ input$m2dose_2    <- 50 # Second maintenance dose amount (mg)
 input$m2dur_2     <- 24 # Second maintenance dose duration
 input$m2unit_2    <- 2 # Second maintenance dose unit: "1" day, "2" week
 input$m2freq_2    <- "Once daily" # Second maintenance dose frequency
+input$interrupt_2 <- TRUE
+input$offbdqdur_2  <- 8
+input$offbdqunit_2 <- 2
+input$restart_LD2 <- FALSE
+input$restart_ldose_2 <- 0
+input$restart_ldur_2 <- 0
+input$restart_lunit_2 <- 2
+input$restart_lfreq_2 <- "Once daily"
+input$restart_mdose_2 <- 200
+input$restart_mdur_2 <- 8
+input$restart_munit_2 <- 2
+input$restart_mfreq_2 <- "Once daily"
+input$restart_MD2_2 <- FALSE
+input$restart_m2dose_2 <- 0
+input$restart_m2dur_2 <- 0
+input$restart_m2unit_2 <- 1
+input$restart_m2freq_2 <- "Once daily"
 input$IE_2_HIV    <- "None"
 input$IE_2_TB     <- "None"
 
@@ -235,6 +325,23 @@ input$m2dose_3    <- 50 # Second maintenance dose amount (mg)
 input$m2dur_3     <- 24 # Second maintenance dose duration
 input$m2unit_3    <- 2 # Second maintenance dose unit: "1" day, "2" week
 input$m2freq_3    <- "Once daily" # Second maintenance dose frequency
+input$interrupt_3 <- TRUE
+input$offbdqdur_3  <- 16
+input$offbdqunit_3 <- 2
+input$restart_LD3 <- TRUE
+input$restart_ldose_3 <- 500
+input$restart_ldur_3 <- 3
+input$restart_lunit_3 <- 1
+input$restart_lfreq_3 <- "Once daily"
+input$restart_mdose_3 <- 200
+input$restart_mdur_3 <- 8
+input$restart_munit_3 <- 2
+input$restart_mfreq_3 <- "Once daily"
+input$restart_MD2_3 <- FALSE
+input$restart_m2dose_3 <- 0
+input$restart_m2dur_3 <- 0
+input$restart_m2unit_3 <- 1
+input$restart_m2freq_3 <- "Once daily"
 input$IE_3_HIV    <- "None"
 input$IE_3_TB     <- "None"
 
@@ -242,7 +349,7 @@ input$IIV         <- "OFF" # ON or OFF
 
 input$RG1       <- T
 input$RG2       <- T
-input$RG3       <- F
+input$RG3       <- T
 
 ## Common model covariates
 input$population_radio <- "Individual"
@@ -269,29 +376,51 @@ num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
 # Loop over the selected regimens
 for (i in 1:num_regimens) {
   
-  # Dynamically access input fields for each regimen
-  common_inputs <- list(
-    LD     = input[[paste0("LD", i)]],
-    ldose  = input[[paste0("ldose_", i)]],
-    ldur   = input[[paste0("ldur_", i)]],
-    lunit  = input[[paste0("lunit_", i)]],
-    lfreq  = input[[paste0("lfreq_", i)]],
-    mdose  = input[[paste0("mdose_", i)]],
-    mdur   = input[[paste0("mdur_", i)]],
-    munit  = input[[paste0("munit_", i)]],
-    mfreq  = input[[paste0("mfreq_", i)]],
-    MD2    = input[[paste0("MD2_", i)]], 
-    m2dose = input[[paste0("m2dose_", i)]],
-    m2dur  = input[[paste0("m2dur_", i)]],
-    m2unit = input[[paste0("m2unit_", i)]],
-    m2freq = input[[paste0("m2freq_", i)]]
-  )
-  
-  # Now you can use 'common_inputs' for processing each regimen
-  # For example:
-  regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
-                     common_inputs, 
-                     IE_PK = input[[paste0("IE_", i, "_PK")]])
+   # Dynamically access input fields for each regimen
+    common_inputs <- list(
+      LD    = input[[paste0("LD", i)]],
+      ldose = input[[paste0("ldose_", i)]],
+      ldur  = input[[paste0("ldur_", i)]],
+      lunit = input[[paste0("lunit_", i)]],
+      lfreq = input[[paste0("lfreq_", i)]],
+      mdose = input[[paste0("mdose_", i)]],
+      mdur  = input[[paste0("mdur_", i)]],
+      munit = input[[paste0("munit_", i)]],
+      mfreq = input[[paste0("mfreq_", i)]],
+      MD2    = input[[paste0("MD2_", i)]], 
+      m2dose = input[[paste0("m2dose_", i)]],
+      m2dur  = input[[paste0("m2dur_", i)]],
+      m2unit = input[[paste0("m2unit_", i)]],
+      m2freq = input[[paste0("m2freq_", i)]]
+    )
+    
+    # Add interruption inputs
+    interruption_inputs <- list(
+      interrupt = input[[paste0("interrupt_", i)]],
+      offbdqdur = input[[paste0("offbdqdur_", i)]],
+      offbdqunit = input[[paste0("offbdqunit_", i)]],
+      restart_LD = input[[paste0("restart_LD", i)]],
+      restart_ldose = input[[paste0("restart_ldose_", i)]],
+      restart_ldur = input[[paste0("restart_ldur_", i)]],
+      restart_lunit = input[[paste0("restart_lunit_", i)]],
+      restart_lfreq = input[[paste0("restart_lfreq_", i)]],
+      restart_mdose = input[[paste0("restart_mdose_", i)]],
+      restart_mdur = input[[paste0("restart_mdur_", i)]],
+      restart_munit = input[[paste0("restart_munit_", i)]],
+      restart_mfreq = input[[paste0("restart_mfreq_", i)]],
+      restart_MD2 = input[[paste0("restart_MD2_", i)]],
+      restart_m2dose = input[[paste0("restart_m2dose_", i)]],
+      restart_m2dur = input[[paste0("restart_m2dur_", i)]],
+      restart_m2unit = input[[paste0("restart_m2unit_", i)]],
+      restart_m2freq = input[[paste0("restart_m2freq_", i)]]
+    )
+    
+    # Now you can use 'common_inputs' for processing each regimen
+    # For example:
+    regimens[[i]] <- c(list(selected = input[[paste0("RG", i)]]), 
+                       common_inputs, 
+                       interruption_inputs,
+                       IE_PK = input[[paste0("IE_", i, "_PK")]])
   
   # Process the rest of the regimen as needed...
 }
@@ -305,20 +434,37 @@ for (i in 1:num_regimens) {
   if (i == 1 || regimens[[i]]$selected) {
     dfPK <- processDosing(
       regimens[[i]]$LD, 
-      regimens[[i]]$ldose, 
-      regimens[[i]]$ldur, 
-      regimens[[i]]$lunit, 
-      regimens[[i]]$lfreq,
-      regimens[[i]]$mdose, 
-      regimens[[i]]$mdur, 
-      regimens[[i]]$munit, 
-      regimens[[i]]$mfreq, 
-      regimens[[i]]$MD2,
-      regimens[[i]]$m2dose,
-      regimens[[i]]$m2dur,
-      regimens[[i]]$m2unit,
-      regimens[[i]]$m2freq,
-      nsamples
+        regimens[[i]]$ldose, 
+        regimens[[i]]$ldur, 
+        regimens[[i]]$lunit, 
+        regimens[[i]]$lfreq,
+        regimens[[i]]$mdose, 
+        regimens[[i]]$mdur, 
+        regimens[[i]]$munit, 
+        regimens[[i]]$mfreq, 
+        regimens[[i]]$MD2,
+        regimens[[i]]$m2dose,
+        regimens[[i]]$m2dur,
+        regimens[[i]]$m2unit,
+        regimens[[i]]$m2freq,
+        regimens[[i]]$interrupt,
+        regimens[[i]]$offbdqdur,
+        regimens[[i]]$offbdqunit,
+        regimens[[i]]$restart_LD,
+        regimens[[i]]$restart_ldose,
+        regimens[[i]]$restart_ldur,
+        regimens[[i]]$restart_lunit,
+        regimens[[i]]$restart_lfreq,
+        regimens[[i]]$restart_mdose,
+        regimens[[i]]$restart_mdur,
+        regimens[[i]]$restart_munit,
+        regimens[[i]]$restart_mfreq,
+        regimens[[i]]$restart_MD2,
+        regimens[[i]]$restart_m2dose,
+        regimens[[i]]$restart_m2dur,
+        regimens[[i]]$restart_m2unit,
+        regimens[[i]]$restart_m2freq, 
+        nsamples
     )
     dfPK$regimen <- i
     dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
@@ -436,7 +582,6 @@ dd2cum <- dd2res %>% filter(time == 168*2 | time == 168*8 | time == 168*24) %>% 
 dd2cum %>% group_by(regimen, DAY) %>% summarise(median = median(AAUCBDQ)) %>% arrange(DAY, regimen)
 
 #### graphs  #####
-
 dfForPlotBDQ <- out %>%
   ungroup() %>%
   group_by(time, regimen) %>%
@@ -451,9 +596,15 @@ if (input$nsim == 1 || input$IIV == "OFF") { # individual
   maxBDQ <- exp(max(out$IPRED))*1000
   ylimitsBDQ <- maxBDQ
 } else {
-  q97BDQ <- quantile(exp(out$IPRED)*1000, probs = 0.97)
-  max15BDQ <- exp(max(out$IPRED))*1000*0.15
-  ylimitsBDQ <- q97BDQ + max15BDQ
+  # Use the actual maximum of the upper ribbon values plus a buffer
+  maxRibbonBDQ <- max(dfForPlotBDQ$upper, na.rm = TRUE)
+  ylimitsBDQ <- maxRibbonBDQ * 0.75
+}
+
+if (input$simtime > 48) {
+  xbreaks <- seq(0, input$simtime, by = 8)
+} else {
+  xbreaks <- seq(0, input$simtime, by = 4)
 }
 
 a1 <- ggplot(dfForPlotBDQ, aes(x = time / 168, y = median, 
@@ -464,7 +615,8 @@ a1 <- ggplot(dfForPlotBDQ, aes(x = time / 168, y = median,
   theme_bw() +
   labs(x = "Time (weeks)", y = c("BDQ concentration (ng/mL)")) +
   ggtitle("BDQ Concentration (ng/mL) vs Time") +
-  coord_cartesian(ylim = c(0, ylimitsBDQ)) +
+  coord_cartesian(ylim = c(0, ylimitsBDQ), xlim = c(0, input$simtime)) +
+  scale_x_continuous(breaks = xbreaks) +
   scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
@@ -490,11 +642,11 @@ dfForPlotM2 <- out %>%
 # Set dynamic ylim M2
 if (input$nsim == 1 || input$IIV == "OFF") { # individual
   maxM2 <- exp(max(out$IPREDM2))*1000
-  ylimitsM2 <- maxM2
+  ylimitsM2 <- maxM2 
 } else {
-  q97M2 <- quantile(exp(out$IPREDM2)*1000, probs = 0.97)
-  max15M2 <- exp(max(out$IPREDM2))*1000*0.15
-  ylimitsM2 <- q97M2 + max15M2
+  # Use the actual maximum of the upper ribbon values plus a buffer
+  maxRibbonM2 <- max(dfForPlotM2$upper, na.rm = TRUE)
+  ylimitsM2 <- maxRibbonM2 * 1.03
 }
 
 a2 <- ggplot(dfForPlotM2, aes(x = time / 168, y = median, 
@@ -505,7 +657,8 @@ a2 <- ggplot(dfForPlotM2, aes(x = time / 168, y = median,
   theme_bw() +
   labs(x = "Time (weeks)", y = c("M2 concentration (ng/mL)")) +
   ggtitle("M2 Concentration (ng/mL) vs Time") +
-  coord_cartesian(ylim = c(0, ylimitsM2)) +
+  coord_cartesian(ylim = c(0, ylimitsM2), xlim = c(0, input$simtime)) +
+  scale_x_continuous(breaks = xbreaks) +
   scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
@@ -565,11 +718,17 @@ dfForPlot_CavgW <- Cavg_weekly %>%
 # Set dynamic ylim BDQ
 if (input$nsim == 1 || input$IIV == "OFF") { # individual
   maxBDQ <- max(Cavg_weekly$AUCWBDQ)/168*1000
-  ylimitsBDQ <- maxBDQ
+  ylimitsBDQ <- maxBDQ * 1.03
 } else {
-  q97BDQ <- quantile(Cavg_weekly$AUCWBDQ/168*1000, probs = 0.97)
-  max15BDQ <- max(Cavg_weekly$AUCWBDQ)/168*1000*0.15
-  ylimitsBDQ <- q97BDQ + max15BDQ
+  # Use the actual maximum of the upper ribbon values plus a buffer
+  maxRibbonBDQ <- max(dfForPlot_CavgW$upper_CavgWBDQ, na.rm = TRUE)
+  ylimitsBDQ <- maxRibbonBDQ * 1.03
+}
+
+if (input$simtime > 48) {
+  xbreaks <- seq(0, input$simtime, by = 8)
+} else {
+  xbreaks <- seq(0, input$simtime, by = 4)
 }
 
 a1 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWBDQ, 
@@ -580,7 +739,8 @@ a1 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWBDQ,
   theme_bw() +
   labs(x = "Time (weeks)", y = c("Weekly Average BDQ concentration (ng/mL)")) +
   ggtitle("Weekly Average BDQ Concentration (ng/mL) vs Time") +
-  coord_cartesian(ylim = c(0, ylimitsBDQ)) +
+  coord_cartesian(ylim = c(0, ylimitsBDQ), xlim = c(0, input$simtime)) +
+  scale_x_continuous(breaks = xbreaks) +
   scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(
@@ -597,11 +757,11 @@ a1 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWBDQ,
 # Set dynamic ylim M2
 if (input$nsim == 1 || input$IIV == "OFF") { # individual
   maxM2 <- max(Cavg_weekly$AUCWM2)/168*1000
-  ylimitsM2 <- maxM2
+  ylimitsM2 <- maxM2 * 1.03
 } else {
-  q97M2 <- quantile(Cavg_weekly$AUCWM2/168*1000, probs = 0.97)
-  max15M2 <- max(Cavg_weekly$AUCWM2)/168*1000*0.15
-  ylimitsM2 <- q97M2 + max15M2
+  # Use the actual maximum of the upper ribbon values plus a buffer
+  maxRibbonM2 <- max(dfForPlot_CavgW$upper_CavgWM2, na.rm = TRUE)
+  ylimitsM2 <- maxRibbonM2 * 1.03
 }
 
 a2 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWM2, 
@@ -612,7 +772,8 @@ a2 <- ggplot(dfForPlot_CavgW, aes(x = time / 168, y = median_CavgWM2,
   theme_bw() +
   labs(x = "Time (weeks)", y = c("Weekly Average M2 concentration (ng/mL)")) +
   ggtitle("Weekly Average M2 Concentration (ng/mL) vs Time") +
-  coord_cartesian(ylim = c(0, ylimitsM2)) +
+  coord_cartesian(ylim = c(0, ylimitsM2), xlim = c(0, input$simtime)) +
+  scale_x_continuous(breaks = xbreaks) +
   scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   scale_fill_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
   theme(

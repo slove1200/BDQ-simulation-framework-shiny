@@ -66,13 +66,21 @@ mainTabAbout <- tabPanel(
                                         tags$li("Loading dose is optional. If no loading dose is added, maintainence dose will start from time 0"),
                                         tags$li("Maintenance dose 2 is optional, it is not added to the regimen by default.",
                                                 tags$br(), 
-                                                "If it's added, the maintencance dose 2 will be added to the regimen after the first maintenance dose"),
+                                                "If it's added, the maintenance dose 2 will be added to the regimen after the first maintenance dose"),
                                         tags$li(
                                             "Set loading dose and maintenance dose:",
                                             tags$ul(
                                                 tags$li("Dose amount (mg)"),
                                                 tags$li("Duration (days or weeks)"),
                                                 tags$li("Frequency (twice daily, once daily, three times weekly, once weekly)")
+                                            )
+                                        ), 
+                                        tags$li(
+                                            tags$strong("If there's an interruption and re-initiation of bedaquiline treatment:"),
+                                            tags$ul(
+                                                tags$li("Click \"Dose interruption and restart\""),
+                                                tags$li("Fill in time after the last bedaquiline dose"),
+                                                tags$li("Set loading dose, maintenance dose and second maintenance dose amount, duration and frequency")
                                             )
                                         )
                                     )

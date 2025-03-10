@@ -24,7 +24,7 @@ QT_plots <- function(input, sim_QTtable) {
   
     # Use the actual minimum of the lower ribbon values minus a buffer
     minRibbonQT <- min(dfForPlotQT$lower, na.rm = TRUE)
-    yminlimitsQT <- minRibbonQT *1.02
+    yminlimitsQT <- minRibbonQT *0.98
   }
 
   if (input$simtime > 48) {

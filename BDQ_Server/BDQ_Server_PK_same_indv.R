@@ -41,11 +41,10 @@ createEventDataset <- function(nsamples, dose, timeModifier) {
 processDosing <- function(load_dose, ldose, ldur, lunit, lfreq, 
                          mdose, mdur, munit, mfreq,
                          maintenance_dose2 = FALSE, m2dose, m2dur, m2unit, m2freq,
-                         nsamples,
                          interruption = FALSE, offbdqdur = NULL, offbdqunit = NULL,
                          restart_LD = FALSE, restart_ldose = NULL, restart_ldur = NULL, restart_lunit = NULL, restart_lfreq = NULL,
                          restart_mdose = NULL, restart_mdur = NULL, restart_munit = NULL, restart_mfreq = NULL,
-                         restart_MD2 = FALSE, restart_m2dose = NULL, restart_m2dur = NULL, restart_m2unit = NULL, restart_m2freq = NULL) {
+                         restart_MD2 = FALSE, restart_m2dose = NULL, restart_m2dur = NULL, restart_m2unit = NULL, restart_m2freq = NULL, nsamples) {
   
   # Initialize variables to track total time
   total_time <- 0
@@ -264,7 +263,6 @@ sim_PK <- function(input, virtual_population_df) {
         regimens[[i]]$m2dur,
         regimens[[i]]$m2unit,
         regimens[[i]]$m2freq,
-        nsamples,
         regimens[[i]]$interrupt,
         regimens[[i]]$offbdqdur,
         regimens[[i]]$offbdqunit,
@@ -281,7 +279,8 @@ sim_PK <- function(input, virtual_population_df) {
         regimens[[i]]$restart_m2dose,
         regimens[[i]]$restart_m2dur,
         regimens[[i]]$restart_m2unit,
-        regimens[[i]]$restart_m2freq
+        regimens[[i]]$restart_m2freq, 
+        nsamples
       )
       dfPK$regimen <- i
       dfPK$ID <- dfPK$ID+nsamples*(i-1)  # Unique ID for each regimen
