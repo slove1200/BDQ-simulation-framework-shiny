@@ -153,7 +153,7 @@ mainTabAbout <- tabPanel(
                                         tags$li(
                                           tags$strong("Dataset Options:"),
                                             tags$ul(
-                                                tags$li("Default: Use virtual population based on orginial data obtained from three TB clinical trials available in the TB-PACTS platform"),
+                                                tags$li("Default: Use virtual population based on orginial data obtained from three TB clinical trials (NCT01498419, NCT02193776 and NCT02333799) available in the TB-PACTS platform (https://c-path.org/tools-platforms/tb-pacts/)"),
                                                 tags$li(
                                                     "Import: Upload custom population data by users",
                                                     tags$ul(
@@ -168,7 +168,7 @@ mainTabAbout <- tabPanel(
                                           tags$strong("If the default virtual population is used:"),
                                             tags$ul(
                                                 tags$li("Ranges for continuous variables and proportions for categorical variables can be customized"),
-                                                tags$li("Min/Max or proportions of each covariate in the virtual population are present as default")
+                                                tags$li("Min/Max or proportions of each covariate in the large virtual population are present as default")
                                             )
                                         )
                                     )
@@ -199,7 +199,7 @@ mainTabAbout <- tabPanel(
                         card_body(
                             tags$span(
                                 tags$strong("Half-life modifier is a parameter that can be used to adjust the half-life of mycobacterial load, 
-                                reflecting how different background regimens influence bacterial elimination."),
+                                reflecting how different background regimens influence bacterial elimination"),
                                 tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                     tags$li(tags$strong("The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model")),
                                     tags$ul(
@@ -209,7 +209,10 @@ mainTabAbout <- tabPanel(
                                           "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life"),
                                         tags$li(tags$strong("The minimum values of half-life modifier is -100%"), ", since a > 100% shorter half-life is not possible")
                                     ),
-                                    tags$li("The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in patients under the bedaquiline approved dosing regimen"),
+                                    tags$li(
+                                        "The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in patients under the bedaquiline approved dosing regimen.", 
+                                        tags$br(), 
+                                        "This could help users select the most suitable value of the modifier in the current tuberculosis treatment settings"),
                                     tags$li(tags$strong("Note:"), " Half-life modifier directly influences the influences sputum culture conversion in 
                                     both the PK-efficacy model and long-term outcome model"),
                                 ),
@@ -226,7 +229,11 @@ mainTabAbout <- tabPanel(
                                 tags$li(
                                     tags$strong("Add concomitant medications having drug-drug interaction effects on PK or QT prolongation for each regimen:"),
                                     tags$ul(
-                                        tags$li("PK effects (None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine)"),
+                                        tags$li(
+                                            "PK effects (None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine)", 
+                                            tags$br(),
+                                            "See references Svensson et al. (Antimicrob Agents Chemother, 2013), Brill et al. (Int J Antimicrob Agents, 2017), and Svensson et al. (J Antimicrob Chemother, 2015)" 
+                                        ),
                                         tags$li("QT effects (None, Clofazimine, Moxifloxacin, Both)")
                                     )
                                 )
@@ -240,7 +247,7 @@ mainTabAbout <- tabPanel(
                     card_header("3. Simulation Tab", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                            tags$li("Specify numbers of individuals per regimen for simulation. The same population will be applied for all regimens"),
+                            tags$li("Specify numbers of individuals per regimen for simulation. The same population will be applied for all regimens, i.e., population across different regimens is the same"),
                             tags$li("Set numbers of MGIT culture replicates per sampling timepoint. The default value is 1 per sampling timepoint, maximum of 3"),
                             tags$li("Set simulation time for PK/efficacy/safety and long-term outcome in weeks. Simulation time should not less than the dosing duration"),
                             tags$li("Include interindividual variability (ON/OFF)"),
@@ -269,7 +276,7 @@ mainTabAbout <- tabPanel(
                                                 )
                                         ),
                                         tags$li(tags$strong("Efficacy"),
-                                                "(% of negative culture samples in MGIT culture)"),
+                                                "(% of positive culture samples in MGIT culture)"),
                                         tags$li(tags$strong("Safety"),
                                                 "(QTcF interval)"),
                                         tags$li(tags$strong("Long-term outcome:"),
@@ -290,7 +297,7 @@ mainTabAbout <- tabPanel(
                                         tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                             tags$li("Summary table and graphs for patient characterisics of the sampled virtual population or defined
                                             individual are illustrated in this subtab"),
-                                            tags$li("Boxplots representing the covariate distribution the large dataset of virtual population")
+                                            tags$li("In the plots, dots representing the covariate distribution of an individual or sampled population, and boxplots representing the covariate distribution in the large dataset of virtual population")
                                         )
                                     )
                                 ),

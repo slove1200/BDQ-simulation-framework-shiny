@@ -61,7 +61,7 @@ mainTabTTPSim <- tabPanel(
                        (J Antimicrob Chemother, 2017) and Tanneau et al. (Br J Clin Pharmacol, 2020) in flexible simulation settings. 
                        The outputs include individual TTP data and the time-to-sputum culture conversion (TSCC) plot (if applicable) which enable users to do further 
                        analysis on the TTP data.",
-                       tags$strong("In this module, the individual drug exposure is not considered but the overall combination therapy, as described by the half-life of mycobacterial load modifier (see below)."),
+                       tags$strong("In this module, individual drug exposure is not used as a covariate. Instead, the overall combination therapy, as described by the half-life of mycobacterial load decline (see below), is considered."),
                      style = "font-size: 14px; padding-left: 5px; line-height: 1.9;"),
             layout_columns(
               card(
@@ -87,7 +87,7 @@ mainTabTTPSim <- tabPanel(
                       tags$strong("Half-life of Mycobacterial Load Modifier:"), 
                       tags$ul(
                         tags$li("A parameter that can be used to adjust the half-life of mycobacterial load, 
-                      reflecting how different regimens influence bacterial elimination."), 
+                      reflecting how different regimens influence bacterial elimination"), 
                       tags$li(tags$strong("The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model")), 
                       tags$ul(
                         tags$li(
@@ -100,7 +100,9 @@ mainTabTTPSim <- tabPanel(
                       tags$li(
                         "The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in the population under background regimen (no bedaquiline)",
                         tags$br(), 
-                        "while the model had been developed"), 
+                        "while the model had been developed", 
+                        tags$br(), 
+                        "This could help users select the most suitable value of the modifier in the current tuberculosis treatment settings"), 
                       )
                     ),
                     tags$li(tags$strong("Culture Sampling Timepoints:"), 
