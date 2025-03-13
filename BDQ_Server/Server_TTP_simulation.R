@@ -187,8 +187,11 @@ TTPsimplots <- function(input) {
              }) %>%
     mutate(CMT = ifelse(AMT == 1, 1, 0)) %>%
     arrange(ID, TAST, REP, TTPD) %>%
-    mutate(TIME = seq_along(ID) - 1, 
-           HLEFF = input$HLEFF_TTP)
+    mutate(TIME = seq_along(ID) - 1,
+           # median HL in BDQ-TTP simulation = 0.81
+           HLEFF = (input$HLEFF_TTP/0.81-1)*100)
+  
+
   
   # Read in dataset to sample MTTP from
   myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
@@ -228,7 +231,7 @@ TTPsimplots <- function(input) {
   
   # Only create plot data if in weekly mode
   if (input$simunit_TTP == "2") {
-    metrics_run1$proportion_no_scc$HLEFF <- input$HLEFF_TTP
+    metrics_run1$proportion_no_scc$HLEFF <-(input$HLEFF_TTP/0.81-1)*100
     combined_proportion_no_scc <- metrics_run1$proportion_no_scc
     
     # Function to plot the results with combined data

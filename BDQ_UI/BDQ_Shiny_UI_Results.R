@@ -139,7 +139,10 @@ mainTabResults <- tabPanel(
         card(
           card_header("Efficacy (Time to Positivity Signal)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_TTPtable"),
-                    plotOutput("plotTTP")
+                    plotOutput("plotTTP"), 
+                    tags$span("The graph is based on results from the logistic model, which describes the probability of obtaining a positive sample. 
+                               As a result, the graph may vary when using a different random seed for the simulation.",
+                              style = "font-size: 10px;")
           )
         ),
         # Third card with custom background color and styled card header/body
@@ -153,7 +156,10 @@ mainTabResults <- tabPanel(
         card(
           card_header("Long-term Outcome", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
           card_body(#tableOutput("sim_MSMtable"),
-                    plotOutput("plotMSM")
+                    plotOutput("plotMSM"),
+                    tags$span("The graph is based on results from the parametric multistate model, which describes the probability of being in each state. 
+                               As a result, the graph may vary when using a different random seed for the simulation.",
+                              style = "font-size: 10px;")
           )
         ),
         col_widths = c(12,12,6,6,12),

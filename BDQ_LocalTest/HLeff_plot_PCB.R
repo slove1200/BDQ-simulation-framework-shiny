@@ -267,24 +267,26 @@ outTSCC_results <- lapply(HLEFF_values, run_simulation)
 final_results <- bind_rows(outTSCC_results)
 
 
-summary_HLeff <- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
+summary_HLeff2 <- final_results %>% filter(TAST == 8 | TAST == 24) %>% 
   mutate(HLeffNum = rep(HLEFF_values, each = 2)) %>%
   group_by(TAST, HLeffNum) %>%
   mutate(time_label = factor(TAST,
                              levels = c(8, 24),
                              labels = c("Month 2", "Month 6")))
 
+summary_HLeff2$HL_value <- round((1+summary_HLeff2$HLeffNum/100) * 0.811166, 2)
+
 # plot
 p1 <- ggplot() +
-  geom_line(data = summary_HLeff, 
-            aes(x = HLeffNum, y = (1-prop_without_scc) * 100, 
+  geom_line(data = summary_HLeff2, 
+            aes(x = HL_value, y = (1-prop_without_scc) * 100, 
                 color = time_label,
                 group = TAST),
             size = 1.2) +
   # Add reference lines and their labels
   geom_text(data = data.frame(time_label = "Month 2", 
                               y = 31, 
-                              x = 0),  
+                              x = 0.81444),  
             aes(x = x, y = y),
             label = "Month 2: 30.6%",
             color = "darkred",
@@ -293,22 +295,22 @@ p1 <- ggplot() +
             size = 7) +
   geom_text(data = data.frame(time_label = "Month 6", 
                               y = 78, 
-                              x = 0),  
+                              x = 0.81444),  
             aes(x = x, y = y),
             label = "Month 6: 78.2%",
             color = "darkblue",
             hjust = -0.1,  # adjust horizontal position
             vjust = -0.5,  # adjust vertical position
             size = 7) +
-  geom_vline(xintercept = 0, 
+  geom_vline(xintercept = 0.81444, 
              color = "#666666", 
              size = 1, 
              linetype = "dashed") +
   theme_bw() +
-  labs(x = "Half-life of mycobacterial load % longer", 
+  labs(x = "Half-life of mycobacterial load decline (weeks)", 
        y = "Conversion rate (%)", 
        color = NULL) +
-  ggtitle("Conversion rate over relative % of half-life changes") +
+  ggtitle("Conversion rate over half-life of mycobacterial load decline") +
   theme(
     plot.title = element_text(size = 20, hjust = 0.5),
     axis.title = element_text(size = 18),
@@ -324,7 +326,7 @@ p1 <- ggplot() +
   ) +
   scale_color_manual(values = c("Month 2" = "#c1121f",  # lighter red
                                 "Month 6" = "#023e8a")) +  # lighter blue
-  scale_x_continuous(breaks = seq(-80, 150, by = 20), limits = c(-80, 150), expand = c(0, 3)) +
+  scale_x_continuous(breaks = seq(0.1, 2.1, by = 0.1), limits = c(0.15, 2.05), expand = c(0, 0)) +
   scale_y_continuous(
     limits = c(0, 100),
     breaks = seq(10, 100, by = 10)

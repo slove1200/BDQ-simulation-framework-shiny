@@ -304,12 +304,16 @@ mainTabPopulation <- tabPanel(
                          )
                        ), 
                        card(
-                         card_header("Half-life Modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                         card_header("Half-life of Mycobacterial Load Decline", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                          card_body(
                            numericInput("HLEFF", 
-                             label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
-                             value = -40, min = -100, max = 200), 
-                           imageOutput("HLEFFplot_indv", height = "auto")
+                             label = tags$span(style="font-size: 13px; font-weight: bold;", "Half-life of Mycobacterial Load (weeks)"), 
+                             value = 0.54, min = 0.01, max = 100), 
+                           imageOutput("HLEFFplot_indv", height = "auto"), 
+                           tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
+                                      Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                                      This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
+                                     style = "font-size: 10px;")
                          )
                        )
                 )
@@ -419,12 +423,17 @@ mainTabPopulation <- tabPanel(
                         choices = c("Treatment-naïve", "Treatment-experienced"))
                     )
                   ),
-                  # Removed overlay container for Half-life modifier
+                  # Removed overlay container for Half-life of Mycobacterial Load Decline
                   card(
-                    card_header("Half-life modifier", style = "font-size: 16px; background-color: #CDD8DA4D;"),
+                    card_header("Half-life of Mycobacterial Load Decline", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
-                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","% Longer Half-life of Mycobacterial Load"), value = -40, min = -100, max = 500), 
-                      imageOutput("HLEFFplot_pop", height = "auto")
+                      numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","Half-life of Mycobacterial Load (weeks)"), value = 0.54, min = -0.01, max = 100), 
+                      imageOutput("HLEFFplot_pop", height = "auto"),
+                      tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
+                                 Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                                 This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
+                                style = "font-size: 10px;")
+                      
                     )
                   )
                 ),

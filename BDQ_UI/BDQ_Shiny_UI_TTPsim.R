@@ -84,25 +84,16 @@ mainTabTTPSim <- tabPanel(
                       )
                     ),
                     tags$li(
-                      tags$strong("Half-life of Mycobacterial Load Modifier:"), 
+                      tags$strong("Half-life of Mycobacterial Load Decline:"), 
                       tags$ul(
-                        tags$li("A parameter that can be used to adjust the half-life of mycobacterial load, 
-                      reflecting how different regimens influence bacterial elimination"), 
-                      tags$li(tags$strong("The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model")), 
-                      tags$ul(
-                        tags$li(
-                          "Half-life of mycobacterial load is longer with % of a positive value (+) and shorter with % of a negative value (-) of the modifier.",
-                          tags$br(), 
-                          "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life"), 
-                        tags$li(tags$strong("The minimum values of half-life modifier is -100%"), 
-                          ", since a > 100% shorter half-life is not possible")
-                      ),
+                        tags$li("A parameter which reflects how different regimens influence bacterial elimination"), 
+                      tags$li(tags$strong("The default value is 0.81, which represents the half-life reported in the developed model without bedaquiline treatment")), 
                       tags$li(
-                        "The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in the population under background regimen (no bedaquiline)",
+                        "The graph of conversion rate over half-life of mycobacterial load is demonstrated in the population under background regimen (no bedaquiline)",
                         tags$br(), 
                         "while the model had been developed", 
                         tags$br(), 
-                        "This could help users select the most suitable value of the modifier in the current tuberculosis treatment settings"), 
+                        "This could help users select the most suitable value of half-life in the current tuberculosis treatment settings"), 
                       )
                     ),
                     tags$li(tags$strong("Culture Sampling Timepoints:"), 
@@ -197,11 +188,15 @@ mainTabTTPSim <- tabPanel(
               )
             ),
             numericInput("HLEFF_TTP", 
-                        label = tags$span(style="font-size: 13px; font-weight: bold;", "% Longer Half-life of Mycobacterial Load"), 
-                        value = -40, min = -100, max = 500, 
+                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Half-life of Mycobacterial Load"), 
+                        value = 0.81, min = 0.01, max = 100, 
                         width = "100%"),
             # Add image output for TSCC2.png
             imageOutput("HLEFFplot_TTPsim", height = "auto"),
+            tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
+                       Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                       This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
+                      style = "font-size: 10px;"),
             textInput("simtime_TTP", 
                      label = tags$span(style="font-size: 13px; font-weight: bold;", "Time for Culture Sampling (comma-separated)"),
                      value = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24", 
@@ -248,7 +243,10 @@ mainTabTTPSim <- tabPanel(
             card(
               card_header("TSCC Plot", style = "font-size: 20px; background-color: #CDD8DA;"),
               card_body(
-                plotOutput("plotTTPsim")
+                plotOutput("plotTTPsim"), 
+                tags$span("The graph is based on results from the developed time-to-event model. 
+                           As a result, the graph may vary when using a different random seed for the simulation.",
+                          style = "font-size: 10px;")
               )
             )
           ),

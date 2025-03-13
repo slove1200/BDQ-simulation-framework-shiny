@@ -85,7 +85,8 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
     TTPdf_fin <- left_join(TTPdf_fin, virtual_population_df, by = c("ID", "regimen"))
   }
   
-  TTPdf_fin$HLEFF <- input$HLEFF
+  # mean HL in BDQ-TTP simulation = 0.54
+  TTPdf_fin$HLEFF <- (input$HLEFF/0.54-1)*100
 
   dfCAVG <- Cavg_weekly %>% rename("WEEKP" ="WEEK") %>%
     filter(WEEKP != 0) %>%

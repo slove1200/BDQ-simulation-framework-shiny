@@ -129,7 +129,9 @@ mainTabAbout <- tabPanel(
                                                 tags$li("Age (years)"),
                                                 tags$li("Baseline Body Weight (kg)"),
                                                 tags$li("Baseline Albumin Concentration (g/dL)"),
-                                                tags$li("Baseline Corrected Calcium Level (mmol/L). Calculated from the equation: Corrected Ca (mmol/L) = Measured Ca (mmol/L) + 0.8 × (4 − Albumin (g/dL))"),
+                                                tags$li("Baseline Corrected Calcium Level (mmol/L). Calculated from the equation:", 
+                                                        tags$br(), 
+                                                        "Corrected Ca (mmol/L) = Measured Ca (mmol/L) + 0.8 × (4 − Albumin (g/dL))"),
                                                 tags$li("Baseline Potassium Level (mmol/L)"),
                                                 tags$li("Baseline Time-to-positivity in MGIT Culture (days)")
                                             )
@@ -195,25 +197,17 @@ mainTabAbout <- tabPanel(
 
                     # Half-life Modifier Card
                     card(
-                        card_header("Half-life Modifier", style = "font-size: 16px; background-color: #E8ECEE;"),
+                        card_header("Half-life of Mycobacterial Load Decline", style = "font-size: 16px; background-color: #E8ECEE;"),
                         card_body(
                             tags$span(
-                                tags$strong("Half-life modifier is a parameter that can be used to adjust the half-life of mycobacterial load, 
-                                reflecting how different background regimens influence bacterial elimination"),
+                                tags$strong("Half-life is a parameter which reflects how different background regimens influence bacterial elimination"),
                                 tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                                    tags$li(tags$strong("The default value is 0, which means no adjustment is made to the reference half-life reported in the developed model")),
-                                    tags$ul(
-                                        tags$li(
-                                          "Half-life of mycobacterial load is longer with % of a positive value (+) and shorter with % of a negative value (-) of the modifier.",
-                                          tags$br(), 
-                                          "For example, a value of 30 indicates a 30% longer half-life, whereas -30 means a 30% shorter half-life"),
-                                        tags$li(tags$strong("The minimum values of half-life modifier is -100%"), ", since a > 100% shorter half-life is not possible")
-                                    ),
+                                    tags$li(tags$strong("The default value is 0.54, which represents the half-life reported in the developed model with bedaquiline treatment")),
                                     tags$li(
-                                        "The graph of conversion rate over relative change (%) of half-life modifier is demonstrated in patients under the bedaquiline approved dosing regimen.", 
+                                        "The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen.", 
                                         tags$br(), 
-                                        "This could help users select the most suitable value of the modifier in the current tuberculosis treatment settings"),
-                                    tags$li(tags$strong("Note:"), " Half-life modifier directly influences the influences sputum culture conversion in 
+                                        "This could help users select the most suitable value of the half-life in the current tuberculosis treatment settings"),
+                                    tags$li(tags$strong("Note:"), " The value of half-life directly influences the influences sputum culture conversion in 
                                     both the PK-efficacy model and long-term outcome model"),
                                 ),
                             style = "font-size: 14px; padding-left: 5px; line-height: 1.9;"

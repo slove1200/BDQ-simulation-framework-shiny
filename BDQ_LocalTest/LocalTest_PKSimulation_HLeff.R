@@ -388,6 +388,7 @@ if (input$population_radio == "Individual") {
 
 ############# PK simulation  #####
 # Load mrgsolve model
+source("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/BDQOMAT.R")
 mod <- mcode("BDQOMAT", code)
 mod <- update(mod, outvars = outvars(mod)$capture)
 
