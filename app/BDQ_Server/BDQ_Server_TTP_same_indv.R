@@ -106,7 +106,7 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
     modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
   } else {
     modTTP <- mcode("BDQTTP_TrtExperienced", codeTTP_TrtExperienced)
-    modTTP <- update(codeTTP_TrtExperienced, outvars = outvars(codeTTP_TrtExperienced)$capture)
+    modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
   }
   
   ## Interindividual variability ON/OFF
