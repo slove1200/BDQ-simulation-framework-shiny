@@ -1,15 +1,19 @@
 # Bedaquiline Dose-PK-Efficacy/Safety-Outcome Modelling Framework
 
 ## Overview
-This repository contains a Shiny application for Bedaquiline (BDQ) dosing optimization and simulation. The application provides an integrated framework for pharmacokinetics, efficacy (time-to-positivity, TTP), safety (QT interval), and long-term treatment outcomes of bedaquiline to help explore and visualize different bedaquiline dosing options.
+**This repository contains a Shiny application, which provides an interactive modelling framework for pharmacokinetics (PK), efficacy (time-to-positivity), safety (QT interval), and long-term treatment outcomes of bedaquiline to help explore and visualize different bedaquiline dosing options.**
 
 The application incorporates several established models:
-- Pharmacokinetic (PK) model developed by Svensson et al. (CPT: PSP, 2016)
-- PK-efficacy model based on models developed by Svensson and Karlsson (J Antimicrob Chemother, 2017) and Tanneau et al. (Br J Clin Pharmacol, 2020)
-- PK-safety model developed by Tanneau et al. (CPT: PSP, 2021)
-- Long-term outcome model developed by Lin et al. (J Antimicrob Chemother, 2024)
+- Pharmacokinetic (PK) model developed by [Svensson et al. (*CPT: PSP*, 2016)](https://doi.org/10.1002/psp4.12147)
+- PK-efficacy models developed by [Svensson and Karlsson (*J Antimicrob Chemother*, 2017)](https://doi.org/10.1093/jac/dkx317) and Tanneau et al. [(*Br J Clin Pharmacol*, 2020)](https://doi.org/10.1111/bcp.14199)
+- PK-safety model developed by [Tanneau et al. (*CPT: PSP*, 2021)](https://doi.org/10.1002/psp4.12722)
+- Long-term outcome model developed by [Lin et al. (*J Antimicrob Chemother*, 2024)](https://doi.org/10.1093/jac/dkae256)
 
-Additionally, the application includes a dedicated TTP simulation module that allows users to generate individual time-to-positivity profiles without considering individual drug exposure but focusing on the overall combination therapy effect, as described by the half-life of mycobacterial load modifier. This module enables further analysis of TTP data and visualization of time-to-sputum culture conversion (TSCC).
+For the effect of concomitant medications on PK and QT level, the parameters from the publications listed are incorporated:
+
+-...
+
+Additionally, the application includes a dedicated time-to-positivity (TTP) simulation module using the abovementioned two PK-efficacy models that allows users to generate individual time-to-positivity profiles without considering individual drug exposure but focusing on the overall combination therapy effect, as described by the half-life of mycobacterial load modifier. This module enables further analysis of TTP data and visualization of time-to-sputum culture conversion (TSCC).
 
 ## Repository Structure
 
@@ -17,17 +21,18 @@ The repository is organized into two main components:
 
 ### BDQ_Server
 Contains the R scripts that handle the computational backend of the application:
-- Pharmacokinetic (PK) modeling
-- Time-to-positivity (TTP) simulations
-- QT interval analysis
-- Long-term outcome modeling (multi-state model)
 - Virtual population generation
+- Pharmacokinetic (PK) of bedaquiline and bedaquiline's main metabolite M2 simulation and visualization
+- Time-to-positivity (TTP) simulation and visualization
+- QT interval simulation and visualization
+- Long-term treatment outcome simulation and visualization
 - Population summary statistics and visualization
 
 ### BDQ_UI
 Contains the Shiny UI components and server logic:
 - Main server script (`BDQ_Shiny_UI_Server.R`)
 - UI modules for different sections of the application including:
+
   - User manual
   - Dosing interface
   - Individual or population characteristics and concomitant medication
@@ -37,57 +42,46 @@ Contains the Shiny UI components and server logic:
 
 ## Features
 
-- **Dosing Optimization**: Configure and optimize BDQ dosing regimens
+- **1.  Dosing Selection**: Configure and select bedaquiline dosing regimens of interest
   - Add loading dose (optional)
   - Set maintenance dose parameters: dose amount, duration, frequency
   - Add second maintenance dose (optional)
-  - Support BDQ dose interruption and re-initiation
   - Compare up to three different regimens simultaneously
   - Default regimen follows the approved bedaquiline dosing (400 mg daily for 2 weeks, followed by 200 mg thrice weekly for 22 weeks)
 
-- **Population Configuration**:
+- **2.  Population Configuration**:
   - Choose between individual or population-level simulation
   - Individual mode: Set specific patient characteristics at baseline including age, weight, albumin concentration, calcium level, potassium level, TTP, sex, and race
-  - Population mode: Use default virtual population based on three clinical trials (data available at the TB-PACTS platform) or import population data by users
-  - Specify patient treatment history (treatment-naïve or treatment-experienced)
+  - Population mode:
+      - Use default virtual population generated by using conditional distribution modelling [(Smania and Jonsson, *CPT:PSP*, 2021)](https://doi.org/10.1002/psp4.12613)
+        based on three clinical trials (two phase IIb trials [NCT01498419, NCT02193776] and one phase III trial [NCT02333799],
+        data available in [the TB-PACTS platform](https://c-path.org/tools-platforms/tb-pacts/)), or
+      - Import population data by users with specified columns needed
+  - Specify patient treatment history (treatment-naïve or treatment-experienced), depending on if they had received anti-TB therapy before initiating bedaquiline or not
   - Set half-life modifier to adjust the elimination rate of mycobacterial load
   - Add concomitant medications with drug-drug interaction effects:
     - PK effects: None, Efavirenz, Lopinavir/r, Nevirapine, Rifampicin, Rifapentine
     - QT effects: None, Clofazimine, Moxifloxacin, or both
 
-- **Simulation Settings**:
+- **3.  Simulation Settings**:
   - Specify number of individuals per regimen
   - Set number of MGIT culture replicates per sampling timepoint (1-3)
   - Configure simulation time for PK/efficacy/safety and long-term outcomes
   - Choose to simulate with or without interindividual variability
 
-- **PK Modeling**: Simulate pharmacokinetic profiles
-  - Visualize full, daily average or weekly average concentrations of bedaquiline and its metabolite M2
-  - Account for drug-drug interactions with concomitant medications
-
-- **TTP Simulation**: Model individual TTP profiles over time after start of treatment
-  - Visualize proportions of negative cultures over time
-
-- **QT Interval Analysis**: Assess cardiac safety of BDQ regimens
+- **4.  Visualize and Output Results** 
+  - Visualize PK profiles (full, daily average or weekly average concentrations) of bedaquiline and its metabolite M2
+  - Predict proportions of negative cultures over time (from PK-efficacy model)
   - Predict QTcF interval over time
-  - Account for effects of concomitant medications on QT interval
-
-- **Long-term Outcome Modeling**: Analyze long-term treatment outcomes
-  - Individual trajectory in different states (outcomes) visualization in individual mode
-  - Proportions of patients in each state (outcome) in population mode
-
-- **Visualization and Data Export**:
-  - Comprehensive visualization of all simulation results
+  - Predict long-term treatment outcomes over time
+    - Individual trajectory in different states (outcomes) visualization in individual mode
+    - Proportions of patients in each state (outcome) in population mode
   - Patient characteristics summary tables and graphs
-  - Export simulation data for further analysis:
-    - Pharmacokinetics data
-    - Efficacy data (TTP)
-    - Safety data (QT)
-    - Long-term outcome data
-    - Virtual individual or population data
+  - Export simulation data for further analysis
 
 ## Requirements
 - R (version 4.4.1 or higher)
+
 - Required R packages:
   - **Modeling and Simulation**: mrgsolve (PK/PD modeling and simulation), survival
   - **Data Manipulation**: dplyr, tidyr, purrr, stringr, zoo
@@ -126,13 +120,17 @@ Contains the Shiny UI components and server logic:
 2. Set up the following information
    - dosing information of bedaquiline
    - individual or population characteristics and concomitant medications
-   - simulation settings
+   - Simulation settings
 4. Click the `Start simulation` button
 5. Visualize the results of PK, efficacy, safety and long-term outcome in patients under different bedaquiline dosing strategies in the Results tab
 6. Users can download the simulation outputs for further data analysis
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgement
+Thank scilifelab server and UNITE4TB for support
+
 
 ## Contact
 For questions, feedback, or collaboration inquiries:
