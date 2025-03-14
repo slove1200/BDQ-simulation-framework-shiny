@@ -194,7 +194,7 @@ mainTabTTPSim <- tabPanel(
             # Add image output for TSCC2.png
             imageOutput("HLEFFplot_TTPsim", height = "auto"),
             tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
-                       Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                       Dashed vertical line represents the half-life reported in the developed model without bedaquiline treatment.
                        This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
                       style = "font-size: 10px;"),
             textInput("simtime_TTP", 

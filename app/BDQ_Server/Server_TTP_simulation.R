@@ -194,7 +194,7 @@ TTPsimplots <- function(input) {
 
   
   # Read in dataset to sample MTTP from
-  myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+  myCovSimMICE <- read.csv(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
                         header = T) %>% select(ID, MTTP)
 
   myCovSimMICE_custom <- myCovSimMICE %>% filter(MTTP >= input$MTTP_TTP_min*24 & MTTP <= input$MTTP_TTP_max*24)

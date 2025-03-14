@@ -2,7 +2,7 @@ Pop_generation <- function(input) {
   nsubjects <- input$nsim
   
   # Read in dataset
-  myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+  myCovSimMICE <- read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
                         header = T)
   
   # Calculate exact numbers needed for each category

@@ -1,0 +1,75 @@
+1. Change app name into app.R
+2. Make sure every file is under the deployed directory
+
+e.g. app.R in one path, and then change current.directory to the path you have for app.R
+
+Current.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/"
+UI.directory <- paste0(Current.directory, "BDQ_UI/")
+Server.directory <- paste0(Current.directory, "BDQ_Server/")
+
+3. 
+*app.R*
+
+Change 
+
+template_path <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/Virtual_population_template.csv"
+
+into 
+
+template_path <- paste0(Server.directory, "Virtual_population_template.csv")
+
+Change
+
+read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                        header = T)
+
+into
+
+read.csv(paste0(Current.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
+                        header = T)
+
+*Server_Virtual_population_TBPACTS.R*
+
+Change 
+  orgCovsEx <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                        header = T)
+
+into 
+
+  orgCovsEx <- read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
+                        header = T)
+
+*Server_Population_summary_plots.R*
+
+Change
+
+myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                           header = T)
+
+into 
+
+myCovSimMICE <- read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
+                           header = T)
+
+
+
+and put the simulated dataset into the deployed directory/BDQ_Server
+
+*Server_TTP_simulation.R*
+
+Change
+
+myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                           header = T)
+
+into
+
+myCovSimMICE <- read.csv(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+                         header = T) %>% select(ID, MTTP)
+
+
+4. Deploy your app via the code:
+
+rsconnect::deployApp("C:/Users/yujli183/Desktop/Deploy")
+
+https://bdqsim.shinyapps.io/deploy/

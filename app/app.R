@@ -1,6 +1,7 @@
-# Title: BEDAQUILINE DOSE REGIMEN Shiny Application
+# Title: Bedaquiline Dose-PK-Efficacy/Safety-Outcome Simulation Framework Shiny Application
 # Author: Yu-Jou Lin
-# Date: 2024-12-01
+# Affiliation: Department of Pharmacy, Uppsala University
+# Date: 2025-03-14
 
 ###################### SETUP ######################
 # Load required libraries
@@ -26,8 +27,10 @@ library(jquerylib)
 library(survival)
 
 # Set directory paths
-UI.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_UI/"
-Server.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/BDQ_Server/"
+# change current.directory to the path you have for app.R
+Current.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/"
+UI.directory <- paste0(Current.directory, "BDQ_UI/")
+Server.directory <- paste0(Current.directory, "BDQ_Server/")
 
 ###################### SOURCE FILES ######################
 # Source UI components
@@ -859,7 +862,8 @@ server <- function(input, output, session) {
             "Virtual_population_template.csv"
         },
         content = function(file) {
-            template_path <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/Virtual_population_template.csv"
+            template_path <- paste0(Server.directory, "Virtual_population_template.csv")
+
             if (!file.exists(template_path)) {
                 stop("Template file not found. Please contact the administrator.")
             }
@@ -917,7 +921,7 @@ server <- function(input, output, session) {
       # Get and filter the virtual population based on data source
       filtered_data <- if (input$dataset_source == "Default") {
         tryCatch({
-          read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+          read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
                    header = T) %>% 
             filter(
               SEX %in% c(0, 1),
