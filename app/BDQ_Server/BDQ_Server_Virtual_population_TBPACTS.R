@@ -2,6 +2,8 @@ Pop_generation <- function(input) {
   nsubjects <- input$nsim
   
   # Read in dataset
+  Server.directory <- "BDQ_Server/"
+  
   myCovSimMICE <- read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
                         header = T)
   

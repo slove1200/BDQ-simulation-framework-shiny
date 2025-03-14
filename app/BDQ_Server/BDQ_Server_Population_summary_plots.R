@@ -1,5 +1,7 @@
 create_population_plots <- function(df_virtualPop, input) {
   
+  Server.directory <- "BDQ_Server/"
+  
   if (input$population_radio == "Individual") {
     # Create a single-row dataframe for individual case
     df_virtualPop <- data.frame(
@@ -20,7 +22,7 @@ create_population_plots <- function(df_virtualPop, input) {
   }
 
   # Import full simulated dataset for boxplot
-  myCovSimMICE <- read.csv("//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/Virtual_population/TBPACTS/TBPACTS_Big_Virtual_Population_SimulatedforUse.csv", 
+  myCovSimMICE <- read.csv(paste0(Server.directory, "TBPACTS_Big_Virtual_Population_SimulatedforUse.csv"), 
                            header = T)
   
   # Convert MTTP value from hours to days
