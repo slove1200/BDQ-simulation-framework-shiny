@@ -28,7 +28,7 @@ library(survival)
 
 # Set directory paths
 # change current.directory to the path you have for app.R
-Current.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/ModelCodes/"
+Current.directory <- "//argos.storage.uu.se/MyFolder$/yujli183/PMxLab/Projects/BDQ shiny app optimization framework/BDQ-simulation-framework-shiny/app/"
 UI.directory <- paste0(Current.directory, "BDQ_UI/")
 Server.directory <- paste0(Current.directory, "BDQ_Server/")
 
