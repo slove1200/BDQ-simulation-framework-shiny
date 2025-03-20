@@ -22,7 +22,7 @@ TTP_plots <- function(input, sim_TTPtable) {
     geom_point(size = 3, shape = 1) +
     xlab("Time after start of treatment (weeks)") +
     ylab("Proportion of positive samples (%)") +
-    ggtitle("Probability of positive samples") +
+    ggtitle("Proportion of positive samples") +
     theme_bw() +
     scale_y_continuous(breaks = seq(0, 100, by = 20)) +
     scale_x_continuous(breaks = seq(0, 24, by = 4), limits = c(0, 20.5)) +
