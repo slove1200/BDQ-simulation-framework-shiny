@@ -47,8 +47,8 @@ sim_MSM <- function(input, sim_TTPtable, sim_PKtable) {
   HLEFF2 <- (input$HLEFF/0.54-1)*100
 
   TTPcov <- HLMBL2 %>% group_by(ID) %>%
-    mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1+(input$HLEFF2/100)), lag(HL))) %>%
-    mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1+(input$HLEFF2/100)), HL2), # median of HL
+    mutate(HL2 = ifelse(WEEKP == 0, 0.69443*(1+(HLEFF2/100)), lag(HL))) %>%
+    mutate(HL2 = ifelse(WEEKP == 1, 0.69443*(1+(HLEFF2/100)), HL2), # median of HL
            time = WEEKP*168)  %>% # hours
     filter(WEEKP %in% c(0, 1, 2, 3)) %>%
     mutate(MBLend = ifelse(MBLend == 0, 1e-300, MBLend)) %>% # set up a lower limit of MBLend to prevent log(0)

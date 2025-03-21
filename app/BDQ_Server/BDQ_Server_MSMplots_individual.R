@@ -52,7 +52,7 @@ MSMidv_plots <- function(input, sim_MSMtable) {
                 strip = strip_colors) +
     # Primary y-axis (0-100 scale)
     scale_y_continuous(
-      name = "Probability for Active infection, Converted (%)",
+      name = "Probability for Active TB, Converted (%)",
       limits = c(0, 100),
       sec.axis = sec_axis(~./10, 
                           name = "Probability for Recurrent TB, Death (%)")
@@ -80,12 +80,12 @@ MSMidv_plots <- function(input, sim_MSMtable) {
     scale_color_manual(
       values = c("P_1" = "#cf597e", "P_2" = "#009392", 
                  "P_3" = "#eeb479", "P_5" = "#CACACA"),
-      labels = c("Active infection", "Converted", "Recurrent TB", "Death")
+      labels = c("Active TB", "Converted", "Recurrent TB", "Death")
     ) +
     scale_fill_manual(
       values = c("P_1" = "#cf597e", "P_2" = "#009392", 
                  "P_3" = "#eeb479", "P_5" = "#CACACA"),
-      labels = c("Active infection", "Converted", "Recurrent TB", "Death")
+      labels = c("Active TB", "Converted", "Recurrent TB", "Death")
     )
   
   return(plot)
