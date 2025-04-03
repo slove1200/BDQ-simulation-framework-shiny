@@ -69,13 +69,6 @@ mainTabTTPSim <- tabPanel(
                 card_body(
                   tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                     tags$li("Number of Individuals to simulate"),
-                    tags$li("Type of Population:", 
-                      tags$br(), 
-                      tags$ul(
-                        tags$li(tags$strong("Treatment-naïve: "), "For individuals with no prior TB treatment"),
-                        tags$li(tags$strong("Treatment-experienced: "), "For individuals with prior TB treatment")
-                      ) 
-                    ),
                     tags$li("Baseline Time-to-positivity signal for individual subjects in days:", 
                       tags$br(), 
                       tags$ul(
@@ -144,10 +137,6 @@ mainTabTTPSim <- tabPanel(
                         label = tags$span(style="font-size: 13px; font-weight: bold;", "Number of Subjects"), 
                         value = 33, min = 1, max = 3000, 
                         width = "100%"), 
-            selectInput("STUDY_TTP", 
-                       label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Population"), 
-                       choices = c("Treatment-naïve", "Treatment-experienced"), 
-                       width = "100%"),
             # Baseline Time-to-positivity options
             radioButtons("TTP_distribution_choice", 
                         label = tags$span(style="font-size: 13px; font-weight: bold;", "Baseline Time-to-positivity (TTP) Distribution"),
@@ -193,8 +182,8 @@ mainTabTTPSim <- tabPanel(
                         width = "100%"),
             # Add image output for TSCC2.png
             imageOutput("HLEFFplot_TTPsim", height = "auto"),
-            tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
-                       Dashed vertical line represents the half-life reported in the developed model without bedaquiline treatment.
+            tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients with multidrug-resistant tuberculosis. 
+                       Dashed vertical line represents the half-life reported in the developed model without bedaquiline treatment but five-drug background regimen including ethionamide, pyrazinamide, ofloxacin, kanamycin, and cycloserine.
                        This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
                       style = "font-size: 10px;"),
             textInput("simtime_TTP", 

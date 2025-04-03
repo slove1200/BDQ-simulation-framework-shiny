@@ -151,9 +151,6 @@ mainTabPopulation <- tabPanel(
                           .shiny-options-group {
                             margin-top: 0 !important;
                           }
-                          .card-body.bslib-gap-spacing {
-                            margin: 0 !important;
-                          }
                           .form-group.shiny-input-radiogroup {
                             margin-bottom: 0 !important;
                           }
@@ -277,16 +274,6 @@ mainTabPopulation <- tabPanel(
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "Baseline Time-to-positivity in MGIT Culture (days)"), 
                              value = 6.8, min = 0.1, max = 42, step = 0.1)
                          )
-                       ), 
-                       card(
-                         style = "overflow: visible;",
-                         card_header("Treatment History", style = "font-size: 16px; background-color: #CDD8DA4D;"),
-                         card_body(
-                           style = "overflow: visible;",
-                           selectInput("STUDY", 
-                             label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Individual Patient"), 
-                             choices = c("Treatment-naïve", "Treatment-experienced"))
-                         )
                        )
                 ),
                 column(6,
@@ -310,8 +297,8 @@ mainTabPopulation <- tabPanel(
                              label = tags$span(style="font-size: 13px; font-weight: bold;", "Half-life of Mycobacterial Load (weeks)"), 
                              value = 0.54, min = 0.01, max = 100), 
                            imageOutput("HLEFFplot_indv", height = "auto"), 
-                           tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
-                                      Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                           tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients with multidrug-resistant tuberculosis. 
+                                      Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment on top of a five-drug background regimen including ethionamide, pyrazinamide, ofloxacin, kanamycin, and cycloserine.
                                       This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
                                      style = "font-size: 10px;")
                          )
@@ -414,23 +401,14 @@ mainTabPopulation <- tabPanel(
                 ),
                 # Second row: Original Population view content
                 column(5,
-                  card(
-                    card_header("Treatment History", style = "font-size: 16px; background-color: #CDD8DA4D;"),
-                    card_body(
-                      style = "overflow: visible;",
-                      selectInput("STUDY", 
-                        label = tags$span(style="font-size: 13px; font-weight: bold;", "Type of Patient Population"), 
-                        choices = c("Treatment-naïve", "Treatment-experienced"))
-                    )
-                  ),
                   # Removed overlay container for Half-life of Mycobacterial Load Decline
                   card(
                     card_header("Half-life of Mycobacterial Load Decline", style = "font-size: 16px; background-color: #CDD8DA4D;"),
                     card_body(
                       numericInput("HLEFF", label = tags$span(style="font-size: 13px; font-weight: bold;","Half-life of Mycobacterial Load (weeks)"), value = 0.54, min = -0.01, max = 100), 
                       imageOutput("HLEFFplot_pop", height = "auto"),
-                      tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen. 
-                                 Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment.
+                      tags$span("The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients with multidrug-resistant tuberculosis. 
+                                 Dashed vertical line represents the half-life reported in the developed model with bedaquiline treatment on top of a five-drug background regimen including ethionamide, pyrazinamide, ofloxacin, kanamycin, and cycloserine.
                                  This could help users select the most suitable value of half-life in the current tuberculosis treatment settings.",
                                 style = "font-size: 10px;")
                       

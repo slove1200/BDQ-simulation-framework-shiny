@@ -242,7 +242,6 @@ ui <- fluidPage(
 source(paste0(Server.directory, "BDQOMAT.R"))
 source(paste0(Server.directory, "BDQQT.R"))
 source(paste0(Server.directory, "BDQTTP.R"))
-source(paste0(Server.directory, "BDQTTP_TrtExperienced.R"))
 source(paste0(Server.directory, "BDQMSM.R"))
 
 # Source server functions
@@ -268,7 +267,6 @@ source(paste0(Server.directory, "BDQ_Server_Population_summary_plots.R"))
 
 # Source TTP simulation functions
 source(paste0(Server.directory, "TTPsim.R"))
-source(paste0(Server.directory, "TTP_TrtExperiencedsim.R"))
 source(paste0(Server.directory, "Server_TTP_simulation.R"))
 
 ###################### SERVER LOGIC ######################
@@ -286,6 +284,12 @@ server <- function(input, output, session) {
 
     # Create a reactive value to store TTPsimplots results
     TTPsim_results <- reactiveVal()
+
+    # Initialize goButton values
+    go_clicked <- reactiveVal(FALSE)
+
+    # Create a reactive value to store simulated results
+    simData <- reactiveValues()
 
     ###################### RESET BUTTON OBSERVERS ######################
     # Reset buttons for each parameter
@@ -494,6 +498,9 @@ server <- function(input, output, session) {
     # Use runjs to directly trigger click on Results tab
     shinyjs::runjs("$('a[data-value=\"Results\"]').tab('show');")
     
+     # Mark that goButton has been clicked
+    go_clicked(TRUE)
+
     # Show loading overlay
     loading(TRUE)
     
@@ -542,6 +549,8 @@ server <- function(input, output, session) {
             # Ensure we have at least one row
             slice(1L)
         }
+
+        simData$virtual_population_df <- virtual_population_df
         
         # Summary of individual or virtual population
         if (input$population_radio == "Individual") {
@@ -566,7 +575,8 @@ server <- function(input, output, session) {
         # PK simulation
         incProgress(0.12, detail = "Running PK simulation...")
         sim_PKtable <- sim_PK(input, virtual_population_df)
-        
+        simData$sim_PKtable <- sim_PKtable
+
         # QT simulation
         incProgress(0.12, detail = "Running QT simulation...")
         sim_QTtable <- sim_QT(input, sim_PKtable)
@@ -574,6 +584,7 @@ server <- function(input, output, session) {
         # TTP simulation
         incProgress(0.12, detail = "Running TTP simulation...")
         sim_TTPtable <- sim_TTP(input, sim_PKtable, virtual_population_df)
+        simData$sim_TTPtable <- sim_TTPtable
 
         # MSM simulation
         incProgress(0.12, detail = "Running MSM simulation...")
@@ -585,7 +596,11 @@ server <- function(input, output, session) {
         
         # Generate PK plots
         incProgress(0.12, detail = "Generating PK plots...")
-        TypPKplot <- TypPK_plots(input, sim_PKtable)  # Call the function from the sourced file
+        dfForPlotBDQ <- TypPK_data(input, sim_PKtable)[[1]]
+        dfForPlotM2  <- TypPK_data(input, sim_PKtable)[[2]]
+        simData$dfForPlotBDQ <- dfForPlotBDQ
+        simData$dfForPlotM2 <- dfForPlotM2
+        TypPKplot <- TypPK_plots(input, sim_PKtable, dfForPlotBDQ, dfForPlotM2)  # Call the function from the sourced file
         output$plot <- renderPlot({
           TypPKplot
         })
@@ -620,15 +635,21 @@ server <- function(input, output, session) {
         
         # PK-additional simulation ####
         # Render combined PK-additional plot
+        Cavg_daily <- PKDavg_data(input, sim_PKtable)
+        simData$Cavg_daily <- Cavg_daily
+        
         output$plotPKDavg <- renderPlot({
           withProgress(message = "Generating PK Daily Average plot...", value = NULL, {
-            PKDavg_plots(input, sim_PKtable)  # Call the function from the sourced file
+            PKDavg_plots(input, simData$Cavg_daily)  # Call the function from the sourced file
           })
         })
         
+        Cavg_weekly <- PKWavg_data(input, sim_PKtable)
+        simData$Cavg_weekly <- Cavg_weekly
+        
         output$plotPKWavg <- renderPlot({
           withProgress(message = "Generating PK Weekly Average plot...", value = NULL, {
-            PKWavg_plots(input, sim_PKtable)  # Call the function from the sourced file
+            PKWavg_plots(input, simData$Cavg_weekly) # Call the function from the sourced file
           })
         })
         
@@ -852,6 +873,187 @@ server <- function(input, output, session) {
         )
       })
     })
+    
+# Normal/Log scale for PK
+observeEvent(list(input$PK_log, input$PKplot_radio), {
+  if (!go_clicked()) return(NULL)  # Prevent running if goButton hasn't been clicked
+  
+  # Create and render the appropriate plot based on the current radio selection
+  if (input$PKplot_radio == "Full Concentration") {
+    TypPKplot <- TypPK_plots(input, simData$sim_PKtable, simData$dfForPlotBDQ, simData$dfForPlotM2)
+    output$plot <- renderPlot({
+      TypPKplot
+    })
+  } else if (input$PKplot_radio == "Daily Avg Concentration") {
+    DavgPKplot <- PKDavg_plots(input, simData$Cavg_daily)
+    output$plotPKDavg <- renderPlot({
+      DavgPKplot
+    })
+  } else if (input$PKplot_radio == "Weekly Avg Concentration") {
+    WavgPKplot <- PKWavg_plots(input, simData$Cavg_weekly)
+    output$plotPKWavg <- renderPlot({
+      WavgPKplot
+    })
+  }
+  
+})
+    
+
+# New random seed for TTP
+  observeEvent(input$SEED_TTP, {
+    if (!go_clicked()) return(NULL)  # Prevent running if goButton hasn't been clicked
+
+    loading(TRUE)
+    insertUI(selector = "body", where = "beforeEnd", ui = div(id = "loading-overlay"), immediate = TRUE)
+
+    withProgress(message = 'Re-running TTP simulation with new random seed...', value = 0, {
+      incProgress(0.1, detail = "Generating new seed...")
+
+      incProgress(0.3, detail = "Running TTP simulation...")
+      sim_TTPtable <- sim_TTP(input, simData$sim_PKtable, simData$virtual_population_df)
+      simData$sim_TTPtable <- sim_TTPtable
+
+      incProgress(0.3, detail = "Plotting...")
+      TTPplot <- TTP_plots(input, sim_TTPtable)
+
+      output$plotTTP <- renderPlot({
+        TTPplot
+      })
+
+      # Optional: update download handler
+      output$download_simTTP <- downloadHandler(
+          filename = function() {
+              "TTP_data_package.zip"
+          },
+          content = function(file) {
+              withProgress(message = 'Creating TTP data package', value = 0, {
+                  incProgress(0.2, detail = "Creating temporary files...")
+                  temp_dir <- tempdir()
+                  temp_files <- c(
+                      file.path(temp_dir, "TTP_output.csv"),
+                      file.path(temp_dir, "TTP_specification.txt")
+                  )
+                  
+                  incProgress(0.3, detail = "Writing data files...")
+                  write.csv(sim_TTPtable %>%
+                              mutate(
+                                  HL      = round(HL, 2)
+                              ) %>%
+                              select(-TIME, -MBL, -Y) %>%
+                              rename("WEEK" = "WEEKP", 
+                                     "TTPpos"  = "RTTE", 
+                                     "CULneg"  = "NEG"
+                              ),
+                           temp_files[1], 
+                           row.names = FALSE)
+                  
+                  incProgress(0.2, detail = "Copying specification file...")
+                  file.copy(
+                      from = file.path(Server.directory, "TTP_specification.txt"),
+                      to = temp_files[2]
+                  )
+                  
+                  incProgress(0.2, detail = "Creating zip file...")
+                  zip(file, files = temp_files, flags = "-j")
+                  
+                  incProgress(0.1, detail = "Cleaning up...")
+                  unlink(temp_files)
+              })
+          },
+          contentType = "application/zip"
+      )
+
+      incProgress(0.2, detail = "Done!")
+    })
+
+    removeUI(selector = "#loading-overlay", immediate = TRUE)
+    loading(FALSE)
+    showNotification("TTP simulation updated with a new random seed.", type = "message")
+  })
+
+# New random seed for MSM
+  observeEvent(input$SEED_MSM, {
+    if (!go_clicked()) return(NULL)  # Prevent running if goButton hasn't been clicked
+
+    loading(TRUE)
+    insertUI(selector = "body", where = "beforeEnd", ui = div(id = "loading-overlay"), immediate = TRUE)
+
+    withProgress(message = 'Re-running MSM simulation with new random seed...', value = 0, {
+      incProgress(0.1, detail = "Generating new seed...")
+
+      incProgress(0.3, detail = "Running MSM simulation...")
+      if (input$population_radio == "Individual" | input$nsim == 1) {
+            sim_MSMtable <- sim_MSMidv(input, simData$sim_TTPtable, simData$sim_PKtable)
+        } else {
+            sim_MSMtable <- sim_MSM(input, simData$sim_TTPtable, simData$sim_PKtable)
+        }
+
+      incProgress(0.3, detail = "Plotting...")
+      if (input$population_radio == "Individual" | input$nsim == 1) {
+          MSMidvplot <- MSMidv_plots(input, sim_MSMtable)
+          output$plotMSM <- renderPlot({
+            MSMidvplot
+          })
+          } else {
+            MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
+            output$plotMSM <- renderPlot({
+              MSMplot
+            })
+          }
+
+      output$download_simMSM <- downloadHandler(
+          filename = function() {
+              "MSM_data_package.zip"
+          },
+          content = function(file) {
+              withProgress(message = 'Creating MSM data package', value = 0, {
+                  incProgress(0.2, detail = "Creating temporary files...")
+                  temp_dir <- tempdir()
+                  temp_files <- c(
+                      file.path(temp_dir, "longTermOutcome_output.csv"),
+                      file.path(temp_dir, "longTermOutcome_specification.txt")
+                  )
+                  
+                  incProgress(0.3, detail = "Writing data files...")
+                  write.csv(sim_MSMtable %>%
+                              mutate(
+                                  HL2      = round(HL2, 2),
+                                  Log10MBLend = round(Log10MBLend, 2), 
+                                  P_1      = round(P_1, 3),
+                                  P_2      = round(P_2, 3),
+                                  P_3      = round(P_3, 5),
+                                  P_5      = round(P_5, 5)
+                              ) %>%
+                              rename("WEEK" = "time") %>%
+                              select(-regimen, everything(), regimen) %>%
+                              group_by(ID, WEEK) %>%
+                              slice(1L),
+                           temp_files[1], 
+                           row.names = FALSE)
+                  
+                  incProgress(0.2, detail = "Copying specification file...")
+                  file.copy(
+                      from = file.path(Server.directory, "longTermOutcome_specification.txt"),
+                      to = temp_files[2]
+                  )
+                  
+                  incProgress(0.2, detail = "Creating zip file...")
+                  zip(file, files = temp_files, flags = "-j")
+                  
+                  incProgress(0.1, detail = "Cleaning up...")
+                  unlink(temp_files)
+              })
+          },
+          contentType = "application/zip"
+      )
+
+      incProgress(0.2, detail = "Done!")
+    })
+
+    removeUI(selector = "#loading-overlay", immediate = TRUE)
+    loading(FALSE)
+    showNotification("MSM simulation updated with a new random seed.", type = "message")
+  })
 
     ###################### DOWNLOAD HANDLERS ######################
     # Template download handler
@@ -893,6 +1095,38 @@ server <- function(input, output, session) {
         })
     })
     
+   ####################### WARNING IF DOSING OR DURATION IS NOT INTEGER ######
+   observe({
+     # Define all numeric input IDs across regimens
+     numeric_ids <- c()
+     for (i in 1:3) {
+       numeric_ids <- c(numeric_ids,
+                        paste0("ldose_", i), paste0("ldur_", i),
+                        paste0("mdose_", i), paste0("mdur_", i),
+                        paste0("m2dose_", i), paste0("m2dur_", i),
+                        paste0("restart_ldose_", i), paste0("restart_ldur_", i),
+                        paste0("restart_mdose_", i), paste0("restart_mdur_", i),
+                        paste0("restart_m2dose_", i), paste0("restart_m2dur_", i),
+                        paste0("offbdqdur_", i)
+       )
+     }
+     
+     # Check for any non-integer values
+     invalid_inputs <- sapply(numeric_ids, function(id) {
+       val <- input[[id]]
+       !is.null(val) && (val %% 1 != 0)
+     })
+     
+     output$integer_warning <- renderText({
+       if (any(invalid_inputs)) {
+         "Warning: All numeric dosing inputs must be integers (without decimal points)."
+       } else {
+         NULL
+       }
+     })
+   })
+  
+  
     ###################### WARNING IF POPULATION NUMBER < NUMBERS FOR SIMULATION #######
     # Create a reactive value to track validation states
     validationStates <- reactiveValues(
@@ -1027,6 +1261,18 @@ server <- function(input, output, session) {
             max(durations, na.rm = TRUE)
         }
         
+        # Add a reactive expression or directly in your server logic
+        output$nonstandard_duration_warning <- renderText({
+          any_non_24 <- any(abs(durations - 24) > 0.01, na.rm = TRUE)
+          
+          if (any_non_24) {
+            "The model was developed based on a standard 24-week bedaquiline regimen.
+             Predictions for long-term outcomes may be less reliable for other treatment durations."
+          } else {
+            NULL
+          }
+        })
+        
         # Update validation states
         validationStates$enough_time <- input$simtime >= max_dur
         validationStates$enough_timeMSM <- input$simtimeMSM >= max_dur
@@ -1075,7 +1321,7 @@ server <- function(input, output, session) {
     # Render the PNG image
     output$HLEFFplot_indv <- renderImage({
       # Path to the PNG file
-      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC2.png")
+      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC_PCB_BDQ-shiny-used.png")
       
       # Return a list with the image path and optional width/height
       list(
@@ -1090,7 +1336,7 @@ server <- function(input, output, session) {
     # Render the PNG image
     output$HLEFFplot_pop <- renderImage({
       # Path to the PNG file
-      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC2.png")
+      filePath <- paste0(UI.directory, "HLEFF_halfLife_TSCC_PCB_BDQ-shiny-used.png")
       
       # Return a list with the image path and optional width/height
       list(

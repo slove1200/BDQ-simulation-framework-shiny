@@ -2,8 +2,24 @@
 ######## Create MSM dataframe for simulation
 sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
   
+  reg1_dur <- NULL
+  reg2_dur <- NULL
+  reg3_dur <- NULL
+  
+  # calculate duration
+  reg1_dur <- (if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0) + 
+    (input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7)) +
+    (if(input$MD2_1) input$m2dur_1 * ifelse(input$m2unit_1 == "2", 1, 1/7) else 0)
+  
+  reg2_dur <- (if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0) + 
+    (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)) +
+    (if(input$MD2_2) input$m2dur_2 * ifelse(input$m2unit_2 == "2", 1, 1/7) else 0)
+  
+  reg3_dur <- (if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0) + 
+      (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)) +
+      (if(input$MD2_3) input$m2dur_3 * ifelse(input$m2unit_3 == "2", 1, 1/7) else 0)
+  
   # Create dataset for simulation
-  sim_time     <- input$simtime
   nsubjects    <- input$nsim
   num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   # "simtimeMSM" and "simunitMSM" for MSM
@@ -14,21 +30,18 @@ sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
     filter(REP == 1 & FLAG == 2) %>%
     mutate(
       dur = case_when(
-        regimen == 1 & input$LD1 == TRUE  ~ input$ldur_1 + input$mdur_1,
-        regimen == 2 & input$LD2 == TRUE  ~ input$ldur_2 + input$mdur_2,
-        regimen == 3 & input$LD3 == TRUE  ~ input$ldur_3 + input$mdur_3,
-        regimen == 1 & input$LD1 == FALSE ~ input$mdur_1,
-        regimen == 2 & input$LD2 == FALSE ~ input$mdur_2,
-        regimen == 3 & input$LD3 == FALSE ~ input$mdur_3
+        regimen == 1 ~ reg1_dur, 
+        regimen == 2 ~ reg2_dur, 
+        regimen == 3 ~ reg3_dur
       )
     ) %>%
     filter(
-        (regimen == 1 & WEEKP %in% c(1, 2, if (input$LD1) input$ldur_1 + input$mdur_1 else input$mdur_1)) |
-        (regimen == 2 & WEEKP %in% c(1, 2, if (input$LD2) input$ldur_2 + input$mdur_2 else input$mdur_2)) |
-        (regimen == 3 & WEEKP %in% c(1, 2, if (input$LD3) input$ldur_3 + input$mdur_3 else input$mdur_3)) 
+      (regimen == 1 & WEEKP %in% c(1, 2, floor(reg1_dur))) |
+      (regimen == 2 & WEEKP %in% c(1, 2, floor(reg2_dur))) |
+      (regimen == 3 & WEEKP %in% c(1, 2, floor(reg3_dur)))
     ) %>%
     group_by(ID) %>%
-    mutate(MBLend = first(MBL[WEEKP == dur]))
+    mutate(MBLend = first(MBL[WEEKP == floor(dur)]))
   
   # Create a copy of the rows where WEEKP = 1
   new_rows <- HLMBL %>% group_by(ID) %>%
