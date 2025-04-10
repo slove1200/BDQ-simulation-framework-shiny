@@ -26,8 +26,7 @@ mainTabAbout <- tabPanel(
                                 tags$span(tags$strong("This application incorporates:", style = "font-size: 14px;")),
                                 tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                     tags$li("Pharmacokinetic (PK) model developed by Svensson et al. (CPT: PSP, 2016)"),
-                                    tags$li("PK-efficacy model based on two models developed by Svensson and Karlsson 
-                                    (J Antimicrob Chemother, 2017) and Tanneau et al. (Br J Clin Pharmacol, 2020)"),
+                                    tags$li("PK-efficacy model developed by Svensson and Karlsson (J Antimicrob Chemother, 2017)"),
                                     tags$li("PK-safety model developed by Tanneau et al. (CPT: PSP, 2021)"),
                                     tags$li("Long-term outcome model developed by Lin et al. (J Antimicrob Chemother, 2024)")
                                 )
@@ -178,23 +177,6 @@ mainTabAbout <- tabPanel(
                             ),
                         col_widths = c(6,6)
                     ), 
-
-                    # Treatment History Card
-                    card(
-                        card_header("Treatment History", style = "font-size: 16px; background-color: #E8ECEE;"),
-                        card_body(
-                            tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                                tags$li(
-                                    tags$strong("Choose the type of population/individual based on their treatment history:"),
-                                    tags$ul(
-                                        tags$li(tags$strong("Treatment-naïve: "), "For patients with no prior TB treatment before initiating bedaquiline"),
-                                        tags$li(tags$strong("Treatment-experienced: "), "For patients with prior TB treatment before initiating bedaquiline")
-                                    )
-                                )
-                            )
-                        )
-                    ),
-
                     # Half-life Modifier Card
                     card(
                         card_header("Half-life of Mycobacterial Load Decline", style = "font-size: 16px; background-color: #E8ECEE;"),
@@ -202,9 +184,10 @@ mainTabAbout <- tabPanel(
                             tags$span(
                                 tags$strong("Half-life is a parameter which reflects how different background regimens influence bacterial elimination"),
                                 tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
-                                    tags$li(tags$strong("The default value is 0.54, which represents the half-life reported in the developed model with bedaquiline treatment")),
+                                    tags$li(tags$strong("The default value is 0.54, which represents the half-life reported in the developed model with bedaquiline treatment 
+                                                        on top of a five-drug background regimen (ethionamide, pyrazinamide, ofloxacin, kanamycin, and cycloserine)")),
                                     tags$li(
-                                        "The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients under the bedaquiline approved dosing regimen.", 
+                                        "The graph of conversion rate over half-life of mycobacterial load is demonstrated in patients with multidrug-resistant tuberculosis.", 
                                         tags$br(), 
                                         "This could help users select the most suitable value of the half-life in the current tuberculosis treatment settings"),
                                     tags$li(tags$strong("Note:"), " The value of half-life directly influences the influences sputum culture conversion in 
@@ -243,7 +226,19 @@ mainTabAbout <- tabPanel(
                         tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                             tags$li("Specify numbers of individuals per regimen for simulation. The same population will be applied for all regimens, i.e., population across different regimens is the same"),
                             tags$li("Set numbers of MGIT culture replicates per sampling timepoint. The default value is 1 per sampling timepoint, maximum of 3"),
-                            tags$li("Set simulation time for PK/efficacy/safety and long-term outcome in weeks. Simulation time should not less than the dosing duration"),
+                            tags$li("Set simulation time for PK/efficacy/safety and long-term outcome in weeks", 
+                                    tags$ul(
+                                    tags$li("For PK and safety, simulation time can be longer than the treatment period"), 
+                                    tags$li("For efficacy, simulation results will only be shown throughout but not beyond the treatment period,",
+                                            tags$br(), 
+                                            tags$strong("since the efficacy model is not capable of extrapolating MGIT culture results beyond the treatment period")
+                                            ), 
+                                    tags$li("For long-term outcome, the simulation results may not be reliable if the selected bedaquiline regimen is not equal to 24 weeks,",
+                                           tags$br(), 
+                                           tags$strong("since the model was built based on standard 24-week bedaquiline treatment regimen")
+                                           )
+                                    )
+                            ),
                             tags$li("Include interindividual variability (ON/OFF)"),
                             tags$li("Click \"Start simulation\" to begin")
                         )
@@ -262,7 +257,7 @@ mainTabAbout <- tabPanel(
                                     tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px; line-height: 1.9;",
                                         tags$li(tags$strong("Pharmacokinetics:"),
                                                 tags$br(),
-                                                "users can visualize the concentration profiles of bedaquiline and its metabolite M2 under different settings",
+                                                "users can visualize the concentration profiles of bedaquiline and its metabolite M2 under different settings under normal or log10 y-axis scale",
                                                 tags$ul(
                                                     tags$li("Full concentration profile"),
                                                     tags$li("Daily average concentraion"),

@@ -1,11 +1,37 @@
 sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
+  
+  reg1_dur <- NULL
+  reg2_dur <- NULL
+  reg3_dur <- NULL
+  
+  # calculate duration
+  reg1_dur <- (if(input$LD1) input$ldur_1 * ifelse(input$lunit_1 == "2", 1, 1/7) else 0) + 
+    (input$mdur_1 * ifelse(input$munit_1 == "2", 1, 1/7)) +
+    (if(input$MD2_1) input$m2dur_1 * ifelse(input$m2unit_1 == "2", 1, 1/7) else 0)
+  
+  reg2_dur <- (if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0) + 
+    (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)) +
+    (if(input$MD2_2) input$m2dur_2 * ifelse(input$m2unit_2 == "2", 1, 1/7) else 0)
+  
+  reg3_dur <- (if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0) + 
+    (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)) +
+    (if(input$MD2_3) input$m2dur_3 * ifelse(input$m2unit_3 == "2", 1, 1/7) else 0)
+  
+  durations <- c(reg1_dur, reg2_dur, reg3_dur)
+  max_dur <- max(durations, na.rm = TRUE)
+  
   # User input
   num_REPs <- input$REP
   
   # Retrieve information from simulated PK profiles
   Cavg_weekly <- sim_PKtable %>%
     filter(AMT == 0 & time %% 168 == 0) %>%
-    mutate(WEEK = time / 168)
+    mutate(WEEK = time / 168)  %>%
+    filter(
+      (regimen == 1 & WEEK <= reg1_dur) |
+      (regimen == 2 & WEEK <= reg2_dur) |
+      (regimen == 3 & WEEK <= reg3_dur)
+    )
   
   # Subset relevant columns
   Cavg_weekly <- Cavg_weekly %>% select(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2)
@@ -39,11 +65,9 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   nsamples    <- input$nsim
   num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
   
-  sim_time <- input$simtime   # Time of simulation imputed (transformed in hours during simulation)
-  
   TTPdf   <- tidyr::crossing(
     ID    = seq(nsamples*num_regimens),
-    WEEKP = c(1:sim_time),
+    WEEKP = c(1:max_dur),
     REP   = c(1:num_REPs),
     EVID  = 0,
     AMT   = 0,
@@ -53,6 +77,7 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   
   TTPdf   <- TTPdf %>%
     mutate(regimen = (ID - 1) %/% nsamples + 1) %>%
+    filter(WEEKP <= ifelse(regimen == 1, reg1_dur, ifelse(regimen == 2, reg2_dur, reg3_dur))) %>%
     mutate(TIME = seq_along(TTPD) - 1) # dummy time column
   
   TTPdf2 <- TTPdf %>% filter(TTPD == 0) %>% mutate(FLAG = 2, TIME = NA)
@@ -100,42 +125,52 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   # TTP simulation ########
   ## Simulation settings
   # 2. "simtime" and "simunit"
+  modTTP <- mcode("BDQTTP", codeTTP)
+  modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
+
   
-  if (input$STUDY == "Treatment-naïve") {
-    modTTP <- mcode("BDQTTP", codeTTP)
-    modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
-  } else {
-    modTTP <- mcode("BDQTTP_TrtExperienced", codeTTP_TrtExperienced)
-    modTTP <- update(modTTP, outvars = outvars(modTTP)$capture)
-  }
-  
-  ## Interindividual variability ON/OFF
-  if (input$IIV == "OFF") {
-    set.seed(3468)
+# Determine seed
+if (input$SEED_TTP) {
+  seed_val <- sample(1e6, 1)  # Random seed between 1 and 1,000,000
+} else {
+  seed_val <- 3468  # Default fixed seed
+}
+
+## Interindividual variability ON/OFF
+if (input$IIV == "OFF") {
+  outTTP <- map_dfr(1:num_regimens, ~ {
+    this_dur <- durations[.x]
+    start_idx <- (.x - 1) * nsamples + 1
+    end_idx <- .x * nsamples
     
-    outTTP <- modTTP %>%
+    filtered_dfTTP <- dfTTP %>%
+      filter(ID %in% start_idx:end_idx)
+    
+    set.seed(seed_val)
+    
+    modTTP %>%
       zero_re() %>%
-      data_set(dfTTP) %>%
-      mrgsim(end = sim_time * 168, delta = 1) %>%
+      data_set(filtered_dfTTP) %>%
+      mrgsim(end = this_dur * 168, delta = 1) %>%
       as.data.frame()
-  } else { #### no sigma in TTP
-    # Filter and run simulation separately
-    outTTP <- map_dfr(1:num_regimens, ~ {
-      start_idx <- (.x - 1) * nsamples + 1
-      end_idx <- .x * nsamples
-      
-      # Filter the dataset for the current regimen
-      filtered_dfTTP <- dfTTP %>%
-        filter(ID %in% start_idx:end_idx)
-      
-      # Set random seed and run the simulation for the current dataset
-      set.seed(3468)
-      modTTP %>%
-        data_set(filtered_dfTTP) %>%
-        mrgsim(end = sim_time * 168, delta = 1) %>%
-        as.data.frame()
-    })
-  }
+  })
+} else { #### no sigma in TTP
+  outTTP <- map_dfr(1:num_regimens, ~ {
+    this_dur <- durations[.x]
+    start_idx <- (.x - 1) * nsamples + 1
+    end_idx <- .x * nsamples
+    
+    filtered_dfTTP <- dfTTP %>%
+      filter(ID %in% start_idx:end_idx)
+    
+    set.seed(seed_val)
+    
+    modTTP %>%
+      data_set(filtered_dfTTP) %>%
+      mrgsim(end = this_dur * 168, delta = 1) %>%
+      as.data.frame()
+  })
+}
   
   return(outTTP)
 }

@@ -231,7 +231,9 @@ mainTabDosing <- tabPanel(
             )
           ),
           style = "width: 100%;"
-        )
+        ), 
+        textOutput("integer_warning"),
+        tags$style("#integer_warning { color: red; font-style: italic; margin-top: -5px; margin-bottom: 10px; }")
       ),
       # Regimen Cards
       regimenCard(1, "#CBCAE3", default_LD = TRUE, default_MD2 = FALSE, addition_RG = FALSE),

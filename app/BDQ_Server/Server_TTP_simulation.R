@@ -209,13 +209,8 @@ TTPsimplots <- function(input) {
 
   TTPdf_fin <- TTPdf_fin %>% left_join(indvBaselineTTP, by = "ID")
   
-  if (input$STUDY_TTP == "Treatment-naïve") {
-    modTTPsim <- mcode("BDQTTP_sim", codeTTP_sim)
-    modTTPsim <- update(modTTPsim, outvars = outvars(modTTPsim)$capture)
-  } else {
-    modTTPsim <- mcode("BDQTTP_TrtExperienced_sim", codeTTP_TrtExperienced_sim)
-    modTTPsim <- update(modTTPsim, outvars = outvars(modTTPsim)$capture)
-  }
+  modTTPsim <- mcode("BDQTTP_sim", codeTTP_sim)
+  modTTPsim <- update(modTTPsim, outvars = outvars(modTTPsim)$capture)
   
   set.seed(3468)
   outTTP <- modTTPsim %>%
