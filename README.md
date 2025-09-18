@@ -1,11 +1,11 @@
 # Bedaquiline Dose-PK-Efficacy/Safety-Outcome Modelling Framework
 
 ## Overview
-**This repository contains a Shiny application, which provides an interactive modelling framework for pharmacokinetics (PK), efficacy (time-to-positivity), safety (QT interval), and long-term treatment outcomes of bedaquiline to help explore and visualize different bedaquiline dosing options.**
+**This repository contains a Shiny application, which provides an interactive modelling framework for pharmacokinetics (PK), efficacy (time-to-positivity), safety (QTc interval), and long-term treatment outcomes of bedaquiline to help explore and visualize different bedaquiline dosing options.**
 
 The application incorporates several established models:
 - Pharmacokinetic (PK) model developed by [Svensson et al. (*CPT: PSP*, 2016)](https://doi.org/10.1002/psp4.12147)
-- PK-efficacy models developed by [Svensson and Karlsson (*J Antimicrob Chemother*, 2017)](https://doi.org/10.1093/jac/dkx317) and Tanneau et al. [(*Br J Clin Pharmacol*, 2020)](https://doi.org/10.1111/bcp.14199)
+- PK-efficacy models developed by [Svensson and Karlsson (*J Antimicrob Chemother*, 2017)](https://doi.org/10.1093/jac/dkx317) 
 - PK-safety model developed by [Tanneau et al. (*CPT: PSP*, 2021)](https://doi.org/10.1002/psp4.12722)
 - Long-term outcome model developed by [Lin et al. (*J Antimicrob Chemother*, 2024)](https://doi.org/10.1093/jac/dkae256)
 
@@ -72,7 +72,7 @@ Contains the Shiny UI components and server logic:
 - **4.  Visualize and Output Results** 
   - Visualize PK profiles (full, daily average or weekly average concentrations) of bedaquiline and its metabolite M2
   - Predict proportions of negative cultures over time (from PK-efficacy model)
-  - Predict QTcF interval over time
+  - Predict QTcF interval (or QTcF change from baseline) over time
   - Predict long-term treatment outcomes over time
     - Individual trajectory in different states (outcomes) visualization in individual mode
     - Proportions of patients in each state (outcome) in population mode

@@ -99,8 +99,8 @@ PKDavg_plots <- function(input, Cavg_daily) {
     geom_ribbon(aes(ymin = lower_CavgDBDQ, ymax = upper_CavgDBDQ), alpha = 0.3, colour = NA) +
     geom_line(size = 1) +
     theme_bw() +
-    labs(x = "Time (weeks)", y = c("Daily Average BDQ concentration (ng/mL)")) +
-    ggtitle("Daily Average BDQ Concentration (ng/mL) vs Time") +
+    labs(x = "Time after start of treatment (weeks)", y = c("Daily average bedaquiline concentration (ng/mL)")) +
+    ggtitle("Daily average bedaquiline concentration (ng/mL)") +
     (if (input$PK_log == "Log scale") scale_y_log10(limits = c(100, 10000)) else coord_cartesian(ylim = c(0, ylimitsBDQ))) +
     coord_cartesian(xlim = c(0, input$simtime)) +
     scale_color_manual(values = c("#A084B5", "#D65D61", "#44BE5F")) +
@@ -122,8 +122,8 @@ PKDavg_plots <- function(input, Cavg_daily) {
     geom_ribbon(aes(ymin = lower_CavgDM2, ymax = upper_CavgDM2, fill = as.factor(regimen)), alpha = 0.3, colour = NA) +
     geom_line(size = 1) +
     theme_bw() +
-    labs(x = "Time (weeks)", y = c("Daily Average M2 concentration (ng/mL)")) +
-    ggtitle("Daily Average M2 Concentration (ng/mL) vs Time") +
+    labs(x = "Time after start of treatment (weeks)", y = c("Daily average M2 concentration (ng/mL)")) +
+    ggtitle("Daily average M2 concentration (ng/mL)") +
     (if (input$PK_log == "Log scale") scale_y_log10(limits = c(10, 1000)) else coord_cartesian(ylim = c(0, ylimitsM2))) +
     coord_cartesian(xlim = c(0, input$simtime)) +
     scale_x_continuous(breaks = xbreaks) +
@@ -182,8 +182,8 @@ PKWavg_plots <- function(input, Cavg_weekly) {
     geom_ribbon(aes(ymin = lower_CavgWBDQ, ymax = upper_CavgWBDQ), alpha = 0.3, colour = NA) +
     geom_line(size = 1) +
     theme_bw() +
-    labs(x = "Time (weeks)", y = c("Weekly Average BDQ concentration (ng/mL)")) +
-    ggtitle("Weekly Average BDQ Concentration (ng/mL) vs Time") +
+    labs(x = "Time after start of treatment (weeks)", y = c("Weekly average bedaquiline concentration (ng/mL)")) +
+    ggtitle("Weekly average bedaquiline concentration (ng/mL)") +
     (if (input$PK_log == "Log scale") scale_y_log10(limits = c(100, 10000)) else coord_cartesian(ylim = c(0, ylimitsBDQ))) +
     coord_cartesian(xlim = c(0, input$simtime)) +
     scale_x_continuous(breaks = xbreaks) +
@@ -216,8 +216,8 @@ PKWavg_plots <- function(input, Cavg_weekly) {
     geom_ribbon(aes(ymin = lower_CavgWM2, ymax = upper_CavgWM2, fill = as.factor(regimen)), alpha = 0.3, colour = NA) +
     geom_line(size = 1) +
     theme_bw() +
-    labs(x = "Time (weeks)", y = c("Weekly Average M2 concentration (ng/mL)")) +
-    ggtitle("Weekly Average M2 Concentration (ng/mL) vs Time") +
+    labs(x = "Time after start of treatment (weeks)", y = c("Weekly average M2 concentration (ng/mL)")) +
+    ggtitle("Weekly average M2 concentration (ng/mL)") +
     (if (input$PK_log == "Log scale") scale_y_log10(limits = c(10, 1000)) else coord_cartesian(ylim = c(0, ylimitsM2))) +
     coord_cartesian(xlim = c(0, input$simtime)) +
     scale_x_continuous(breaks = xbreaks) +

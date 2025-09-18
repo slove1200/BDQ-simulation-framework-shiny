@@ -5,7 +5,7 @@ MSM_plots <- function(input, sim_MSMtable) {
     complete(regimen, time, STATE, fill = list(prop = 0))
   ## proportion = num of positive sample/total samples in each WEEKP
   
-  num_regimens <- sum(c(TRUE, input$RG2, input$RG3, input$RG4))  # Regimen 1 is compulsory
+  num_regimens <- sum(c(TRUE, input$RG2, input$RG3))  # Regimen 1 is compulsory
 
   # Custom labeller function to change facet titles
   state_labels <- as_labeller(function(STATE) {
