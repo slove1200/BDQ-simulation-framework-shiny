@@ -139,15 +139,27 @@ calculate_metrics <- function(output, time_unit = "2", def_window) {
 
 # Function to plot the results with combined data
 plot_combined_results <- function(combined_data) {
+  
+  max_TAST <- max(combined_data$TAST, na.rm = TRUE)
+  
+  if (max_TAST <= 24) {
+    xbreaks <- seq(0, max(combined_data$TAST), by = 2)
+  } else if (max_TAST <= 36) {
+    xbreaks <- seq(0, max(combined_data$TAST), by = 4)
+  } else {
+    xbreaks <- seq(0, max(combined_data$TAST), by = 8)
+  }
+  
+  
   ggplot(combined_data, 
          aes(x = TAST, y = prop_without_scc * 100, color = HLEFF, group = HLEFF)) +
-    geom_line(size = 1.2, color = "#D73027") +
+    geom_step(size = 1.2, color = "#D73027") +
     geom_point(size = 3, shape = 1, color = "#D73027") +
     labs(
       x = paste0("Time after start of treatment (weeks)"),
       y = "Proportion of Patients Without SCC (%)"
     ) +
-    # scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+    scale_x_continuous(breaks = xbreaks, limits = c(0, max_TAST)) +
     scale_y_continuous(breaks = seq(0, 100, by = 20), limits = c(0, 100)) +
     #scale_color_discrete(values = c("#D73027", "#4575B4", "#2A9D8F")) +  # Use unique HLEFF values for labels
     theme_bw() +
@@ -212,7 +224,9 @@ TTPsimplots <- function(input) {
   modTTPsim <- mcode("BDQTTP_sim", codeTTP_sim)
   modTTPsim <- update(modTTPsim, outvars = outvars(modTTPsim)$capture)
   
-  set.seed(3468)
+  # If a specific random seed is needed
+  # set.seed(3468)
+  
   outTTP <- modTTPsim %>%
     data_set(TTPdf_fin) %>%
     mrgsim(
@@ -230,6 +244,7 @@ TTPsimplots <- function(input) {
   if (input$simunit_TTP == "2") {
     metrics_run1$proportion_no_scc$HLEFF <-(input$HLEFF_TTP/0.81-1)*100
     combined_proportion_no_scc <- metrics_run1$proportion_no_scc
+    combined_proportion_no_scc <- combined_proportion_no_scc %>% filter(TAST %in% unique(TTPdf_fin$TASTW))
     
     # Function to plot the results with combined data
     plotTTPsim <- plot_combined_results(combined_proportion_no_scc)

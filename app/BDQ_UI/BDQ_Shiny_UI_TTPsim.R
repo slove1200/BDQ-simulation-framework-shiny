@@ -57,8 +57,8 @@ mainTabTTPSim <- tabPanel(
         card(
           card_header("Overview", style = "font-size: 20px; background-color: #CDD8DA;"),
           card_body(
-            tags$span("This simulation module allows users to generate individual time-to-positivity (TTP) profiles using the PK-TTP models developed by Svensson and Karlsson 
-                       (J Antimicrob Chemother, 2017) and Tanneau et al. (Br J Clin Pharmacol, 2020) in flexible simulation settings. 
+            tags$span("This simulation module allows users to generate individual time-to-positivity (TTP) profiles using the PK-TTP model developed by Svensson and Karlsson 
+                       (J Antimicrob Chemother, 2017) in flexible simulation settings. 
                        The outputs include individual TTP data and the time-to-sputum culture conversion (TSCC) plot (if applicable) which enable users to do further 
                        analysis on the TTP data.",
                        tags$strong("In this module, individual drug exposure is not used as a covariate. Instead, the overall combination therapy, as described by the half-life of mycobacterial load decline (see below), is considered."),
@@ -188,7 +188,7 @@ mainTabTTPSim <- tabPanel(
                       style = "font-size: 10px;"),
             textInput("simtime_TTP", 
                      label = tags$span(style="font-size: 13px; font-weight: bold;", "Time for Culture Sampling (comma-separated)"),
-                     value = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24", 
+                     value = "0,1,2,3,4,5,6,7,8,10,12,14,16,18,20,22,24", 
                      width = "100%"), 
             selectInput("simunit_TTP",  
                      label = tags$span(style="font-size: 13px; font-weight: bold;", "Culture Sampling Time Unit"), 
@@ -216,7 +216,7 @@ mainTabTTPSim <- tabPanel(
             card_header(
               class = "d-flex mb-3",
               style = "background-color: #CDD8DA;",
-              div("Individual TTP Data", 
+              div("Individual Time-to-Positivity (TTP) Data", 
                   class = "me-auto p-0", 
                   style = "font-size: 20px;")
             ),
@@ -230,7 +230,7 @@ mainTabTTPSim <- tabPanel(
             condition = "input.simunit_TTP == '2'",  # Only show when weeks selected
             # Card 3: Summary TTP plot (only shown for weeks)
             card(
-              card_header("TSCC Plot", style = "font-size: 20px; background-color: #CDD8DA;"),
+              card_header("Time to Sputum Culture Conversion (TSCC) Plot", style = "font-size: 20px; background-color: #CDD8DA;"),
               card_body(
                 plotOutput("plotTTPsim"), 
                 tags$span("The graph is based on results from the developed time-to-event model. 

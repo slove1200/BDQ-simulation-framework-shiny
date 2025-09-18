@@ -1,7 +1,7 @@
-# Title: Bedaquiline Dose-PK-Efficacy/Safety-Outcome Simulation Framework Shiny Application
+# Title: Bedaquiline Dose-PK-Efficacy-Safety-Outcome Simulation Framework Shiny Application
 # Author: Yu-Jou Lin
 # Affiliation: Department of Pharmacy, Uppsala University
-# Date: 2025-03-14
+# Date: 2025-09-18
 
 ###################### SETUP ######################
 # Load required libraries
@@ -222,7 +222,7 @@ ui <- fluidPage(
     
     # Application Title with custom div
     div(class = "title-panel",
-        h2("Bedaquiline Dose-PK-Efficacy/Safety-Outcome Simulation Framework")
+        h2("Bedaquiline Dose-PK-Efficacy-Safety-Outcome Simulation Framework")
     ),
     
     # Main Tab Panel
@@ -652,6 +652,14 @@ server <- function(input, output, session) {
             PKWavg_plots(input, simData$Cavg_weekly) # Call the function from the sourced file
           })
         })
+        
+        # QT-additional simulation ###
+        output$plotQTd <- renderPlot({
+          withProgress(message = "Generating change from baseline QTcF plot...", value = NULL, {
+            QTd_plots(input, sim_QTtable) 
+            })
+        })
+ 
         
         # Show a centered success message
         showNotification(

@@ -56,8 +56,8 @@ a1 <- ggplot(dfForPlotBDQ, aes(x = time / 168, y = median,
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.3, colour = NA) +
   geom_line(size = 1) +
   theme_bw() +
-  labs(x = "Time (weeks)", y = c("BDQ concentration (ng/mL)")) +
-  ggtitle("BDQ Concentration (ng/mL) vs Time") +
+  labs(x = "Time after start of treatment (weeks)", y = c("Bedaquiline concentration (ng/mL)")) +
+  ggtitle("Bedaquiline Concentration (ng/mL)") +
   (if (input$PK_log == "Log scale") scale_y_log10(limits = c(100, 10000)) else coord_cartesian(ylim = c(0, ylimitsBDQ))) +
   coord_cartesian(xlim = c(0, input$simtime)) +
   scale_x_continuous(breaks = xbreaks) +
@@ -80,8 +80,8 @@ a2 <- ggplot(dfForPlotM2, aes(x = time / 168, y = median,
   geom_ribbon(aes(ymin = lower, ymax = upper, fill = as.factor(regimen)), alpha = 0.3, colour = NA) +
   geom_line(size = 1) +
   theme_bw() +
-  labs(x = "Time (weeks)", y = c("M2 concentration (ng/mL)")) +
-  ggtitle("M2 Concentration (ng/mL) vs Time") +
+  labs(x = "Time after start of treatment (weeks)", y = c("M2 concentration (ng/mL)")) +
+  ggtitle("M2 Concentration (ng/mL)") +
   (if (input$PK_log == "Log scale") scale_y_log10(limits = c(10, 1000)) else coord_cartesian(ylim = c(0, ylimitsM2))) +
   coord_cartesian(xlim = c(0, input$simtime)) +
   scale_x_continuous(breaks = xbreaks) +

@@ -58,6 +58,13 @@ mainTabResults <- tabPanel(
       padding: 0 !important;
     }
     
+    /* Only affects plots inside the QT card */
+    #qt-card .shiny-plot-output {
+      height: 580px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
     /* Target only regimen boxes content */
     #regimen_boxes {
       padding: 0 !important;
@@ -190,9 +197,31 @@ mainTabResults <- tabPanel(
         ),
         # Third card with custom background color and styled card header/body
         card(
-          card_header("Safety (QT)", style = "font-size: 20px; background-color: #CDD8DA;"),  # Using card_header for the title
-          card_body(#tableOutput("sim_QTtable"),
-                    plotOutput("plotQT")
+          id = "qt-card",
+          card_header(
+            class = "d-flex",
+            style = "background-color: #CDD8DA;",
+            div("Safety (QTcF Interval)", 
+                class = "me-auto p-0", 
+                style = "font-size: 20px;"),
+            div(
+              class = "pe-2 header-radio", 
+              style = "font-size: 14px;",
+              radioButtons("QTplot_radio", 
+                           label = NULL, 
+                           choices = c("QTcF", "Change from baseline QTcF"), 
+                           inline = TRUE)
+            )
+          ),
+          card_body(
+            conditionalPanel(
+              condition = "input.QTplot_radio == 'QTcF'",
+              plotOutput("plotQT")
+            ),
+            conditionalPanel(
+              condition = "input.QTplot_radio == 'Change from baseline QTcF'",
+              plotOutput("plotQTd")
+            )
           )
         ),
         # Fourth card with custom background color and styled card header/body
