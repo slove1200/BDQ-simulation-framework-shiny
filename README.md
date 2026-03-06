@@ -30,7 +30,7 @@ Contains the R scripts that handle the computational backend of the application:
 
 ### BDQ_UI
 Contains the Shiny UI components and server logic:
-- Main server script (`BDQ_Shiny_UI_Server.R`)
+- Main server script (`app.R`)
 - UI modules for different sections of the application including:
 
   - User manual
@@ -109,9 +109,10 @@ Contains the Shiny UI components and server logic:
 ### Running the Application
 1. Open the script in RStudio:
    - Open RStudio
+   - Set your working directory to the folder where you cloned the repository
    - Select File > Open file
-   - Navigate to the cloned repository and open the `BDQ_Shiny_UI_Server.R` file
-   - Run the scripts in `BDQ_Shiny_UI_Server.R` to launch the Shiny application
+   - Navigate to the cloned repository and open the `app.R` file
+   - Run the scripts in `app.R` to launch the Shiny application
 
 2. The application should open in your default web browser. If it doesn't, navigate to the URL displayed in the R console (typically http://127.0.0.1:xxxx).
 
