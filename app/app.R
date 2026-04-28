@@ -1378,50 +1378,64 @@ observeEvent(list(input$PK_log, input$PKplot_radio), {
 
     ###################### DOWNLOAD CODE HANDLER ######################
     output$download_code <- downloadHandler(
-        filename = function() {
-            "BDQ_Shiny_App_Source_Code.zip"
-        },
-        content = function(file) {
-            # Create a temporary directory
-            temp_dir <- tempdir()
-            
-            # Define valid PNG file patterns (add more patterns as needed)
-            png_patterns <- "^HLEFF.*\\.png$"
-            
-            # List of files to include in the zip
-            files_to_zip <- c(
-                # UI Components - R, CSV, TXT files
-                list.files(UI.directory, pattern = "\\.(R|csv|txt)$", full.names = TRUE),
-                # UI Components - specific PNG files
-                list.files(UI.directory, pattern = png_patterns, full.names = TRUE),
-                
-                # Server Components - R, CSV, TXT files
-                list.files(Server.directory, pattern = "\\.(R|csv|txt)$", full.names = TRUE),
-                # Server Components - specific PNG files
-                list.files(Server.directory, pattern = png_patterns, full.names = TRUE)
-            )
-            
-            # Create directories in temp folder
-            dir.create(file.path(temp_dir, "BDQ_UI"), recursive = TRUE, showWarnings = FALSE)
-            dir.create(file.path(temp_dir, "BDQ_Server"), recursive = TRUE, showWarnings = FALSE)
-            
-            # Copy files
-            for(f in files_to_zip) {
-                if(file.exists(f)) {  # Only copy if file exists
-                    if(grepl("BDQ_UI", f)) {
-                        file.copy(f, file.path(temp_dir, "BDQ_UI", basename(f)), overwrite = TRUE)
-                    } else {
-                        file.copy(f, file.path(temp_dir, "BDQ_Server", basename(f)), overwrite = TRUE)
-                    }
-                }
-            }
-            
-            # Create zip file - use same patterns for final zip creation
-            zip::zipr(file, files = c(
-                list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = "\\.(R|csv|txt)$"),
-                list.files(temp_dir, recursive = TRUE, full.names = TRUE, pattern = png_patterns)
-            ))
+      filename = function() {
+        "BDQ_Shiny_App_Source_Code.zip"
+      },
+      content = function(file) {
+        # Create a clean, isolated temporary staging directory for zipping
+        temp_staging_dir <- file.path(tempdir(), "BDQ_App_Staging")
+        
+        # Remove it if it exists from a previous run to avoid cross-contamination
+        if (dir.exists(temp_staging_dir)) {
+          unlink(temp_staging_dir, recursive = TRUE)
         }
+        dir.create(temp_staging_dir)
+        
+        # Recreate the correct directory structure inside the staging area
+        dir.create(file.path(temp_staging_dir, "BDQ_UI"), showWarnings = FALSE)
+        dir.create(file.path(temp_staging_dir, "BDQ_server"), showWarnings = FALSE)
+        
+        # Copy the main app.R file to the root of the staging directory
+        if (file.exists("app.R")) {
+          file.copy("app.R", file.path(temp_staging_dir, "app.R"), overwrite = TRUE)
+        }
+        
+        # Define valid PNG file patterns
+        png_patterns <- "^HLEFF.*\\.png$"
+        
+        # Helper function to gather and copy filtered files for a given directory
+        copy_filtered_files <- function(source_dir, target_dir_name) {
+          if (dir.exists(source_dir)) {
+            # List desired file types based on your specified patterns
+            text_files <- list.files(source_dir, pattern = "\\.(R|csv|txt)$", full.names = TRUE)
+            png_files <- list.files(source_dir, pattern = png_patterns, full.names = TRUE)
+            all_files <- c(text_files, png_files)
+            
+            # Copy matching files to their respective subdirectory in the staging area
+            for (f in all_files) {
+              if (file.exists(f)) {
+                file.copy(f, file.path(temp_staging_dir, target_dir_name, basename(f)), overwrite = TRUE)
+              }
+            }
+          }
+        }
+        
+        # Apply the filtering and copying for both UI and server directories
+        # Using your predefined variables UI.directory and Server.directory for sources
+        copy_filtered_files(UI.directory, "BDQ_UI")
+        copy_filtered_files(Server.directory, "BDQ_server")
+        
+        # Store current working directory to restore it safely upon exit
+        old_wd <- getwd()
+        on.exit(setwd(old_wd))
+        
+        # Change working directory to the staging area 
+        # This is critical so zip::zipr maps the relative paths correctly inside the .zip
+        setwd(temp_staging_dir)
+        
+        # Zip the contents, capturing app.R and the structured folders dynamically
+        zip::zipr(zipfile = file, files = list.files(all.files = TRUE, no.. = TRUE))
+      }
     )
 }
 
