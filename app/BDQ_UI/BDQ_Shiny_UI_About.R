@@ -71,7 +71,7 @@ mainTabAbout <- tabPanel(
                                             tags$ul(
                                                 tags$li("Dose amount (mg)"),
                                                 tags$li("Duration (days or weeks)"),
-                                                tags$li("Frequency (twice daily, once daily, three times weekly, once weekly)")
+                                                tags$li("Frequency (twice daily, once daily, three times weekly, once weekly, once monthly)")
                                             )
                                         ), 
                                         tags$li(
@@ -320,48 +320,29 @@ mainTabAbout <- tabPanel(
                     card_header("Source Code", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
                         downloadButton("download_code", "Download Source Code and Files Needed"),
-                        tags$span(tags$strong("Included Files:", style = "font-size: 14px;")),
-                        tags$ul(style = "font-size: 14px; margin-left: 0; padding-left: 20px;line-height: 1.9;",
-                            tags$li("UI Components:", 
-                                tags$ul(
-                                    tags$li("BDQ_Shiny_UI_Dosing.R"),
-                                    tags$li("BDQ_Shiny_UI_Population.R"),
-                                    tags$li("BDQ_Shiny_UI_Simulation.R"),
-                                    tags$li("BDQ_Shiny_UI_Results.R"),
-                                    tags$li("BDQ_Shiny_UI_About.R"), 
-                                    tags$li("BDQ_Shiny_UI_TTPsim.R")
-                                )
-                            ),
-                            tags$li("Server Components:", 
-                                tags$ul(
-                                    tags$li("Model Files (BDQOMAT.R, BDQTTP.R, etc.)"),
-                                    tags$li("Server Functions (BDQ_Server_*.R)"),
-                                    tags$li("Plotting Functions"),
-                                    tags$li("Summary Functions"),
-                                    tags$li("Extra TTP Simulation Function")
-                                )
-                            ), 
-                            tags$li("Dataset/File Components:", 
-                                    tags$ul(
-                                      tags$li("Virtual Population Template.csv File"),
-                                      tags$li("Simulated Virtual Population.csv File"), 
-                                      tags$li("Specification of Dataset Output.txt Files")
-                                    )
-                            )
+                        tags$span(
+                            tags$strong("All files needed to run the program locally are provided in the zipped file with the correct directory structure."), 
+                            "The provided zipped file is from the latest git repo (up to April 2026). The latest version can always be found in GitHub.", 
+                            style = "font-size: 14px;")
                         )
-                    )
-                ),
+                    ),
                 card(
                     card_header("Instructions", style = "font-size: 20px; background-color: #CDD8DA;"),
                     card_body(
-                        tags$span(tags$strong("Download all necessary source code files to run the Shiny app locally.", 
-                                 style = "font-size: 14px;")),
+                        tags$span("Download all necessary source code files to run the Shiny app locally.", 
+                                 style = "font-size: 14px"),
                         div(style = "font-size: 14px; padding-left: 5px; line-height: 1.9;",
                             tags$div(style = "margin-left: 0;", tags$strong("Step 1: "), "Download the zip file containing all source code and files needed"),
-                            tags$div(style = "margin-left: 0;", tags$strong("Step 2: "), "Extract the contents to your desired directory"),
-                            tags$div(style = "margin-left: 0;", tags$strong("Step 3: "), "Update the directory paths in the main server file"),
-                            tags$div(style = "margin-left: 0;", tags$strong("Step 4: "), "Install required R packages"),
-                            tags$div(style = "margin-left: 0;", tags$strong("Step 5: "), "Run the app using runApp()")
+                            tags$div(style = "margin-left: 0;", tags$strong("Step 2: "), "Open app.R file"),
+                            tags$div(style = "margin-left: 0;", tags$strong("Step 3: "), "Install required R packages"), 
+                            tags$div(style = "margin-left: 0;", tags$strong("Step 4: "), "Click RunApp or run the whole script of app.R")),
+
+                        tags$span("For questions, feedback, or collaboration inquiries:", style = "font-size: 14px;"),
+                        div(style = "font-size: 14px; padding-left: 5px; line-height: 1.9;",
+                            tags$div(style = "margin-left: 0;", tags$strong("Developer: "), "Yu-Jou Lin"),
+                            tags$div(style = "margin-left: 0;", tags$strong("Email: "), tags$a(href = "mailto:yu-jou.lin@uu.se", "yu-jou.lin@uu.se")),
+                            tags$div(style = "margin-left: 0;", tags$strong("Institution: "), "Department of Pharmacy, Uppsala University, Sweden"),
+                            tags$div(style = "margin-left: 0;", tags$strong("GitHub: "), tags$a(href = "https://github.com/slove1200/BDQ-simulation-framework-shiny", "https://github.com/slove1200/BDQ-simulation-framework-shiny", target = "_blank"))
                         )
                     )
                 ),
