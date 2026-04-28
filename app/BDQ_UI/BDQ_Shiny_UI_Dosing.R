@@ -20,7 +20,7 @@ doseControls <- function(regimen_num) {
         ),
         tags$div(
           style = "margin-top: 1rem;",
-          selectInput(paste0("lfreq_", regimen_num), label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+          selectInput(paste0("lfreq_", regimen_num), label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Once daily")
         )
       ),
       br(),
@@ -39,7 +39,7 @@ doseControls <- function(regimen_num) {
       ),
       tags$div(
         style = "margin-top: 1rem;",
-        selectInput(paste0("mfreq_", regimen_num), label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Three times weekly")
+        selectInput(paste0("mfreq_", regimen_num), label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Three times weekly")
       ), 
       br(),
       br(),
@@ -62,7 +62,7 @@ doseControls <- function(regimen_num) {
         ),
         tags$div(
           style = "margin-top: 1rem;",
-          selectInput(paste0("m2freq_", regimen_num), label = "Maintenance dose 2 frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+          selectInput(paste0("m2freq_", regimen_num), label = "Maintenance dose 2 frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Once daily")
         )
       )
     )
@@ -105,7 +105,7 @@ interruptionControls <- function(regimen_num) {
         ),
         tags$div(
           style = "margin-top: 1rem;",
-          selectInput(paste0("restart_lfreq_", regimen_num), label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+          selectInput(paste0("restart_lfreq_", regimen_num), label = "Loading dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Once daily")
         )
       ),
       br(),
@@ -124,7 +124,7 @@ interruptionControls <- function(regimen_num) {
       ),
       tags$div(
         style = "margin-top: 1rem;",
-        selectInput(paste0("restart_mfreq_", regimen_num), label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+        selectInput(paste0("restart_mfreq_", regimen_num), label = "Maintenance dose frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Once daily")
       ),
       br(),
       tags$div(
@@ -149,7 +149,7 @@ interruptionControls <- function(regimen_num) {
         ),
         tags$div(
           style = "margin-top: 1rem;",
-          selectInput(paste0("restart_m2freq_", regimen_num), label = "Maintenance dose 2 frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly"), selected = "Once daily")
+          selectInput(paste0("restart_m2freq_", regimen_num), label = "Maintenance dose 2 frequency", c("Twice daily", "Once daily", "Three times weekly", "Once weekly", "Once monthly"), selected = "Once daily")
         )
       )
     )

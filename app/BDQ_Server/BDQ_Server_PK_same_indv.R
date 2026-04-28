@@ -8,22 +8,33 @@ convertTimeUnit <- function(val) {
 }
 
 defineEventVariable <- function(dur, unit, val) {
+  total_hours <- dur * unit 
+  
   if (val == "Twice daily") {
     ii <<- 12
     dosingtime <<- 0
-    addl <<- (dur * unit / 24) * 2 - 1
+    addl <<- max(0, ceiling(total_hours / 12) - 1)
+    
   } else if (val == "Once daily") {
     ii <<- 24
     dosingtime <<- 0
-    addl <<- (dur * unit / 24) * 1 - 1
+    addl <<- max(0, ceiling(total_hours / 24) - 1)
+    
   } else if (val == "Three times weekly") {
     ii <<- 168
     dosingtime <<- c(0, 48, 96)
-    addl <<- dur * unit / 168 - 1
-  } else {
+    # The interval here applies to the whole block of 3 doses
+    addl <<- max(0, ceiling(total_hours / 168) - 1)
+    
+  } else if (val == "Once weekly") {
     ii <<- 168
     dosingtime <<- 0
-    addl <<- dur * unit / 168 - 1
+    addl <<- max(0, ceiling(total_hours / 168) - 1)
+    
+  } else if (val == "Once monthly"){
+    ii <<- 672
+    dosingtime <<- 0
+    addl <<- max(0, ceiling(total_hours / 672) - 1)
   }
 }
 
