@@ -581,19 +581,49 @@ server <- function(input, output, session) {
         incProgress(0.12, detail = "Running QT simulation...")
         sim_QTtable <- sim_QT(input, sim_PKtable)
         
+        # Evaluate condition to bypass TTP and MSM simulations based on UI inputs
+        # Checking if interrupt is true or if any frequency input is Once weekly or Once monthly
+        skip_ttp_msm <- FALSE
+        for (i in 1:3) {
+          # Check if the regimen is active (Regimen 1 is always active)
+          is_active <- if(i == 1) TRUE else isTRUE(input[[paste0("RG", i)]])
+          
+          if (is_active) {
+            # Gather all frequency inputs for the current regimen
+            freq_inputs <- c(
+              input[[paste0("lfreq_", i)]], 
+              input[[paste0("mfreq_", i)]], 
+              input[[paste0("m2freq_", i)]],
+              input[[paste0("restart_lfreq_", i)]], 
+              input[[paste0("restart_mfreq_", i)]], 
+              input[[paste0("restart_m2freq_", i)]]
+            )
+            
+            # Determine if the skip conditions are met
+            if (isTRUE(input[[paste0("interrupt_", i)]]) || any(freq_inputs %in% c("Once weekly", "Once monthly"))) {
+              skip_ttp_msm <- TRUE
+              break # Exit loop early if any condition is met
+            }
+          }
+        }
+        
         # TTP simulation
         incProgress(0.12, detail = "Running TTP simulation...")
-        sim_TTPtable <- sim_TTP(input, sim_PKtable, virtual_population_df)
-        simData$sim_TTPtable <- sim_TTPtable
+        if (!skip_ttp_msm) {
+          sim_TTPtable <- sim_TTP(input, sim_PKtable, virtual_population_df)
+          simData$sim_TTPtable <- sim_TTPtable
+        }
 
         # MSM simulation
         incProgress(0.12, detail = "Running MSM simulation...")
-        if (input$population_radio == "Individual" | input$nsim == 1) {
-            sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
-        } else {
-            sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
+        if (!skip_ttp_msm) {
+          if (input$population_radio == "Individual" | input$nsim == 1) {
+              sim_MSMtable <- sim_MSMidv(input, sim_TTPtable, sim_PKtable)
+          } else {
+              sim_MSMtable <- sim_MSM(input, sim_TTPtable, sim_PKtable)
+          }
         }
-        
+          
         # Generate PK plots
         incProgress(0.12, detail = "Generating PK plots...")
         dfForPlotBDQ <- TypPK_data(input, sim_PKtable)[[1]]
@@ -614,24 +644,34 @@ server <- function(input, output, session) {
         
         # Generate TTP plots
         incProgress(0.12, detail = "Generating TTP plots...")
-        TTPplot <- TTP_plots(input, sim_TTPtable)  # Call the function from the sourced file      
-        output$plotTTP <- renderPlot({
-          TTPplot
-        })
+        if (!skip_ttp_msm) {
+          TTPplot <- TTP_plots(input, sim_TTPtable)  # Call the function from the sourced file      
+          output$plotTTP <- renderPlot({
+            TTPplot
+          })
+        } else {
+          # Disconnect TTP plot generation if condition is met
+          output$plotTTP <- renderPlot({ NULL }) 
+        }
   
         # Generate MSM plots
         incProgress(0.12, detail = "Generating MSM plots...")
-        if (input$population_radio == "Individual" | input$nsim == 1) {
-          MSMidvplot <- MSMidv_plots(input, sim_MSMtable)
-          output$plotMSM <- renderPlot({
-            MSMidvplot
-          })
-          } else {
-            MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
+        if (!skip_ttp_msm) {
+          if (input$population_radio == "Individual" | input$nsim == 1) {
+            MSMidvplot <- MSMidv_plots(input, sim_MSMtable)
             output$plotMSM <- renderPlot({
-              MSMplot
+              MSMidvplot
             })
-          }
+            } else {
+              MSMplot <- MSM_plots(input, sim_MSMtable)  # Call the function from the sourced file
+              output$plotMSM <- renderPlot({
+                MSMplot
+              })
+            }
+        } else {
+          # Disconnect MSM plot generation if condition is met
+          output$plotMSM <- renderPlot({ NULL })
+        }
         
         # PK-additional simulation ####
         # Render combined PK-additional plot
@@ -1269,13 +1309,64 @@ observeEvent(list(input$PK_log, input$PKplot_radio), {
             max(durations, na.rm = TRUE)
         }
         
-        # Add a reactive expression or directly in your server logic
+        # Define a reactive flag to centralize the condition check for skipping TTP/MSM
+        skip_ttp_msm_flag <- reactive({
+          skip <- FALSE
+          for (i in 1:3) {
+            # Regimen 1 is always active; check inputs for Regimen 2 and 3
+            is_active <- if(i == 1) TRUE else isTRUE(input[[paste0("RG", i)]])
+            
+            if (is_active) {
+              # Gather all frequency inputs for the current regimen
+              freq_inputs <- c(
+                input[[paste0("lfreq_", i)]], 
+                input[[paste0("mfreq_", i)]], 
+                input[[paste0("m2freq_", i)]],
+                input[[paste0("restart_lfreq_", i)]], 
+                input[[paste0("restart_mfreq_", i)]], 
+                input[[paste0("restart_m2freq_", i)]]
+              )
+              
+              # Determine if conditions are met to trigger the warning
+              if (isTRUE(input[[paste0("interrupt_", i)]]) || any(freq_inputs %in% c("Once weekly", "Once monthly"))) {
+                skip <- TRUE
+                break 
+              }
+            }
+          }
+          return(skip)
+        })
+        
+        # Output for the TTP/MSM skip warning based on the reactive flag
+        output$skip_ttp_msm_warning_ttp <- renderText({
+          if (skip_ttp_msm_flag()) {
+            "TTP and MSM simulation are not supported under the selected regimen (with dose interruption or a once-weekly/once-monthly dosing frequency)."
+          } else {
+            NULL
+          }
+        })
+        
+        output$skip_ttp_msm_warning_msm <- renderText({
+          if (skip_ttp_msm_flag()) {
+            "TTP and MSM simulation are not supported under the selected regimen (with dose interruption or a once-weekly/once-monthly dosing frequency)."
+          } else {
+            NULL
+          }
+        })
+        
+        # Updated nonstandard duration warning to suppress itself if the skip flag is TRUE
         output$nonstandard_duration_warning <- renderText({
+          # Suppress this warning if the skip_ttp_msm_warning is showing
+          if (skip_ttp_msm_flag()) {
+            return(NULL)
+          }
+          
+          # Calculate if any duration is non-standard (assuming 'durations' is calculated in the same reactive scope)
           any_non_24 <- any(abs(durations - 24) > 0.01, na.rm = TRUE)
           
           if (any_non_24) {
             "The model was developed based on a standard 24-week bedaquiline regimen.
-             Predictions for long-term outcomes may be less reliable for other treatment durations."
+            Predictions for long-term outcomes may be less reliable for other treatment durations."
           } else {
             NULL
           }
