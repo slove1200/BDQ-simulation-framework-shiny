@@ -10,11 +10,11 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
     (if(input$MD2_1) input$m2dur_1 * ifelse(input$m2unit_1 == "2", 1, 1/7) else 0)
   
   reg2_dur <- (if(input$LD2) input$ldur_2 * ifelse(input$lunit_2 == "2", 1, 1/7) else 0) + 
-    (if(input$RG2) input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7) else 0) +
+    (input$mdur_2 * ifelse(input$munit_2 == "2", 1, 1/7)) +
     (if(input$MD2_2) input$m2dur_2 * ifelse(input$m2unit_2 == "2", 1, 1/7) else 0)
   
   reg3_dur <- (if(input$LD3) input$ldur_3 * ifelse(input$lunit_3 == "2", 1, 1/7) else 0) + 
-    (if(input$RG3) input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7) else 0) +
+    (input$mdur_3 * ifelse(input$munit_3 == "2", 1, 1/7)) +
     (if(input$MD2_3) input$m2dur_3 * ifelse(input$m2unit_3 == "2", 1, 1/7) else 0)
   
   durations <- c(reg1_dur, reg2_dur, reg3_dur)
@@ -24,7 +24,7 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   num_REPs <- input$REP
   
   # Retrieve information from simulated PK profiles
-  Cavg_weekly <- out %>%
+  Cavg_weekly <- sim_PKtable %>%
     filter(AMT == 0 & time %% 168 == 0) %>%
     mutate(
       WEEK = time / 168) %>%
