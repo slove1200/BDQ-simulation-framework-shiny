@@ -589,6 +589,17 @@ server <- function(input, output, session) {
           is_active <- if(i == 1) TRUE else isTRUE(input[[paste0("RG", i)]])
           
           if (is_active) {
+            # Calculate individual regimen duration in weeks (Unit "2" is weeks, otherwise convert days to weeks by multiplying by 1/7)
+            reg_dur <- (if(isTRUE(input[[paste0("LD", i)]])) input[[paste0("ldur_", i)]] * ifelse(input[[paste0("lunit_", i)]] == "2", 1, 1/7) else 0) + 
+              (input[[paste0("mdur_", i)]] * ifelse(input[[paste0("munit_", i)]] == "2", 1, 1/7)) +
+              (if(isTRUE(input[[paste0("MD2_", i)]])) input[[paste0("m2dur_", i)]] * ifelse(input[[paste0("m2unit_", i)]] == "2", 1, 1/7) else 0)
+            
+            # Return skip_ttp_msm as TRUE if the current active regimen duration is less than 1 week
+            if (reg_dur < 1) {
+              skip_ttp_msm <- TRUE
+              break
+            }
+            
             # Gather all frequency inputs for the current regimen
             freq_inputs <- c(
               input[[paste0("lfreq_", i)]], 
@@ -1317,6 +1328,18 @@ observeEvent(list(input$PK_log, input$PKplot_radio), {
             is_active <- if(i == 1) TRUE else isTRUE(input[[paste0("RG", i)]])
             
             if (is_active) {
+              
+              # Calculate individual regimen duration in weeks (Unit "2" is weeks, otherwise convert days to weeks by multiplying by 1/7)
+              reg_dur <- (if(isTRUE(input[[paste0("LD", i)]])) input[[paste0("ldur_", i)]] * ifelse(input[[paste0("lunit_", i)]] == "2", 1, 1/7) else 0) + 
+                (input[[paste0("mdur_", i)]] * ifelse(input[[paste0("munit_", i)]] == "2", 1, 1/7)) +
+                (if(isTRUE(input[[paste0("MD2_", i)]])) input[[paste0("m2dur_", i)]] * ifelse(input[[paste0("m2unit_", i)]] == "2", 1, 1/7) else 0)
+              
+              # Return skip as TRUE if the current active regimen duration is less than 1 week
+              if (reg_dur < 1) {
+                skip <- TRUE
+                break
+              }
+              
               # Gather all frequency inputs for the current regimen
               freq_inputs <- c(
                 input[[paste0("lfreq_", i)]], 

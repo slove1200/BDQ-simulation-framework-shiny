@@ -27,19 +27,12 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   Cavg_weekly <- out %>%
     filter(AMT == 0 & time %% 168 == 0) %>%
     mutate(
-      WEEK = time / 168,
-      # Map the correct duration scalar to each row based on its regimen
-      current_dur = case_when(
-        regimen == 1 ~ reg1_dur,
-        regimen == 2 ~ reg2_dur,
-        regimen == 3 ~ reg3_dur,
-        TRUE ~ 0 # Fallback
-      )
-    ) %>%
-    # Evaluate the filter condition: WEEK <= 1 (if dur < 1) or WEEK <= dur (if dur >= 1)
-    filter(WEEK <= pmax(1, current_dur)) %>%
-    # Drop the temporary duration column to keep the dataset clean
-    select(-current_dur)
+      WEEK = time / 168) %>%
+    filter(
+      (regimen == 1 & WEEK <= reg1_dur) |
+        (regimen == 2 & WEEK <= reg2_dur) |
+        (regimen == 3 & WEEK <= reg3_dur)
+    )
   
   # Subset relevant columns
   Cavg_weekly <- Cavg_weekly %>% select(ID, time, regimen, WEEK, AAUCBDQ, AAUCM2)
@@ -85,20 +78,9 @@ sim_TTP <- function(input, sim_PKtable, virtual_population_df) {
   
   TTPdf <- TTPdf %>%
     mutate(
-      regimen = (ID - 1) %/% nsamples + 1,
-      # Map the correct duration scalar to each row based on its regimen
-      current_dur = case_when(
-        regimen == 1 ~ reg1_dur,
-        regimen == 2 ~ reg2_dur,
-        regimen == 3 ~ reg3_dur,
-        TRUE ~ 0 # Fallback 
-      )
-    ) %>%
-    # Evaluate the filter condition: WEEKP <= 1 (if dur < 1) or WEEKP <= dur (if dur >= 1)
-    filter(WEEKP <= pmax(1, current_dur)) %>%
-    # Drop the temporary duration column to keep the dataset tidy
-    select(-current_dur) %>%
-    mutate(TIME = seq_along(TTPD) - 1)
+      regimen = (ID - 1) %/% nsamples + 1) %>%
+    filter(WEEKP <= ifelse(regimen == 1, reg1_dur, ifelse(regimen == 2, reg2_dur, reg3_dur))) %>%
+    mutate(TIME = seq_along(TTPD) - 1) # dummy time column
   
   TTPdf2 <- TTPdf %>% filter(TTPD == 0) %>% mutate(FLAG = 2, TIME = NA)
   
