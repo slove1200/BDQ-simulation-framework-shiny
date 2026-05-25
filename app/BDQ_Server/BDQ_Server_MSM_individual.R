@@ -41,7 +41,7 @@ sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
       (regimen == 3 & WEEKP %in% c(1, 2, floor(reg3_dur)))
     ) %>%
     group_by(ID) %>%
-    mutate(MBLend = ifelse(dur < 1, first(MBL[WEEKP == 1]), first(MBL[WEEKP == floor(dur)])))
+    mutate(MBLend = first(MBL[WEEKP == floor(dur)]))
   
   # Create a copy of the rows where WEEKP = 1
   new_rows <- HLMBL %>% group_by(ID) %>%
@@ -83,7 +83,7 @@ sim_MSMidv <- function(input, sim_TTPtable, sim_PKtable) {
   
   idata <- dfCov
   data.all2 <- merge(data.dose2, idata, by = "ID") %>% left_join(TTPcov, by = c("ID", "time")) %>%
-    group_by(ID) %>% zoo::na.locf(na.rm = FALSE)
+    group_by(ID) %>% zoo::na.locf()
 
   modMSM <- mcode("BDQMSM", BDQMSM)
   modMSM <- update(modMSM, outvars = outvars(modMSM)$capture)
